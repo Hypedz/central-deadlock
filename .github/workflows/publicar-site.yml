@@ -1,0 +1,47 @@
+name: Publicar o site
+
+# Coloca o site no ar em https://hypedz.github.io/central-deadlock/
+#
+# IMPORTANTE: este robo tambem LIGA o GitHub Pages sozinho, na primeira vez.
+# Voce nao precisa mexer em nenhuma tela de configuracao.
+#
+# Roda a cada envio na branch main e tambem pode ser rodado na mao:
+# aba "Actions" > "Publicar o site" > "Run workflow".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.implantar.outputs.page_url }}
+    steps:
+      - name: Baixar o site
+        uses: actions/checkout@v4
+
+      - name: Preparar o GitHub Pages (liga sozinho, se estiver desligado)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Empacotar o site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Colocar no ar
+        id: implantar
+        uses: actions/deploy-pages@v4
