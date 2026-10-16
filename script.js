@@ -275,8 +275,7 @@ function initToTop() {
 /* ================= compartilhamento (og:image) ================= */
 function fixShareMeta() {
     // quando o site estiver publicado (http/https), aponta as URLs de
-    // compartilhamento para o endereço real, mesmo que o index.html ainda
-    // esteja com o texto "SEU-USUARIO".
+    // compartilhamento para o endereço real, seja qual for o domínio.
     if (!/^https?:/.test(location.protocol)) return;
     const base = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '');
     const trocar = (sel, valor) => { const m = document.querySelector(sel); if (m) m.setAttribute('content', valor); };
