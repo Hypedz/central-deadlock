@@ -1,8 +1,8 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 16/10/2026 as 20:00 */
+   Ultima atualizacao: 16/10/2026 as 23:38 */
 window.STEAM_NEWS = {
- "updated": "16/10/2026 as 20:00",
+ "updated": "16/10/2026 as 23:38",
  "count": 11,
  "items": [
   {
