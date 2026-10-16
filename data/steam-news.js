@@ -1,10 +1,25 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 16/10/2026 as 17:05 */
+   Ultima atualizacao: 16/10/2026 as 18:02 */
 window.STEAM_NEWS = {
- "updated": "16/10/2026 as 17:05",
- "count": 10,
+ "updated": "16/10/2026 as 18:02",
+ "count": 11,
  "items": [
+  {
+   "id": "s1846651706683085",
+   "title": "Paint the Town",
+   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706683085",
+   "ts": 1792184407,
+   "date": "16 out 2026",
+   "cat": "Steam",
+   "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/8c5131174ced00e11e346cc1c3cb4d7c69013370.png",
+   "desc": "Brush in hand, Violet approaches the ritual with the same precision she does her art, wielding Living Ink that both empowers her bullets, and draws mere inspiration into reality. When enteri...",
+   "lines": [
+    "Brush in hand, Violet approaches the ritual with the same precision she does her art, wielding Living Ink that both empowers her bullets, and draws mere inspiration into reality. When entering Flow State , her ink glides easily, weaving towards danger to deal damage, or away from it to make a quick...",
+    "Violet is available in-game now! Which means that our final hero - Nurse Harrow - will be joining us Next Tuesday October 20th at 2pm PDT . We want to thank everyone for participating in voting once again, and we'll see you next week for the culmination of our City Never Sleeps update. Have a good w..."
+   ]
+  },
   {
    "id": "s1846651706676198",
    "title": "Minor Update - 10-14-2026",
@@ -13,6 +28,7 @@ window.STEAM_NEWS = {
    "date": "15 out 2026",
    "cat": "Patch Notes",
    "patch": true,
+   "image": "",
    "desc": "Radiant Regeneration: Spirit scaling reduced from 0.04 to 0.035 Baba: Spirit Resistance scaling reduced from 0.12 to 0.1 Baba: Now has -7% Base Bullet Resistance Baba: Threadsap - Spirit red...",
    "lines": [
     "Radiant Regeneration: Spirit scaling reduced from 0.04 to 0.035",
@@ -52,6 +68,7 @@ window.STEAM_NEWS = {
    "date": "13 out 2026",
    "cat": "Steam",
    "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/02829fc9750a193799ea05d6e0ab0ef78b0cffa0.png",
    "desc": "Today, Fairfax Industries is proud to introduce their most valuable salesman: Deadman Danny. Wielding a rocket launcher and flying high above the streets of New York (courtesy of the Chimera...",
    "lines": [
     "Today, Fairfax Industries is proud to introduce their most valuable salesman: Deadman Danny. Wielding a rocket launcher and flying high above the streets of New York (courtesy of the Chimera Mk1 - the latest and greatest in self-adhered aviation technology), Danny rains his Strix Salvo missiles down...",
@@ -66,6 +83,7 @@ window.STEAM_NEWS = {
    "date": "09 out 2026",
    "cat": "Steam",
    "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/23db53380c461b7f978c620d5607f9b23271e10c.png",
    "desc": "Solomon remains calm and collected when facing a new challenger, so when the Patrons come calling, he approaches the city as if it's one giant chessboard. With Setup Bishop he advances, plan...",
    "lines": [
     "Solomon remains calm and collected when facing a new challenger, so when the Patrons come calling, he approaches the city as if it's one giant chessboard. With Setup Bishop he advances, planting his loyal damage dealers ahead of him and sliding them across the streets with ease. Kingside Knight come...",
@@ -80,6 +98,7 @@ window.STEAM_NEWS = {
    "date": "06 out 2026",
    "cat": "Steam",
    "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/720ba4e0f1b1ed105708f7b15cdfc7ad95bfdb30.png",
    "desc": "It was a close contest, but today we find New York's notorious pigeon lady leaving her favorite perch in Central Park and joining the fight on the city streets. Tourists in the park might no...",
    "lines": [
     "It was a close contest, but today we find New York's notorious pigeon lady leaving her favorite perch in Central Park and joining the fight on the city streets.",
@@ -96,6 +115,7 @@ window.STEAM_NEWS = {
    "date": "05 out 2026",
    "cat": "Patch Notes",
    "patch": true,
+   "image": "",
    "desc": "Fixed bugs that were causing troopers to walk too slowly in lane - Rat King: Scrap Grenade - Fixed some bugs with bouncing targeting - Rat King: Scrap Grenade - Damage increased from 65 to 7...",
    "lines": [
     "Fixed bugs that were causing troopers to walk too slowly in lane - Rat King: Scrap Grenade - Fixed some bugs with bouncing targeting - Rat King: Scrap Grenade - Damage increased from 65 to 70 - Rat King: Scrap Grenade - T2 Damage increased from 65 to 70 - Rat King: Rat Swarm - Base Cooldown reduced..."
@@ -109,6 +129,7 @@ window.STEAM_NEWS = {
    "date": "02 out 2026",
    "cat": "Steam",
    "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/40a0a47432b4e8c857d40152295f1551702c1012.png",
    "desc": "Scrap Grenade bouncing down Broadway, nor for his Swarm of Rats biting at their heels. By donning his Royal Pestments , the Rat King shakes off incoming damage, allowing him to bravely lead...",
    "lines": [
     "Scrap Grenade bouncing down Broadway, nor for his Swarm of Rats biting at their heels. By donning his Royal Pestments , the Rat King shakes off incoming damage, allowing him to bravely lead the charge into battle. His loyal subjects will feel awed and inspired when they see the great Banner of Ratan...",
@@ -123,6 +144,7 @@ window.STEAM_NEWS = {
    "date": "29 set 2026",
    "cat": "Steam",
    "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/4cb96ab54e327aefdcfeef87a67414bdf8f03c6f.png",
    "desc": "The Cursed Apple is ever changing, and these streets are nothing like you remember. A massive visual update to the map and neutrals, six new heroes, HUD updates, numerous quality-of-life add...",
    "lines": [
     "The Cursed Apple is ever changing, and these streets are nothing like you remember. A massive visual update to the map and neutrals, six new heroes, HUD updates, numerous quality-of-life additions, accessibility options, and more.",
@@ -141,6 +163,7 @@ window.STEAM_NEWS = {
    "date": "16 set 2026",
    "cat": "Patch Notes",
    "patch": true,
+   "image": "",
    "desc": "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first on...",
    "lines": [
     "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first one), with an upper limit of 40% at 30 minutes. - Removed a fixed amount of extra bonus souls you would get for..."
@@ -154,6 +177,7 @@ window.STEAM_NEWS = {
    "date": "22 ago 2026",
    "cat": "Patch Notes",
    "patch": true,
+   "image": "",
    "desc": "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste...",
    "lines": [
     "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste: Dazzling Trick T2 barrier rescaled from \"+80 and +0.7 scaling\" to \"+70 and +0.76\" - Celeste: Dazzling Trick..."
@@ -167,6 +191,7 @@ window.STEAM_NEWS = {
    "date": "12 ago 2026",
    "cat": "Patch Notes",
    "patch": true,
+   "image": "",
    "desc": "Apollo: Riposte melee resist reduction increased from -22% to -25% Apollo: Riposte T2 changed from \"-30% Melee Resist\" to \"-25% Melee Resist and +0.4s Stun Duration\" Apollo: Riposte T3 incre...",
    "lines": [
     "Apollo: Riposte melee resist reduction increased from -22% to -25%",

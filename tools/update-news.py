@@ -54,6 +54,22 @@ def limpar_html(texto):
     return t
 
 
+def imagem_url(bruto):
+    """Pega a primeira imagem da notícia (usada no Discord e nos cards)."""
+    texto = bruto or ""
+    achado = re.search(r"<img[^>]+src=\"([^\"]+)\"", texto, flags=re.I)
+    if not achado:
+        achado = re.search(r"\{STEAM_CLAN(?:_[A-Z]+)*_IMAGE\}([^\s\)\][]+)", texto)
+    if not achado:
+        return ""
+    url = achado.group(1).strip().strip("\"'")
+    if url.startswith("//"):
+        return "https:" + url
+    if not url.startswith("http"):
+        return "https://clan.cloudflare.steamstatic.com/images" + url
+    return url
+
+
 def em_linhas(texto):
     """Transforma o texto em uma lista de linhas limpas."""
     saida = []
@@ -114,6 +130,7 @@ def main():
             "date": "{:02d} {} {}".format(quando.day, MESES[quando.month - 1], quando.year),
             "cat": "Patch Notes" if patch else "Steam",
             "patch": patch,
+            "image": imagem_url(n.get("contents")),
             "desc": resumo,
             "lines": linhas,
         })

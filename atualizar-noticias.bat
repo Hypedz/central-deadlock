@@ -20,4 +20,15 @@ if errorlevel 1 (
 
 python "tools\update-news.py"
 echo.
+
+if not exist "discord-webhook.txt" goto fim
+
+set /p POSTAR="Postar as novidades no Discord agora? (S/N): "
+if /i not "%POSTAR%"=="S" goto fim
+
+echo.
+python "tools\discord-post.py"
+
+:fim
+echo.
 pause

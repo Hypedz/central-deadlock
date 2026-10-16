@@ -6,6 +6,9 @@ desktop.ini
 .~*
 *.bak
 
+# Segredos — NUNCA publique estes arquivos
+discord-webhook.txt
+
 # Pastas de editor
 .vscode/
 .idea/

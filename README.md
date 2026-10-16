@@ -13,12 +13,16 @@ meu-fansite/
 ├── heroes-data.js           # Dados dos heróis (nomes, atributos, habilidades)
 ├── script.js
 ├── atualizar-noticias.bat   # 2 cliques aqui = busca as notícias do Steam
+├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
+├── discord-webhook.txt.exemplo # Modelo: copie para discord-webhook.txt
 ├── README.md
 ├── .github/workflows/       # Robô que atualiza as notícias todo dia (no GitHub)
 ├── data/
-│   └── steam-news.js        # Notícias do Steam — GERADO automaticamente
+│   ├── steam-news.js        # Notícias do Steam — GERADO automaticamente
+│   └── discord-posted.json  # O que o bot já postou (GERADO automaticamente)
 ├── tools/
 │   ├── update-news.py       # Script que baixa as notícias
+│   ├── discord-post.py      # Script que posta no Discord
 │   └── make-share.py        # Gera a imagem de compartilhamento
 └── assets/
     ├── brand/
@@ -105,6 +109,63 @@ As abas **Notícias** e **Patch Notes** puxam as publicações **oficiais do Dea
 > **Importante:** o arquivo `data/steam-news.js` é **gerado automaticamente** — não edite ele na mão, porque a próxima atualização apaga suas mudanças. Para editar notícias manualmente, use o bloco `NEWS` no `script.js` (ele é o plano B quando o arquivo do Steam não existe).
 >
 > Os textos oficiais da Valve são publicados **em inglês** — o site mostra o original e o botão "Ver no Steam" leva para a publicação completa.
+
+---
+
+## 🤖 Bot do Discord (postar notícias automaticamente)
+
+Esse bot pega as mesmas notícias do Steam e **posta num canal do seu servidor** — cada patch e cada novidade oficial, com o título, o resumo, a imagem e o link. Você não precisa fazer nada depois de configurar.
+
+### Como funciona (a parte técnica, em 3 linhas)
+
+Usamos um **webhook** do Discord. É um "endereço secreto" do canal: qualquer coisa que você mandar para lá aparece como mensagem. Ele já vem com **nome e foto próprios** (chamamos de "Central Deadlock"), então no canal ele aparece **igual a um bot normal** — só que **não precisa de programa rodando 24 horas**, nem de servidor, nem de convidar o bot. É de graça e funciona para sempre.
+
+### Passo a passo (só uma vez)
+
+1. No Discord, clique com o **botão direito no canal** que vai receber as notícias → **Editar canal**
+2. Vá em **Integrações** → **Webhooks** → **Novo webhook**
+3. Dê o nome **Central Deadlock** (e uma foto, se quiser) e clique em **Copiar URL do webhook**
+4. Crie um arquivo chamado **`discord-webhook.txt`** na pasta do site e cole a URL dentro dele (uma linha só):
+
+```
+https://discord.com/api/webhooks/123456789/AbCdEf...
+```
+
+> **Privacidade:** quem tiver essa URL pode postar no seu canal. Por isso ela fica no arquivo `discord-webhook.txt`, que está no `.gitignore` — **ela nunca vai para o GitHub**. Se vazar, basta apagar o webhook no Discord e criar outro.
+
+### Como usar
+
+- Dê **dois cliques** em `postar-no-discord.bat`, **ou**
+- Rode no terminal: `python tools/discord-post.py`
+
+| Comando | O que faz |
+|---|---|
+| `python tools/discord-post.py` | Posta o que ainda não foi postado (até 3 por vez) |
+| `python tools/discord-post.py --teste` | Manda uma mensagem de teste, para conferir se deu certo |
+| `python tools/discord-post.py --tudo` | Posta as 10 mais recentes de uma vez |
+| `python tools/discord-post.py --dry-run` | **Não envia nada** — só mostra o que seria postado |
+
+O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele nunca repete** a mesma notícia.
+
+### Avise um cargo quando sair patch (opcional)
+
+Quer que o bot marque o cargo **@Patch Notes** quando sair atualização? Na **segunda linha** do `discord-webhook.txt`, coloque o **ID do cargo** (ative o *Modo desenvolvedor* no Discord, clique com o botão direito no cargo → **Copiar ID do cargo**):
+
+```
+https://discord.com/api/webhooks/123456789/AbCdEf...
+987654321098765432
+```
+
+### Automático no GitHub (sem ligar o PC)
+
+Se o site estiver publicado pelo GitHub, o robô diário já posta sozinho. Para ligar:
+
+1. No repositório, vá em **Settings** → **Secrets and variables** → **Actions**
+2. Clique em **New repository secret**
+3. Nome: `DISCORD_WEBHOOK` — Valor: a URL do webhook
+4. (Opcional) Crie outro secret chamado `DISCORD_CARGO` com o ID do cargo
+
+Pronto! Todo dia às 9h (horário de Brasília), se sair novidade, ela aparece no seu Discord.
 
 ---
 

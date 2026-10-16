@@ -1,0 +1,20 @@
+# ==========================================================
+#  CENTRAL DEADLOCK -> DISCORD
+# ==========================================================
+# Cole AQUI a URL do webhook do seu canal do Discord.
+#
+# Como conseguir:
+#   1. No Discord, clique com o botao direito no canal
+#   2. Editar canal > Integracoes > Webhooks > Novo webhook
+#   3. Nome: Central Deadlock  >  Copiar URL do webhook
+#   4. Apague a linha de exemplo abaixo e cole a sua URL
+#
+# (Opcional) Segunda linha: o ID de um cargo para avisar
+# quando sair patch novo. Para pegar o ID, ative o "Modo
+# desenvolvedor" no Discord e clique com o botao direito no
+# cargo > "Copiar ID do cargo".
+#
+# Este arquivo NAO vai para o GitHub (esta no .gitignore).
+# ----------------------------------------------------------
+
+https://discord.com/api/webhooks/COLE_AQUI_A_SUA_URL
