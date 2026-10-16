@@ -14,11 +14,15 @@ meu-fansite/
 ├── script.js
 ├── atualizar-noticias.bat   # 2 cliques aqui = busca as notícias do Steam
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
+├── atualizar-tudo.bat       # 2 cliques = atualiza notícias + posta (sem perguntar)
 ├── README.md
-├── .github/workflows/       # Robô que atualiza as notícias todo dia (no GitHub)
+├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
+│   ├── publicar-site.yml    # Coloca o site no ar
+│   └── noticias.yml         # Notícias do Steam + Discord, todo dia
 ├── data/
 │   ├── steam-news.js        # Notícias do Steam — GERADO automaticamente
-│   └── discord-posted.json  # O que o bot já postou (GERADO automaticamente)
+│   ├── discord-posted.json  # O que o bot já postou (GERADO automaticamente)
+│   └── atualizacoes.log     # Registro das execuções automáticas (fora do Git)
 ├── tools/
 │   ├── update-news.py       # Script que baixa as notícias
 │   ├── discord-post.py      # Script que posta no Discord
@@ -283,27 +287,36 @@ git commit -m "descreva o que voce mudou"
 
 ## 🚀 Publicar o site (de graça)
 
-Depois de publicado, qualquer pessoa acessa por um **link de verdade**.
+O site **já está no ar**:
 
-### Jeito mais fácil: GitHub Desktop
+# 🎮 https://hypedz.github.io/central-deadlock/
 
-1. Crie uma conta em [github.com](https://github.com).
-2. Instale o [GitHub Desktop](https://desktop.github.com/) e faça login.
-3. **File → Add local repository** e escolha a pasta `meu-fansite` (ele já detecta o Git configurado).
-4. Clique em **Publish repository**, deixe **público** e confirme.
-5. No site do GitHub, abra o repositório e vá em **Settings → Pages**.
-6. Em *Branch*, escolha **main** e **/ (root)** → **Save**.
-7. Em 1 ou 2 minutos o site estará no ar em: `https://SEU-USUARIO.github.io/central-deadlock/`
+Ele fica no repositório [Hypedz/central-deadlock](https://github.com/Hypedz/central-deadlock), e o GitHub cuida de tudo — você **não precisa mexer em nenhuma tela de configuração**.
 
-### Alternativa: Netlify
+### Como funciona
 
-Arraste a pasta `meu-fansite` compactada em [app.netlify.com/drop](https://app.netlify.com/drop) — o site sobe na hora.
+| Robô (`.github/workflows/`) | Quando roda | O que faz |
+|---|---|---|
+| **`publicar-site.yml`** | A cada envio na branch `main` | Coloca o site no ar (ligou o GitHub Pages sozinho na primeira vez) |
+| **`noticias.yml`** | Todo dia às 09:00 (Brasília) | Busca as notícias no Steam, posta no Discord e republica o site |
 
-### ⚠️ Depois de publicar, faça esta troca
+### Para atualizar o site depois de mexer nos arquivos
 
-No `index.html`, procure por `SEU-USUARIO` (aparece **4 vezes**, nas linhas de compartilhamento) e troque pelo seu usuário do GitHub. Assim o cartão com imagem aparece quando alguém colar o link.
+```
+git add -A
+git commit -m "minha mudanca"
+git push
+```
 
-> **Bônus:** publicado no GitHub, o robô `.github/workflows/noticias.yml` atualiza as notícias do Steam **todo dia sozinho** — sem você fazer nada.
+Pronto — em **1 ou 2 minutos** o site publicado já mostra a mudança. (O `git push` também já ficou salvo, não pede login de novo.)
+
+### Para forçar uma republicação na hora
+
+Abra a aba **Actions** no GitHub → **Publicar o site** → **Run workflow**.
+
+### Se quiser usar outro hospedador
+
+Também dá para arrastar a pasta `meu-fansite` compactada em [app.netlify.com/drop](https://app.netlify.com/drop) — o site sobe na hora. Mas aí você perde as automações dos robôs.
 
 
 ---
