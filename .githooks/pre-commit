@@ -1,0 +1,15 @@
+#!/bin/sh
+# Trava de seguranca: roda antes de cada commit.
+#
+# Se alguma URL de webhook do Discord estiver escrita em um
+# arquivo que vai para o GitHub, o commit e bloqueado.
+#
+# (Se o Python nao estiver instalado, deixa passar.)
+
+if command -v python >/dev/null 2>&1; then
+    python tools/checar-segredos.py || exit 1
+elif command -v python3 >/dev/null 2>&1; then
+    python3 tools/checar-segredos.py || exit 1
+fi
+
+exit 0

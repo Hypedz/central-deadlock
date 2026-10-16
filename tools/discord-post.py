@@ -68,6 +68,56 @@ INSTRUCOES = """
 """
 
 
+MODELO = """# ==========================================================
+#  CENTRAL DEADLOCK -> DISCORD
+# ==========================================================
+# Cole as URLs dos webhooks dos seus canais (depois do =).
+#
+# Como conseguir uma URL:
+#   1. No Discord, clique com o botao direito no canal
+#   2. Editar canal > Integracoes > Webhooks > Novo webhook
+#   3. Nome: Central Deadlock  >  Copiar URL do webhook
+#
+# Cole a URL "pura", sem os sinais < > e sem aspas.
+# Este arquivo NAO vai para o GitHub (esta no .gitignore).
+# ----------------------------------------------------------
+
+# Patch notes vao para este canal (o mais importante):
+patches =
+
+# Noticias e novidades vao para este canal:
+noticias =
+
+# (Opcional) ID de um cargo para avisar quando sair patch novo:
+# cargo =
+
+# DICA: se preferir um canal so, use apenas uma das linhas.
+"""
+
+
+def criar_modelo():
+    """Cria o arquivo de configuracao quando ele ainda nao existe."""
+    try:
+        with open(ARQ_WEBHOOK, "w", encoding="utf-8") as arquivo:
+            arquivo.write(MODELO)
+        return True
+    except Exception:
+        return False
+
+
+def limpar_url(valor):
+    """Tira sujeira que vem junto na hora de colar: <URL>, "URL", espacos, barra no fim."""
+    v = (valor or "").strip()
+    for _ in range(3):
+        v = v.strip()
+        if len(v) >= 2 and v[0] in "<\"'([{" and v[-1] in ">\"')]}":
+            v = v[1:-1].strip()
+        else:
+            break
+    v = v.strip().rstrip("/")
+    return v
+
+
 def mascarar(url):
     """Mostra a URL sem expor o codigo secreto."""
     url = (url or "").strip()
@@ -79,8 +129,9 @@ def mascarar(url):
 def url_valida(url):
     """Confere se o texto e mesmo uma URL de webhook do Discord."""
     return bool(re.match(
-        r"^https://(ptb\.|canary\.)?discord(app)?\.com/api/webhooks/\d+/[\w-]{20,}$",
-        (url or "").strip()))
+        r"^https://(ptb\.|canary\.)?discord(app)?\.com/api/webhooks/\d+/[\w.\-]{20,}"
+        r"(?:\?.*)?$",
+        limpar_url(url)))
 
 
 def problemas_na_config(cfg):
@@ -88,13 +139,16 @@ def problemas_na_config(cfg):
     achados = []
     vistas = set()
     for chave, rotulo in (("patches", "patch notes"), ("noticias", "novidades")):
-        url = (cfg.get(chave) or "").strip()
+        url = limpar_url(cfg.get(chave) or "")
         if not url or url in vistas:
             continue
         vistas.add(url)
         if url_valida(url):
             continue
-        if re.search(r"COLE_AQUI|SEU_|SUA_|XXX|exemplo|placeholder", url, re.I):
+        if re.search(r"[<>]", url):
+            dica = ("tem um sinal de < ou > sobrando no meio da URL. "
+                    "Cole a URL pura, sem esses sinais.")
+        elif re.search(r"COLE_AQUI|SEU_|SUA_|XXX|exemplo|placeholder", url, re.I):
             dica = ("o texto de exemplo ainda esta no lugar da URL. "
                     "Copie a URL de verdade la no Discord.")
         elif "/api/webhooks/" not in url:
@@ -128,6 +182,10 @@ def carregar_config():
         "patches": (os.environ.get("DISCORD_WEBHOOK_PATCHES") or "").strip(),
         "cargo": (os.environ.get("DISCORD_CARGO") or "").strip(),
     }
+    # se o arquivo ainda nao existe, cria um modelo prontinho para preencher
+    if not os.path.exists(ARQ_WEBHOOK) and not (cfg["noticias"] or cfg["patches"]):
+        cfg["_criou_modelo"] = criar_modelo()
+
     if os.path.exists(ARQ_WEBHOOK):
         with open(ARQ_WEBHOOK, encoding="utf-8-sig") as arquivo:
             linhas = [l.strip() for l in arquivo
@@ -137,7 +195,7 @@ def carregar_config():
             if "=" in linha:
                 chave, valor = linha.split("=", 1)
                 chave = chave.strip().lower()
-                valor = valor.strip().strip('"').strip("'")
+                valor = limpar_url(valor)
                 if chave in ("url", "webhook", "noticias", "novidades"):
                     cfg["noticias"] = cfg["noticias"] or valor
                 elif chave in ("patch", "patches", "patch-notes", "patchnotes"):
@@ -149,9 +207,14 @@ def carregar_config():
         # formato simples (sem o sinal de =): URL e depois o cargo
         if soltas:
             if not cfg["noticias"]:
-                cfg["noticias"] = soltas[0]
+                cfg["noticias"] = limpar_url(soltas[0])
             if len(soltas) > 1 and not cfg["cargo"]:
-                cfg["cargo"] = soltas[1]
+                cfg["cargo"] = limpar_url(soltas[1])
+
+    # limpa tambem o que veio de variavel de ambiente
+    cfg["noticias"] = limpar_url(cfg["noticias"])
+    cfg["patches"] = limpar_url(cfg["patches"])
+    cfg["cargo"] = re.sub(r"[^\d]", "", cfg["cargo"] or "")
 
     # se so configurou um canal, tudo vai para ele
     if not cfg["noticias"]:
@@ -260,6 +323,9 @@ def main():
     no_github = bool(os.environ.get("CI"))
 
     if not cfg["noticias"] and not cfg["patches"]:
+        if cfg.get("_criou_modelo"):
+            print("\nCriei o arquivo \"discord-webhook.txt\" para voce.")
+            print("Abra ele, cole a URL de cada canal e rode este script de novo.\n")
         print(INSTRUCOES)
         return 0 if no_github else 1
 

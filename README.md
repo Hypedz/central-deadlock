@@ -14,7 +14,6 @@ meu-fansite/
 ├── script.js
 ├── atualizar-noticias.bat   # 2 cliques aqui = busca as notícias do Steam
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
-├── discord-webhook.txt.exemplo # Modelo: copie para discord-webhook.txt
 ├── README.md
 ├── .github/workflows/       # Robô que atualiza as notícias todo dia (no GitHub)
 ├── data/
@@ -140,18 +139,32 @@ Usamos um **webhook** do Discord. É um "endereço secreto" do canal: qualquer c
 - Dê o nome **Central Deadlock** (e uma foto, se quiser) → **Copiar URL do webhook**
 - Repita no outro canal
 
-**2. Renomeie o arquivo `discord-webhook.txt.exemplo` para `discord-webhook.txt`** e cole as URLs:
+**2. Rode o bot uma vez** — ele **cria o arquivo `discord-webhook.txt`** com as instruções dentro e avisa que falta preencher:
 
 ```
-patches  = https://discord.com/api/webhooks/111111/AbCdEf...
-noticias = https://discord.com/api/webhooks/222222/GhIjKl...
+python tools/discord-post.py
 ```
 
-> Só quer um canal? Apague uma das linhas — o bot manda tudo para a que sobrou.
+**3. Abra o `discord-webhook.txt` e cole as URLs** (a URL pura, sem `< >` e sem aspas):
 
-**3. Confira** dando dois cliques em `postar-no-discord.bat` e escolhendo a mensagem de teste.
+```
+patches  = https://discord.com/api/webhooks/NUMEROS-LONGOS/CODIGO-SECRETO
+noticias = https://discord.com/api/webhooks/NUMEROS-LONGOS/CODIGO-SECRETO
+```
+
+> 🚨 **NUNCA escreva a URL de verdade neste README** (nem em qualquer outro arquivo do site). O README **vai para o GitHub**, e quem tiver a URL consegue postar no seu canal. O lugar certo é **só** o `discord-webhook.txt`, que o Git ignora de propósito.
+
+> 💡 Só quer um canal? Apague uma das linhas — o bot manda tudo para a que sobrou.
+
+**4. Confira** rodando `python tools/discord-post.py --teste` (deve chegar uma mensagem em cada canal).
 
 > **Privacidade:** quem tiver essa URL pode postar no seu canal. Por isso ela fica no arquivo `discord-webhook.txt`, que está no `.gitignore` — **ela nunca vai para o GitHub**. Se vazar, basta apagar o webhook no Discord e criar outro.
+>
+> 🔒 **Trava automática:** o projeto tem um verificador (`tools/checar-segredos.py`) que roda **antes de cada commit** e **bloqueia o salvamento** se encontrar uma URL de webhook em algum arquivo que iria para o GitHub. Se um dia você clonar o projeto em outro PC, ative a trava uma vez com:
+>
+> ```
+> git config core.hooksPath .githooks
+> ```
 
 ### Como usar
 
@@ -171,7 +184,7 @@ O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele n
 
 | Mensagem | O que fazer |
 |---|---|
-| "A URL do webhook NÃO está certa" ou `HTTP 404` / `HTTP 405` | O texto de exemplo (`COLE_AQUI...`) ainda está no `discord-webhook.txt`. Troque pelas URLs de verdade |
+| "A URL do webhook NÃO está certa" ou `HTTP 404` / `HTTP 405` | A URL está incompleta ou veio com sujeira junto (geralmente um `< >` em volta). Abra o `discord-webhook.txt` e cole a URL pura, sem `< >` e sem aspas |
 | `HTTP 401` / `HTTP 403` | O webhook foi apagado, ou você não tem permissão naquele canal. Crie outro webhook |
 | "Nada novo para postar. Tudo em dia!" | **Isso é boa notícia** — quer dizer que está funcionando e não há nada novo desde a última vez |
 
