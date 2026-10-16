@@ -1,6 +1,8 @@
 name: Notícias do Steam + Discord
 
-# Busca as notícias do Deadlock e posta as novidades no Discord.
+# Busca as notícias do Deadlock, posta as novidades no Discord e
+# manda o site se republicar com as notícias novas.
+#
 # Todo dia às 12:00 UTC (09:00 no horário de Brasília) e também pode
 # ser rodado na mão: aba "Actions" > "Notícias do Steam + Discord" > "Run workflow".
 on:
@@ -12,7 +14,8 @@ jobs:
   atualizar:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write   # para salvar as notícias no repositório
+      actions: write    # para pedir a republicação do site
     steps:
       - name: Baixar o site
         uses: actions/checkout@v4
@@ -34,13 +37,22 @@ jobs:
         continue-on-error: true
 
       - name: Salvar as novidades no repositório
+        id: salvar
         run: |
           git config user.name "Central Deadlock Bot"
           git config user.email "bot@users.noreply.github.com"
           git add data/steam-news.js data/discord-posted.json
           if git diff --staged --quiet; then
-            echo "Nada mudou desde ontem."
+            echo "Nada mudou desde a última vez."
+            echo "mudou=nao" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Notícias atualizadas automaticamente"
             git push
+            echo "mudou=sim" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Republicar o site com as notícias novas
+        if: steps.salvar.outputs.mudou == 'sim'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run "publicar-site.yml" --repo "${{ github.repository }}"
