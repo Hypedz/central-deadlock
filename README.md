@@ -114,7 +114,18 @@ As abas **Notícias** e **Patch Notes** puxam as publicações **oficiais do Dea
 
 ## 🤖 Bot do Discord (postar notícias automaticamente)
 
-Esse bot pega as mesmas notícias do Steam e **posta num canal do seu servidor** — cada patch e cada novidade oficial, com o título, o resumo, a imagem e o link. Você não precisa fazer nada depois de configurar.
+Esse bot pega as mesmas notícias do Steam e **posta nos canais do seu servidor** — cada patch e cada novidade oficial, com o título, o resumo, a imagem e o link. Você não precisa fazer nada depois de configurar.
+
+### Onde cada coisa é postada
+
+O bot **separa sozinho**, porque as duas coisas têm pesos diferentes:
+
+| Canal | O que chega lá |
+|---|---|
+| **`#patch-notes`** | Só **atualizações do jogo** (patch notes) — as que mudam o jogo, com aviso do cargo |
+| **`#novidades`** | **Notícias e novidades** — skins, eventos, destaque de herói, "noite de jogatina" |
+
+Pode ligar só um canal, se preferir — nesse caso **tudo cai nele**.
 
 ### Como funciona (a parte técnica, em 3 linhas)
 
@@ -122,14 +133,23 @@ Usamos um **webhook** do Discord. É um "endereço secreto" do canal: qualquer c
 
 ### Passo a passo (só uma vez)
 
-1. No Discord, clique com o **botão direito no canal** que vai receber as notícias → **Editar canal**
-2. Vá em **Integrações** → **Webhooks** → **Novo webhook**
-3. Dê o nome **Central Deadlock** (e uma foto, se quiser) e clique em **Copiar URL do webhook**
-4. Crie um arquivo chamado **`discord-webhook.txt`** na pasta do site e cole a URL dentro dele (uma linha só):
+**1. Crie um webhook em cada canal que vai receber as notícias:**
+
+- Clique com o **botão direito no canal** → **Editar canal**
+- Vá em **Integrações** → **Webhooks** → **Novo webhook**
+- Dê o nome **Central Deadlock** (e uma foto, se quiser) → **Copiar URL do webhook**
+- Repita no outro canal
+
+**2. Renomeie o arquivo `discord-webhook.txt.exemplo` para `discord-webhook.txt`** e cole as URLs:
 
 ```
-https://discord.com/api/webhooks/123456789/AbCdEf...
+patches  = https://discord.com/api/webhooks/111111/AbCdEf...
+noticias = https://discord.com/api/webhooks/222222/GhIjKl...
 ```
+
+> Só quer um canal? Apague uma das linhas — o bot manda tudo para a que sobrou.
+
+**3. Confira** dando dois cliques em `postar-no-discord.bat` e escolhendo a mensagem de teste.
 
 > **Privacidade:** quem tiver essa URL pode postar no seu canal. Por isso ela fica no arquivo `discord-webhook.txt`, que está no `.gitignore` — **ela nunca vai para o GitHub**. Se vazar, basta apagar o webhook no Discord e criar outro.
 
@@ -141,20 +161,21 @@ https://discord.com/api/webhooks/123456789/AbCdEf...
 | Comando | O que faz |
 |---|---|
 | `python tools/discord-post.py` | Posta o que ainda não foi postado (até 3 por vez) |
-| `python tools/discord-post.py --teste` | Manda uma mensagem de teste, para conferir se deu certo |
+| `python tools/discord-post.py --teste` | Manda uma mensagem de teste em cada canal configurado |
 | `python tools/discord-post.py --tudo` | Posta as 10 mais recentes de uma vez |
-| `python tools/discord-post.py --dry-run` | **Não envia nada** — só mostra o que seria postado |
+| `python tools/discord-post.py --dry-run` | **Não envia nada** — só mostra o que iria para qual canal |
 
 O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele nunca repete** a mesma notícia.
 
 ### Avise um cargo quando sair patch (opcional)
 
-Quer que o bot marque o cargo **@Patch Notes** quando sair atualização? Na **segunda linha** do `discord-webhook.txt`, coloque o **ID do cargo** (ative o *Modo desenvolvedor* no Discord, clique com o botão direito no cargo → **Copiar ID do cargo**):
+Quer que o bot marque o cargo **@Patch Notes** quando sair atualização? Adicione esta linha ao `discord-webhook.txt` (ative o *Modo desenvolvedor* no Discord, clique com o botão direito no cargo → **Copiar ID do cargo**):
 
 ```
-https://discord.com/api/webhooks/123456789/AbCdEf...
-987654321098765432
+cargo = 987654321098765432
 ```
+
+O aviso só aparece nos **patches** — nas notícias comuns, não marca ninguém.
 
 ### Automático no GitHub (sem ligar o PC)
 
@@ -162,8 +183,9 @@ Se o site estiver publicado pelo GitHub, o robô diário já posta sozinho. Para
 
 1. No repositório, vá em **Settings** → **Secrets and variables** → **Actions**
 2. Clique em **New repository secret**
-3. Nome: `DISCORD_WEBHOOK` — Valor: a URL do webhook
-4. (Opcional) Crie outro secret chamado `DISCORD_CARGO` com o ID do cargo
+3. Nome: `DISCORD_WEBHOOK` — Valor: a URL do canal **#novidades**
+4. Crie outro secret chamado `DISCORD_WEBHOOK_PATCHES` — Valor: a URL do **#patch-notes**
+5. (Opcional) Crie outro secret chamado `DISCORD_CARGO` com o ID do cargo
 
 Pronto! Todo dia às 9h (horário de Brasília), se sair novidade, ela aparece no seu Discord.
 

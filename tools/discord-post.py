@@ -4,10 +4,15 @@ CENTRAL DEADLOCK -> DISCORD
 Posta as noticias e os patch notes do Deadlock num canal do seu servidor.
 
 COMO CONFIGURAR (so uma vez):
-  1. No Discord, clique com o botao direito no canal que vai receber as noticias
-  2. "Editar canal" > "Integracoes" > "Webhooks" > "Novo webhook"
-  3. Coloque o nome "Central Deadlock" e clique em "Copiar URL do webhook"
-  4. Cole a URL no arquivo "discord-webhook.txt" (na pasta do site) e salve
+  1. No Discord, crie UM webhook em cada canal que vai receber as noticias:
+     botao direito no canal > "Editar canal" > "Integracoes" > "Webhooks"
+     > "Novo webhook" > nome "Central Deadlock" > "Copiar URL do webhook"
+  2. Cole as URLs no arquivo "discord-webhook.txt" (na pasta do site), assim:
+
+       patches  = <URL do canal #patch-notes>
+       noticias = <URL do canal #novidades>
+
+     Pode usar so uma linha, se quiser que tudo caia num canal so.
 
 COMO USAR (no terminal, dentro da pasta do site):
   python tools/discord-post.py            -> posta o que ainda nao foi postado
@@ -53,25 +58,63 @@ INSTRUCOES = """
   1. No Discord: botao direito no canal > Editar canal
   2. Integracoes > Webhooks > Novo webhook
   3. Nome: Central Deadlock  >  Copiar URL do webhook
-  4. Cole a URL no arquivo discord-webhook.txt (uma linha)
-     e rode este script de novo.
+  4. Cole a URL no arquivo discord-webhook.txt, assim:
+
+       patches = <URL do canal #patch-notes>
+       noticias = <URL do canal #novidades>
+
+     (pode usar so uma das linhas, se quiser um canal so)
 ==========================================================
 """
 
 
 def carregar_config():
-    """Le a URL do webhook e (opcional) o ID de um cargo para avisar."""
-    url = (os.environ.get("DISCORD_WEBHOOK") or "").strip()
-    cargo = (os.environ.get("DISCORD_CARGO") or "").strip()
+    """Le os webhooks do Discord.
+
+    Formato recomendado no arquivo discord-webhook.txt:
+        patches  = <URL do canal de patch notes>
+        noticias = <URL do canal de novidades>
+        cargo    = <ID de um cargo para avisar nos patches>   (opcional)
+
+    Tambem aceita o formato simples: a 1a linha so com a URL
+    das noticias e a 2a linha com o ID do cargo.
+    """
+    cfg = {
+        "noticias": (os.environ.get("DISCORD_WEBHOOK") or "").strip(),
+        "patches": (os.environ.get("DISCORD_WEBHOOK_PATCHES") or "").strip(),
+        "cargo": (os.environ.get("DISCORD_CARGO") or "").strip(),
+    }
     if os.path.exists(ARQ_WEBHOOK):
         with open(ARQ_WEBHOOK, encoding="utf-8-sig") as arquivo:
             linhas = [l.strip() for l in arquivo
                       if l.strip() and not l.strip().startswith("#")]
-        if linhas and not url:
-            url = linhas[0]
-        if len(linhas) > 1 and not cargo:
-            cargo = linhas[1]
-    return url, cargo
+        soltas = []
+        for linha in linhas:
+            if "=" in linha:
+                chave, valor = linha.split("=", 1)
+                chave = chave.strip().lower()
+                valor = valor.strip().strip('"').strip("'")
+                if chave in ("url", "webhook", "noticias", "novidades"):
+                    cfg["noticias"] = cfg["noticias"] or valor
+                elif chave in ("patch", "patches", "patch-notes", "patchnotes"):
+                    cfg["patches"] = cfg["patches"] or valor
+                elif chave in ("cargo", "role"):
+                    cfg["cargo"] = cfg["cargo"] or valor
+            else:
+                soltas.append(linha)
+        # formato simples (sem o sinal de =): URL e depois o cargo
+        if soltas:
+            if not cfg["noticias"]:
+                cfg["noticias"] = soltas[0]
+            if len(soltas) > 1 and not cfg["cargo"]:
+                cfg["cargo"] = soltas[1]
+
+    # se so configurou um canal, tudo vai para ele
+    if not cfg["noticias"]:
+        cfg["noticias"] = cfg["patches"]
+    if not cfg["patches"]:
+        cfg["patches"] = cfg["noticias"]
+    return cfg
 
 
 def carregar_noticias():
@@ -150,12 +193,12 @@ def enviar(url, payload):
         return resposta.status
 
 
-def embed_teste():
+def embed_teste(canal="novidades"):
     return {
         "title": "\U0001F916 Bot da Central Deadlock no ar!",
         "description": ("Se voce esta vendo esta mensagem, a configuracao deu certo.\n\n"
-                        "A partir de agora, **cada patch e novidade oficial do Deadlock** "
-                        "vai aparecer aqui automaticamente."),
+                        "Este e o canal de **{}**. A partir de agora, tudo que a Valve "
+                        "publicar de oficial aparece aqui sozinho.".format(canal)),
         "color": LIMA,
         "footer": {"text": NOME + ", mensagem de teste"},
     }
@@ -169,20 +212,27 @@ def main():
     ap.add_argument("--limite", type=int, default=3, help="quantas por vez (padrao 3)")
     args = ap.parse_args()
 
-    webhook, cargo = carregar_config()
+    cfg = carregar_config()
     no_github = bool(os.environ.get("CI"))
 
-    if not webhook:
+    if not cfg["noticias"] and not cfg["patches"]:
         print(INSTRUCOES)
         return 0 if no_github else 1
 
     if args.teste:
-        payload = {"username": NOME, "embeds": [embed_teste()]}
-        if args.dry_run:
-            print(json.dumps(payload, ensure_ascii=False, indent=1))
-            return 0
-        enviar(webhook, payload)
-        print("Mensagem de teste enviada! Confira o canal no Discord.")
+        destinos = [("novidades", cfg["noticias"])]
+        if cfg["patches"] != cfg["noticias"]:
+            destinos.append(("patch notes", cfg["patches"]))
+        for nome_canal, url in destinos:
+            if not url:
+                continue
+            payload = {"username": NOME, "embeds": [embed_teste(nome_canal)]}
+            if args.dry_run:
+                print("\n--- canal de {} ---".format(nome_canal))
+                print(json.dumps(payload, ensure_ascii=False, indent=1))
+                continue
+            enviar(url, payload)
+            print("Mensagem de teste enviada para o canal de {}!".format(nome_canal))
         return 0
 
     noticias = carregar_noticias()
@@ -215,17 +265,20 @@ def main():
 
     for n in fila:
         payload = {"username": NOME, "embeds": [montar_embed(n)]}
-        if n.get("patch") and cargo:
-            payload["content"] = "<@&{}> Novo patch do Deadlock!".format(cargo)
+        # patch notes vai para o canal de patches; o resto para o de novidades
+        destino = cfg["patches"] if n.get("patch") else cfg["noticias"]
+        if n.get("patch") and cfg["cargo"]:
+            payload["content"] = "<@&{}> Novo patch do Deadlock!".format(cfg["cargo"])
 
         rotulo = "[{}] {}".format("PATCH" if n.get("patch") else "noticia", n.get("title"))
         if args.dry_run:
-            print("\n--- " + rotulo)
+            print("\n--- " + rotulo + "  ->  canal de {}".format(
+                "patch notes" if n.get("patch") else "novidades"))
             print(json.dumps(payload, ensure_ascii=False, indent=1))
             continue
 
         try:
-            enviar(webhook, payload)
+            enviar(destino, payload)
             postados.append(n.get("id"))
             enviados += 1
             print("  enviado: " + rotulo)
