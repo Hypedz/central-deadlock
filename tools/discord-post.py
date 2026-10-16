@@ -183,7 +183,9 @@ def carregar_config():
         "cargo": (os.environ.get("DISCORD_CARGO") or "").strip(),
     }
     # se o arquivo ainda nao existe, cria um modelo prontinho para preencher
-    if not os.path.exists(ARQ_WEBHOOK) and not (cfg["noticias"] or cfg["patches"]):
+    # (mas nao cria quando roda no robo do GitHub, onde nao faz sentido)
+    if (not os.path.exists(ARQ_WEBHOOK) and not (cfg["noticias"] or cfg["patches"])
+            and not os.environ.get("CI")):
         cfg["_criou_modelo"] = criar_modelo()
 
     if os.path.exists(ARQ_WEBHOOK):
