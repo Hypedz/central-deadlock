@@ -10,15 +10,24 @@ Portal da comunidade brasileira de **Deadlock**, com identidade visual inspirada
 meu-fansite/
 ├── index.html
 ├── style.css
-├── heroes-data.js   # Dados dos heróis (nomes, atributos, habilidades)
+├── heroes-data.js           # Dados dos heróis (nomes, atributos, habilidades)
 ├── script.js
+├── atualizar-noticias.bat   # 2 cliques aqui = busca as notícias do Steam
 ├── README.md
+├── .github/workflows/       # Robô que atualiza as notícias todo dia (no GitHub)
+├── data/
+│   └── steam-news.js        # Notícias do Steam — GERADO automaticamente
+├── tools/
+│   ├── update-news.py       # Script que baixa as notícias
+│   └── make-share.py        # Gera a imagem de compartilhamento
 └── assets/
     ├── brand/
-    │   ├── library_hero.jpg     # Capa usada no banner da Home
-    │   ├── deadlock-cover.jpg   # Capa vertical (reserva)
-    │   └── deadlock-header.jpg  # Banner horizontal (reserva)
-    └── heroes/                  # 44 artes dos heróis (PNG)
+    │   ├── favicon.svg        # Ícone da aba do navegador
+    │   ├── share.jpg          # Imagem que aparece ao compartilhar o link
+    │   ├── library_hero.jpg   # Capa usada no banner da Home
+    │   ├── deadlock-cover.jpg # Capa vertical (reserva)
+    │   └── deadlock-header.jpg # Banner horizontal (reserva)
+    └── heroes/                # 44 artes dos heróis (PNG)
 ```
 
 ---
@@ -78,6 +87,27 @@ Todos os cards da Home, Notícias, Guias e Esports agora são **clicáveis** e a
 
 ---
 
+## 📡 Notícias automáticas do Steam
+
+As abas **Notícias** e **Patch Notes** puxam as publicações **oficiais do Deadlock** direto da Steam (App `1422450`). Nada de escrever na mão!
+
+**Como funciona:**
+
+1. O script `tools/update-news.py` conversa com a API da Steam e salva tudo em `data/steam-news.js`.
+2. O site lê esse arquivo e monta os cards sozinho — inclusive escolhendo a **arte do herói** citado na notícia.
+3. Se você rodar o site pelo GitHub, o robô `.github/workflows/noticias.yml` faz isso **todo dia às 9h (horário de Brasília)** e salva no repositório.
+
+**Para atualizar na mão (no seu PC):**
+
+- Dê **dois cliques** em `atualizar-noticias.bat` (precisa ter o Python instalado), **ou**
+- Rode no terminal: `python tools/update-news.py`
+
+> **Importante:** o arquivo `data/steam-news.js` é **gerado automaticamente** — não edite ele na mão, porque a próxima atualização apaga suas mudanças. Para editar notícias manualmente, use o bloco `NEWS` no `script.js` (ele é o plano B quando o arquivo do Steam não existe).
+>
+> Os textos oficiais da Valve são publicados **em inglês** — o site mostra o original e o botão "Ver no Steam" leva para a publicação completa.
+
+---
+
 ## 🖼️ Banner da Home
 
 O destaque da Home usa a **capa do jogo** (`assets/brand/library_hero.jpg`) como imagem de fundo, com um degradê escuro para o texto ficar legível.
@@ -111,9 +141,11 @@ Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG d
 
 ---
 
-## ▶️ Visualizar
+## ▶️ Visualizar no seu PC
 
-Abra o `index.html` no navegador, ou rode um servidor local:
+Dê **dois cliques** em `index.html` — funciona direto, sem instalar nada.
+
+Para testar como se fosse um site de verdade (recomendado):
 ```
 python -m http.server 8123 --directory "C:\Users\User\Documents\Projeto Padrão\meu-fansite"
 ```
@@ -121,10 +153,54 @@ e acesse `http://localhost:8123`.
 
 ---
 
-## 🚀 Publicar
+## 🔎 Detalhes que já estão prontos
 
-- **GitHub Pages:** envie todos os arquivos (incluindo `assets/`), ative em Settings → Pages.
-- **Netlify Drop:** arraste a pasta compactada em [app.netlify.com/drop](https://app.netlify.com/drop).
+- **Favicon** (`assets/brand/favicon.svg`) — o emblema aparece na aba do navegador.
+- **Compartilhamento** — ao colar o link no Discord/WhatsApp aparece um cartão com imagem (`assets/brand/share.jpg`).
+- **Botão "voltar ao topo"** — aparece no canto quando você rola a página.
+- **`theme-color`** — a barra do navegador no celular fica na cor do site.
+
+---
+
+## 💾 Backup (Git)
+
+O site já tem **histórico de versões**. Sempre que terminar uma mudança importante:
+
+```powershell
+cd "C:\Users\User\Documents\Projeto Padrão\meu-fansite"
+git add -A
+git commit -m "descreva o que voce mudou"
+```
+
+- Ver o histórico: `git log --oneline`
+- Desfazer mudanças não salvas: `git checkout -- .`
+
+---
+
+## 🚀 Publicar o site (de graça)
+
+Depois de publicado, qualquer pessoa acessa por um **link de verdade**.
+
+### Jeito mais fácil: GitHub Desktop
+
+1. Crie uma conta em [github.com](https://github.com).
+2. Instale o [GitHub Desktop](https://desktop.github.com/) e faça login.
+3. **File → Add local repository** e escolha a pasta `meu-fansite` (ele já detecta o Git configurado).
+4. Clique em **Publish repository**, deixe **público** e confirme.
+5. No site do GitHub, abra o repositório e vá em **Settings → Pages**.
+6. Em *Branch*, escolha **main** e **/ (root)** → **Save**.
+7. Em 1 ou 2 minutos o site estará no ar em: `https://SEU-USUARIO.github.io/central-deadlock/`
+
+### Alternativa: Netlify
+
+Arraste a pasta `meu-fansite` compactada em [app.netlify.com/drop](https://app.netlify.com/drop) — o site sobe na hora.
+
+### ⚠️ Depois de publicar, faça esta troca
+
+No `index.html`, procure por `SEU-USUARIO` (aparece **4 vezes**, nas linhas de compartilhamento) e troque pelo seu usuário do GitHub. Assim o cartão com imagem aparece quando alguém colar o link.
+
+> **Bônus:** publicado no GitHub, o robô `.github/workflows/noticias.yml` atualiza as notícias do Steam **todo dia sozinho** — sem você fazer nada.
+
 
 ---
 
