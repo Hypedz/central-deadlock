@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Deadlock | Portal da Comunidade</title>
+    <meta name="description" content="Central Deadlock - Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
+    <meta name="theme-color" content="#0c0c0e">
+    <meta name="author" content="Central Deadlock">
+    <meta name="keywords" content="Deadlock, Valve, heróis, guias, builds, itens, tier list, comunidade brasileira">
+    <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
+    <link rel="apple-touch-icon" href="assets/brand/share.jpg">
+
+    <!-- ===== Compartilhamento (Discord / WhatsApp / redes sociais) =====
+         Depois de publicar o site, troque "SEU-USUARIO" pelo seu usuário do
+         GitHub nestas 4 linhas (veja o passo a passo no README.md). -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Central Deadlock">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:title" content="Central Deadlock | Portal da Comunidade">
+    <meta property="og:description" content="Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
+    <meta property="og:url" content="https://SEU-USUARIO.github.io/central-deadlock/">
+    <meta property="og:image" content="https://SEU-USUARIO.github.io/central-deadlock/assets/brand/share.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Central Deadlock | Portal da Comunidade">
+    <meta name="twitter:description" content="Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
+    <meta name="twitter:image" content="https://SEU-USUARIO.github.io/central-deadlock/assets/brand/share.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark">
+
+    <!-- ===== LOGO (emblema próprio: art déco + chifres) ===== -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="cdl-logo" viewBox="0 0 64 64">
+            <defs>
+                <linearGradient id="cdlLogoG" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#b6f24a"/>
+                    <stop offset="1" stop-color="#2f7a1a"/>
+                </linearGradient>
+            </defs>
+            <!-- emblema octogonal (art déco) -->
+            <path d="M20 3 H44 L61 20 V44 L44 61 H20 L3 44 V20 Z" fill="url(#cdlLogoG)"/>
+            <path d="M23.5 10 H40.5 L54 23.5 V40.5 L40.5 54 H23.5 L10 40.5 V23.5 Z"
+                  fill="none" stroke="#0c0c0e" stroke-opacity=".35" stroke-width="1.6"/>
+            <!-- chifres + crânio -->
+            <g fill="none" stroke="#0c0c0e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 23 C17 17 11 19 12 25 C13 30 19 30 23 26"/>
+                <path d="M41 23 C47 17 53 19 52 25 C51 30 45 30 41 26"/>
+                <path d="M25 28 C25 39 28.5 45 32 45 C35.5 45 39 39 39 28"/>
+                <path d="M27 32 H30 M34 32 H37" stroke-width="2.4"/>
+                <path d="M32 37 V45" stroke-width="2.4"/>
+            </g>
+        </symbol>
+    </svg>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toast-msg">Alterações salvas!</span>
+    </div>
+
+    <!-- ===== MARCA D'ÁGUA ===== -->
+    <svg class="watermark" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
+
+    <!-- ===== TOPBAR MOBILE ===== -->
+    <header class="topbar">
+        <button class="topbar-burger" id="menuBurger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <a href="#home" class="topbar-logo" data-section="home">
+            <svg class="topbar-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
+            CENTRAL <span>DEADLOCK</span>
+        </a>
+        <button class="btn-icon" id="btnProfileTop" aria-label="Perfil"><i class="fa-regular fa-user"></i></button>
+    </header>
+
+    <!-- ===== APP ===== -->
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <a href="#home" class="sidebar-brand" data-section="home">
+                <svg class="brand-emblem" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
+                <div class="brand-text">
+                    <span class="brand-main">CENTRAL</span>
+                    <span class="brand-sub">DEADLOCK <em>BR</em></span>
+                </div>
+                <button class="sidebar-close" id="closeSidebar" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+            </a>
+
+            <nav class="sidebar-nav">
+                <span class="nav-group">Deadlock</span>
+                <a href="#home" class="nav-item active" data-section="home"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#herois" class="nav-item" data-section="herois"><i class="fa-solid fa-masks-theater"></i> Heróis</a>
+                <a href="#comparar" class="nav-item" data-section="comparar"><i class="fa-solid fa-right-left"></i> Comparar</a>
+                <a href="#tierlist" class="nav-item" data-section="tierlist"><i class="fa-solid fa-layer-group"></i> Tier List</a>
+                <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
+                <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
+                <a href="#builds" class="nav-item" data-section="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Builds</a>
+                <a href="#itens" class="nav-item" data-section="itens"><i class="fa-solid fa-gem"></i> Itens do Jogo</a>
+                <a href="#patch" class="nav-item" data-section="patch"><i class="fa-solid fa-code-branch"></i> Patch Notes</a>
+                <a href="#glossario" class="nav-item" data-section="glossario"><i class="fa-solid fa-list"></i> Glossário</a>
+                <a href="#mapa" class="nav-item" data-section="mapa"><i class="fa-solid fa-map"></i> Mapa</a>
+
+                <span class="nav-group">Comunidade</span>
+                <a href="#esports" class="nav-item" data-section="esports"><i class="fa-solid fa-trophy"></i> Esports</a>
+                <a href="#ranking" class="nav-item" data-section="ranking"><i class="fa-solid fa-ranking-star"></i> Ranking</a>
+                <a href="#favoritos" class="nav-item" data-section="favoritos"><i class="fa-solid fa-star"></i> Favoritos</a>
+                <a href="#eventos" class="nav-item" data-section="eventos"><i class="fa-regular fa-calendar"></i> Eventos</a>
+                <a href="#quiz" class="nav-item" data-section="quiz"><i class="fa-solid fa-wand-magic-sparkles"></i> Quiz</a>
+                <a href="#perfil" class="nav-item" data-section="perfil"><i class="fa-regular fa-user"></i> Meu Perfil</a>
+                <a href="https://discord.gg/esy3uJAbkd" target="_blank" rel="noopener" class="nav-item external"><i class="fa-brands fa-discord"></i> Nosso Discord</a>
+                <a href="https://deadlock.wiki" target="_blank" rel="noopener" class="nav-item external"><i class="fa-solid fa-book-open"></i> Wiki do Deadlock</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-download" id="btnDownload"><i class="fa-solid fa-download"></i> BAIXAR DEADLOCK</button>
+                <div class="user-chip" id="userChip">
+                    <div class="user-chip-avatar" id="chipAvatar">?</div>
+                    <div class="user-chip-info">
+                        <span class="user-chip-name" id="chipName">Jogador</span>
+                        <span class="user-chip-id" id="chipId">CDL-0000</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-up"></i>
+                </div>
+            </div>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- CONTEÚDO -->
+        <main class="content">
+
+            <!-- ============ HERÓIS ============ -->
+            <section id="herois" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Heróis</h1>
+                        <p class="page-sub" id="heroSubtitle">Todos os heróis de Deadlock. Clique para ver os detalhes.</p>
+                    </div>
+                    <button class="btn btn-dark" id="btnFilter"><i class="fa-solid fa-sliders"></i> FILTRAR</button>
+                </div>
+
+                <div class="filters-bar" id="filtersBar">
+                    <input type="text" id="heroSearch" placeholder="Buscar herói pelo nome...">
+                    <select id="heroSort">
+                        <option value="az">Ordenar: A → Z</option>
+                        <option value="za">Ordenar: Z → A</option>
+                        <option value="tier">Melhor tier</option>
+                        <option value="win">Maior win rate</option>
+                        <option value="fav">Favoritos primeiro</option>
+                    </select>
+                </div>
+
+                <div class="roles-row" id="rolesRow"></div>
+                <div class="heroes-grid" id="heroesGrid"></div>
+            </section>
+
+            <!-- ============ COMPARAR ============ -->
+            <section id="comparar" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Comparar</h1>
+                        <p class="page-sub">Escolha dois heróis e veja as diferenças lado a lado.</p>
+                    </div>
+                    <button class="btn btn-dark" id="cmpRandom"><i class="fa-solid fa-shuffle"></i> ALEATÓRIO</button>
+                </div>
+                <div class="cmp-selects">
+                    <label class="field">Herói 1<select id="cmpA"></select></label>
+                    <button class="btn btn-dark" id="cmpSwap" title="Trocar"><i class="fa-solid fa-right-left"></i></button>
+                    <label class="field">Herói 2<select id="cmpB"></select></label>
+                </div>
+                <div class="cmp-head" id="cmpHead"></div>
+                <div class="cmp-rows" id="cmpRows"></div>
+            </section>
+
+            <!-- ============ TIER LIST ============ -->
+            <section id="tierlist" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Tier List</h1>
+                        <p class="page-sub">Classificação de exemplo dos heróis. Clique em um estandarte para ver os detalhes.</p>
+                    </div>
+                </div>
+                <div class="tier-list" id="tierRows"></div>
+            </section>
+
+            <!-- ============ HOME ============ -->
+            <section id="home" class="section active">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Home</h1>
+                        <p class="page-sub">Bem-vindo à Central Deadlock, o portal brasileiro do jogo.</p>
+                    </div>
+                </div>
+
+                <div class="hero-banner">
+                    <div class="hero-banner-content">
+                        <span class="hero-cat">DESTAQUE</span>
+                        <h2 class="hero-banner-title">O meta de Deadlock mudou com o novo patch</h2>
+                        <p class="hero-banner-desc">Confira as mudanças de balanceamento e o que esperar das próximas semanas.</p>
+                        <button class="btn btn-lime" data-goto="noticias">Ler matéria</button>
+                    </div>
+                </div>
+
+                <div class="cards-grid" id="homeGrid"></div>
+            </section>
+
+            <!-- ============ NOTÍCIAS ============ -->
+            <section id="noticias" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Notícias</h1>
+                        <p class="page-sub" id="newsSub">As últimas novidades sobre Deadlock. Clique para ler.</p>
+                    </div>
+                </div>
+                <div class="cards-grid" id="newsGrid"></div>
+            </section>
+
+            <!-- ============ GUIAS ============ -->
+            <section id="guias" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Guias</h1>
+                        <p class="page-sub">Aprenda a jogar com cada herói. Clique para ler.</p>
+                    </div>
+                </div>
+                <div class="cards-grid" id="guidesGrid"></div>
+            </section>
+
+            <!-- ============ BUILDS ============ -->
+            <section id="builds" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Builds</h1>
+                        <p class="page-sub">Sugestões de itens por função. Clique para ver a lista completa.</p>
+                    </div>
+                </div>
+                <div class="cards-grid" id="buildsGrid"></div>
+            </section>
+
+            <!-- ============ ITENS ============ -->
+            <section id="itens" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Itens do Jogo</h1>
+                        <p class="page-sub">Os itens que mudam o rumo das partidas.</p>
+                    </div>
+                </div>
+                <div class="items-grid">
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-shoe-prints"></i></div><div><h3>Botas de Corrida</h3><span>Vitalidade</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-gun"></i></div><div><h3>Carregador Básico</h3><span>Armas</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-crosshairs"></i></div><div><h3>Impulso de Headshot</h3><span>Armas</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-wand-sparkles"></i></div><div><h3>Tiro Místico</h3><span>Espírito</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-bolt"></i></div><div><h3>Recarga Rápida</h3><span>Espírito</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-heart-pulse"></i></div><div><h3>Rodadas Monstro</h3><span>Vitalidade</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-shield-halved"></i></div><div><h3>Pele Blindada</h3><span>Vitalidade</span></div></div>
+                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-hand-fist"></i></div><div><h3>Combate Próximo</h3><span>Armas</span></div></div>
+                </div>
+            </section>
+
+            <!-- ============ PATCH NOTES ============ -->
+            <section id="patch" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Patch Notes</h1>
+                        <p class="page-sub">O histórico das atualizações do jogo.</p>
+                    </div>
+                </div>
+                <div class="patch-list" id="patchList">
+                    <article class="patch-entry">
+                        <div class="patch-head"><span class="patch-version">Atualização de 15/10/2026</span><span class="patch-date">15 out 2026</span></div>
+                        <p>Balanceamento de heróis e itens: ajustes de dano, tempos de recarga e custo de almas.</p>
+                    </article>
+                    <article class="patch-entry">
+                        <div class="patch-head"><span class="patch-version">Atualização de 08/10/2026</span><span class="patch-date">08 out 2026</span></div>
+                        <p>Novo herói adicionado, correções de bugs e melhorias de desempenho nas partidas.</p>
+                    </article>
+                    <article class="patch-entry">
+                        <div class="patch-head"><span class="patch-version">Atualização de 01/10/2026</span><span class="patch-date">01 out 2026</span></div>
+                        <p>Ajustes no mapa, nas estruturas e nas rotas de tirolesa (ziplines).</p>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ============ GLOSSÁRIO ============ -->
+            <section id="glossario" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Glossário</h1>
+                        <p class="page-sub">Os principais termos de Deadlock.</p>
+                    </div>
+                </div>
+                <div class="glossary-list">
+                    <div class="glossary-item"><h3>Souls (Almas)</h3><p>A moeda do jogo, usada para comprar itens e evoluir habilidades.</p></div>
+                    <div class="glossary-item"><h3>Zipline (Tirolesa)</h3><p>Linhas de transporte que levam os heróis rapidamente pelas lanes.</p></div>
+                    <div class="glossary-item"><h3>Guardian</h3><p>Torre menor que protege cada lane. Precisa ser destruída para avançar.</p></div>
+                    <div class="glossary-item"><h3>Walker</h3><p>Estrutura maior e mais resistente, localizada após os Guardians.</p></div>
+                    <div class="glossary-item"><h3>Patron</h3><p>O objetivo final de cada time: destruir o Patron inimigo para vencer.</p></div>
+                    <div class="glossary-item"><h3>Midboss</h3><p>Chefe no centro do mapa que concede um bônus poderoso ao time.</p></div>
+                    <div class="glossary-item"><h3>Gank</h3><p>Emboscada surpresa contra um inimigo, geralmente em superioridade numérica.</p></div>
+                    <div class="glossary-item"><h3>Farm</h3><p>Ação de coletar almas (Souls) para se fortalecer durante a partida.</p></div>
+                </div>
+            </section>
+
+            <!-- ============ MAPA ============ -->
+            <section id="mapa" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Mapa</h1>
+                        <p class="page-sub">Esquema simplificado e ilustrativo (não é o mapa oficial). Clique em uma área.</p>
+                    </div>
+                </div>
+                <div class="map-wrap">
+                    <div class="map-svg-box" id="mapBox"></div>
+                    <div class="map-info card" id="mapInfo"></div>
+                </div>
+            </section>
+
+            <!-- ============ ESPORTS ============ -->
+            <section id="esports" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Esports</h1>
+                        <p class="page-sub">Times e torneios competitivos brasileiros. Clique para ver detalhes.</p>
+                    </div>
+                </div>
+                <div class="cards-grid" id="matchesGrid"></div>
+            </section>
+
+            <!-- ============ RANKING ============ -->
+            <section id="ranking" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Ranking</h1>
+                        <p class="page-sub">Os melhores jogadores da comunidade.</p>
+                    </div>
+                </div>
+                <div class="ranking-table">
+                    <div class="ranking-head"><span>#</span><span>Jogador</span><span>Partidas</span><span>Winrate</span></div>
+                    <div class="ranking-row"><span class="rank-pos">1</span><span class="rank-name">FakerBR</span><span>312</span><span class="rank-wr">68%</span></div>
+                    <div class="ranking-row"><span class="rank-pos">2</span><span class="rank-name">Vuit</span><span>287</span><span class="rank-wr">64%</span></div>
+                    <div class="ranking-row"><span class="rank-pos">3</span><span class="rank-name">KelvinKing</span><span>265</span><span class="rank-wr">61%</span></div>
+                    <div class="ranking-row"><span class="rank-pos">4</span><span class="rank-name">HazeMain</span><span>241</span><span class="rank-wr">59%</span></div>
+                    <div class="ranking-row"><span class="rank-pos">5</span><span class="rank-name">SevenStorm</span><span>230</span><span class="rank-wr">57%</span></div>
+                </div>
+            </section>
+
+            <!-- ============ EVENTOS ============ -->
+            <section id="eventos" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Eventos</h1>
+                        <p class="page-sub">Calendário da comunidade. Marque "Lembrar" para guardar no navegador.</p>
+                    </div>
+                </div>
+                <div class="event-list" id="eventList"></div>
+            </section>
+
+            <!-- ============ QUIZ ============ -->
+            <section id="quiz" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Quiz</h1>
+                        <p class="page-sub">Qual herói combina com você? Responda e descubra.</p>
+                    </div>
+                </div>
+                <div class="quiz-wrap card" id="quizBox"></div>
+            </section>
+
+            <!-- ============ FAVORITOS ============ -->
+            <section id="favoritos" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Favoritos</h1>
+                        <p class="page-sub">Os heróis que você marcou com a estrela.</p>
+                    </div>
+                </div>
+                <div class="heroes-grid" id="favGrid"></div>
+            </section>
+
+            <!-- ============ PERFIL ============ -->
+            <section id="perfil" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Meu Perfil</h1>
+                        <p class="page-sub">Este é o seu perfil na Central Deadlock. Tudo fica salvo neste navegador.</p>
+                    </div>
+                    <div class="pmeter">
+                        <span id="pmtxt">Perfil 0% completo</span>
+                        <div class="bar"><i id="pmbar" style="width:0"></i></div>
+                    </div>
+                </div>
+
+                <!-- ===== PERFIL GRANDE (visualização) ===== -->
+                <div class="pv" id="pvTop">
+                    <div class="pv-ban" id="pvBan"></div>
+                    <div class="card pv-head">
+                        <div class="pv-av" id="pvAv"></div>
+                        <div class="pv-id" id="pvId"></div>
+                        <div class="pv-act">
+                            <button type="button" class="btn btn-lime" id="pvEdit"><i class="fa-solid fa-pen"></i> Editar perfil</button>
+                            <button type="button" class="btn btn-dark" id="pvLink"><i class="fa-solid fa-link"></i> Copiar link</button>
+                            <button type="button" class="btn btn-dark" id="pvDl"><i class="fa-solid fa-download"></i> Baixar cartão</button>
+                        </div>
+                    </div>
+                    <div class="pv-grid" id="pvGrid"></div>
+                </div>
+
+                <!-- ===== EDITOR DO PERFIL ===== -->
+                <h2 class="pv-edit-title" id="editorPerfil"><i class="fa-solid fa-sliders"></i> Editar perfil</h2>
+                <div class="profile-wrapper">
+                    <aside class="profile-side">
+                        <div id="pprev"></div>
+                        <div class="pprev-actions">
+                            <label class="btn btn-dark" style="cursor:pointer"><i class="fa-solid fa-camera"></i> Alterar foto<input type="file" id="pavQuick" accept="image/*" hidden></label>
+                            <button type="button" class="btn btn-dark" id="prand"><i class="fa-solid fa-shuffle"></i> Surpreenda-me</button>
+                        </div>
+                        <div class="pprev-actions">
+                            <button type="button" class="btn btn-dark" id="pdl"><i class="fa-solid fa-download"></i> Baixar</button>
+                            <button type="button" class="btn btn-dark" id="plink"><i class="fa-solid fa-link"></i> Copiar link</button>
+                            <button type="button" class="btn btn-dark" id="pcp"><i class="fa-solid fa-copy"></i> Copiar texto</button>
+                        </div>
+                        <p class="pprev-hint">Dica: arraste uma imagem sobre o cartão para trocar a foto.</p>
+                    </aside>
+
+                    <div class="profile-main">
+                        <div class="ptabs" id="ptabs"></div>
+                        <div class="card" id="pform"></div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <p>Fan site independente, feito por fãs. Não é oficial e não tem vínculo com a Valve Corporation. Deadlock e suas artes pertencem à Valve. &copy; 2026 Central Deadlock.</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- ===== MODAL: DETALHE DO HERÓI ===== -->
+    <div class="modal-overlay hero-modal-overlay" id="heroModal">
+        <div class="hero-modal" id="heroModalBox"></div>
+    </div>
+
+    <!-- ===== MODAL: CONTEÚDO (notícias / guias / partidas) ===== -->
+    <div class="modal-overlay" id="contentModal">
+        <div class="modal content-modal" id="contentModalBox"></div>
+    </div>
+
+    <!-- ===== MODAL: BAIXAR DEADLOCK ===== -->
+    <div class="modal-overlay" id="downloadModal">
+        <div class="modal">
+            <button class="modal-close" id="modalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2 class="modal-title">Deadlock é por convite</h2>
+            <p class="modal-text">
+                O jogo ainda está em <strong>playtest fechado</strong> (acesso antecipado) e só pode ser
+                jogado por quem recebe um <strong>convite de um amigo</strong> que já tem acesso.
+                Não é possível baixar e jogar direto pela loja.
+            </p>
+            <ul class="modal-steps">
+                <li><i class="fa-solid fa-check"></i> Peça um convite a alguém que já joga</li>
+                <li><i class="fa-solid fa-check"></i> Entre no nosso Discord para trocar convites</li>
+                <li><i class="fa-solid fa-check"></i> Acompanhe a página da Steam para novidades</li>
+            </ul>
+            <div class="modal-actions">
+                <a href="https://store.steampowered.com/app/1422450/Deadlock/" target="_blank" rel="noopener" class="btn btn-lime">
+                    <i class="fa-brands fa-steam"></i> Ver na Steam
+                </a>
+                <a href="https://discord.gg/esy3uJAbkd" target="_blank" rel="noopener" class="btn btn-dark">
+                    <i class="fa-brands fa-discord"></i> Entrar no Discord
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: CARTÃO COMPARTILHADO ===== -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal content-modal" id="shareModalBox"></div>
+    </div>
+
+    <!-- ===== VOLTAR AO TOPO ===== -->
+    <button type="button" class="to-top" id="toTop" title="Voltar ao topo" aria-label="Voltar ao topo">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script src="heroes-data.js"></script>
+    <script src="data/steam-news.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

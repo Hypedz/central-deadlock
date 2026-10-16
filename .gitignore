@@ -1,0 +1,12 @@
+# Arquivos que NÃO devem entrar no backup (Git)
+Thumbs.db
+desktop.ini
+*.tmp
+*.log
+.~*
+*.bak
+
+# Pastas de editor
+.vscode/
+.idea/
+__pycache__/

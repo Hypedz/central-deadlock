@@ -1,0 +1,1748 @@
+// ========================================
+// CENTRAL DEADLOCK - Scripts
+// Heróis (estandartes + detalhes), conteúdos clicáveis e perfil
+// Os dados dos heróis ficam em heroes-data.js
+// ========================================
+
+/* ================= utilidades ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (n) => n.toLocaleString('pt-BR');
+
+const HEROES = (typeof HEROES_DATA !== 'undefined' ? HEROES_DATA : []).map((h, i) => ({ ...h, idx: i }));
+const PLAYABLE = HEROES.filter(h => !h.soon);
+const heroByName = (n) => HEROES.find(h => h.name === n);
+
+function initials(name) {
+    return String(name).replace(/&/g, ' ').split(/\s+/)
+        .filter(w => w && /[A-Za-zÀ-ÿ]/.test(w[0]))
+        .map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+function tierClass(t) { return t === 'S' ? 'acc' : t === 'A' ? 'warn' : ''; }
+
+/* ================= estado ================= */
+const store = {
+    get(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch (e) { return def; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+};
+
+let favs = store.get('cdl_favs', []);
+let stats = Object.assign({ visited: {}, heroesSeen: [], changed: {}, night: 0 }, store.get('cdl_stats', {}));
+if (!Array.isArray(stats.heroesSeen)) stats.heroesSeen = [];
+if (!stats.visited || typeof stats.visited !== 'object') stats.visited = {};
+if (!stats.changed || typeof stats.changed !== 'object') stats.changed = {};
+const saveStats = () => store.set('cdl_stats', stats);
+
+const RANKS = ['Recruta', 'Batedor', 'Veterano', 'Especialista', 'Mestre', 'Lenda'];
+const rankName = (n) => RANKS[Math.min(5, Math.floor((n - 1) / 2))];
+
+/* ================= perfil: defines ================= */
+const BANNERS = {
+    brasa: ['Brasa', ['#ff3b5c', '#7a1230']],
+    aurora: ['Aurora', ['#22d3ee', '#8b5cf6']],
+    noite: ['Noite', ['#312e81', '#0f172a']],
+    floresta: ['Floresta', ['#34d399', '#064e3b']],
+    lima: ['Lima', ['#b6f24a', '#2f7a1a']],
+    sunset: ['Pôr do sol', ['#fbbf24', '#ec4899']],
+    mono: ['Mono', ['#6b7280', '#111827']],
+    custom: ['Personalizado', ['#b6f24a', '#2f7a1a']]
+};
+const PATTERNS = [['none', 'Nenhum'], ['grid', 'Grade'], ['dots', 'Pontos'], ['diag', 'Listras']];
+const SHAPES = [['squircle', 'Arredondado'], ['circle', 'Círculo'], ['hex', 'Hexágono'], ['octagon', 'Octógono'], ['diamond', 'Losango'], ['shield', 'Escudo'], ['star', 'Estrela']];
+const FRAMES = [['none', 'Sem moldura'], ['gold', 'Dourada'], ['neon', 'Neon'], ['solid', 'Cor de destaque'], ['double', 'Dupla']];
+const ACCENTS = [['auto', 'Padrão (verde)'], ['#ff3b5c', 'Vermelho'], ['#8b5cf6', 'Roxo'], ['#22d3ee', 'Ciano'], ['#34d399', 'Verde'], ['#fbbf24', 'Âmbar'], ['#ec4899', 'Rosa'], ['#3b82f6', 'Azul']];
+const REGIONS = ['Brasil', 'Sudeste', 'Sul', 'Nordeste', 'Centro-Oeste', 'Norte', 'América do Norte', 'Europa', 'Ásia', 'Oceania', 'Outro'];
+const TITLES = ['Jogador', 'Casual', 'Competitivo', 'Suporte', 'Tanque', 'Carry', 'Streamer', 'Criador de Conteúdo', 'Mestre', 'Lenda'];
+const POLY = {
+    hex: [[0, -1], [1, -0.5], [1, 0.5], [0, 1], [-1, 0.5], [-1, -0.5]],
+    diamond: [[0, -1], [1, 0], [0, 1], [-1, 0]],
+    shield: [[-1, -0.9], [0, -1], [1, -0.9], [1, 0.1], [0, 1], [-1, 0.1]]
+};
+POLY.octagon = Array.from({ length: 8 }, (_, i) => { const a = Math.PI / 8 + i * Math.PI / 4; return [Math.sin(a), -Math.cos(a)]; });
+POLY.star = Array.from({ length: 10 }, (_, i) => { const a = i * Math.PI / 5, r = i % 2 ? 0.5 : 1; return [r * Math.sin(a), -r * Math.cos(a)]; });
+
+const PROFILE_DEF = {
+    id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
+    nick: '', pronouns: '', status: '', bio: '', title: 'Jogador', region: 'Brasil',
+    mains: [], links: { discord: '', twitch: '', youtube: '' },
+    banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
+    accent: 'auto',
+    av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50 },
+    theme: 'dark', lang: 'pt-BR', compact: false
+};
+let profile = (() => {
+    const raw = store.get('cdl_profile', null);
+    if (!raw || typeof raw !== 'object') return { ...PROFILE_DEF, av: { ...PROFILE_DEF.av } };
+    return {
+        ...PROFILE_DEF, ...raw,
+        links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
+        av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, 3) : []
+    };
+})();
+const saveProfile = () => store.set('cdl_profile', profile);
+
+const ACH = [
+    { n: 'Novato', d: 'Escolha um apelido para o perfil.', p: () => profile.nick ? 1 : 0, max: 1 },
+    { n: 'Explorador', d: 'Visite 8 páginas diferentes.', p: () => Object.keys(stats.visited).length, max: 8 },
+    { n: 'Conhecedor', d: 'Abra a página de 10 heróis.', p: () => stats.heroesSeen.length, max: 10 },
+    { n: 'Completista', d: 'Abra a página de todos os heróis lançados.', p: () => stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length, max: PLAYABLE.length },
+    { n: 'Colecionador', d: 'Favorite 5 heróis.', p: () => favs.length, max: 5 },
+    { n: 'Personalizador', d: 'Personalize 6 itens do perfil.', p: () => Object.keys(stats.changed).length, max: 6 },
+    { n: 'Coruja', d: 'Use o site de madrugada (0h às 5h).', p: () => stats.night, max: 1 },
+    { n: 'Lenda', d: 'Chegue ao nível 5.', p: () => level().n, max: 5 }
+];
+/* ícone de cada conquista (Font Awesome) */
+const ACH_ICON = ['fa-id-badge', 'fa-compass', 'fa-graduation-cap', 'fa-trophy', 'fa-star', 'fa-palette', 'fa-moon', 'fa-crown'];
+
+function level() {
+    const xp = Object.keys(stats.visited).length * 8
+        + Math.min(stats.heroesSeen.length, HEROES.length) * 3
+        + favs.length * 6
+        + Object.keys(stats.changed).length * 4
+        + (profile.nick ? 30 : 0);
+    return { xp, n: Math.floor(xp / 100) + 1, cur: xp % 100, next: 100 };
+}
+function touch(key) { if (key && !stats.changed[key]) { stats.changed[key] = 1; saveStats(); } }
+
+/* ================= conteúdo (notícias / guias / partidas) ================= */
+const FEATURED = [
+    {
+        id: 'f1', cat: 'Patch', title: 'Patch Notes: balanceamento de heróis e itens', img: 'McGinnis.png', date: '15 out 2026',
+        desc: 'Veja o que mudou nos heróis mais usados e como isso afeta seu rank.',
+        body: [
+            'A atualização mais recente mexeu no coração do meta: heróis de dano contínuo perderam um pouco de força no início da partida, enquanto os tanques ganharam sobrevida nas lutas de equipe.',
+            'Os itens de vitalidade ficaram um pouco mais caros, o que atrasa o primeiro pico de poder. Na prática, vale priorizar farm seguro nos primeiros minutos e evitar lutas desnecessárias antes do primeiro item completo.',
+            'Nossa recomendação: revise suas builds e teste os heróis que você domina no modo de treino antes de levá-los para o competitivo.'
+        ]
+    },
+    {
+        id: 'f2', cat: 'Guia', title: 'Suba de ranque rapidamente em Deadlock', img: 'Vindicta.png', date: '13 out 2026',
+        desc: 'Dicas de movimentação, farm e escolha de heróis para iniciantes.',
+        body: [
+            'Dominar a movimentação é o que mais separa jogadores iniciantes dos intermediários. Use as tirolesas com frequência para rotacionar rápido e sempre olhe o minimapa a cada poucos segundos.',
+            'No farm, o segredo é consistência: colete almas das tropas mesmo quando a lane está tranquila e transforme isso em itens. Um item comprado no tempo certo vale mais do que três comprados atrasados.',
+            'Por último, escolha dois ou três heróis e domine-os de verdade antes de sair testando o elenco inteiro.'
+        ]
+    },
+    {
+        id: 'f3', cat: 'Esports', title: 'Primeiro torneio brasileiro confirmado', img: 'Holliday.png', date: '10 out 2026',
+        desc: 'FURIA, LOUD e paiN já se preparam para a estreia oficial.',
+        body: [
+            'A cena competitiva brasileira deu um passo importante: o primeiro torneio nacional oficial foi confirmado, com a participação de organizações que já são referência em outros jogos.',
+            'A competição deve reunir times convidados e vagas abertas para a comunidade, com transmissão ao vivo e premiação simbólica nesta primeira edição.',
+            'Fique de olho na nossa aba Esports para acompanhar os confrontos e os horários das partidas.'
+        ]
+    }
+];
+const NEWS = [
+    {
+        id: 'n1', cat: 'Atualização', title: 'Patch Notes: balanceamento de heróis e itens', img: 'Shiv.png', date: '15 out 2026',
+        desc: 'Veja o que mudou nos heróis mais usados do momento.',
+        body: ['Ajustes de dano, tempos de recarga e custo de almas chegaram com esta atualização.', 'Confira abaixo os principais pontos e como eles mudam o seu jeito de jogar.']
+    },
+    {
+        id: 'n2', cat: 'Guia', title: 'Como subir de ranque rapidamente', img: 'Ivy.png', date: '13 out 2026',
+        desc: 'Dicas práticas para iniciantes evoluírem mais rápido.',
+        body: ['Movimentação, farm e escolha de heróis são a base para subir de ranque.', 'Neste guia reunimos os erros mais comuns e como evitá-los.']
+    },
+    {
+        id: 'n3', cat: 'Competitivo', title: 'Primeiro torneio brasileiro confirmado', img: 'Abrams.png', date: '10 out 2026',
+        desc: 'Equipes já se preparam para a estreia oficial.',
+        body: ['As principais organizações do país já iniciaram os treinos para o torneio.', 'A fase de inscrições deve abrir nas próximas semanas.']
+    },
+    {
+        id: 'n4', cat: 'Herói', title: 'Novo herói chega ao jogo', img: 'Pocket.png', date: '08 out 2026',
+        desc: 'Conheça as habilidades e o papel do recém-chegado.',
+        body: ['O elenco cresceu de novo! Veja as habilidades, o papel e as primeiras impressões do novo herói.', 'Abra a aba Heróis para ver a ficha completa.']
+    }
+];
+const GUIDES = [
+    {
+        id: 'g1', cat: 'Guia', title: 'McGinnis - Guia Completo', img: 'McGinnis.png', date: '12 out 2026',
+        desc: 'Build, habilidades e dicas de lane para dominar com a atiradora.',
+        body: ['McGinnis domina o espaço com torres e barreiras. Posicione-se atrás do time e use as construções para controlar as entradas.', 'Nos primeiros minutos, foque em farm seguro e monte itens de vitalidade antes de partir para o dano.']
+    },
+    {
+        id: 'g2', cat: 'Guia', title: 'Seven - Estratégia Elétrica', img: 'Vindicta.png', date: '11 out 2026',
+        desc: 'Melhores itens, habilidades e combos para o herói elétrico.',
+        body: ['Seven brilha nas lutas de equipe com dano em área. Guarde a suprema para o momento certo: quando os inimigos estiverem agrupados.', 'Itens de espírito potencializam o dano elétrico e reduzem a recarga.']
+    },
+    {
+        id: 'g3', cat: 'Guia', title: 'Kelvin - Suporte de Gelo', img: 'Kelvin.png', date: '09 out 2026',
+        desc: 'Como proteger o time e controlar as lutas com o Kelvin.',
+        body: ['Kelvin é o apoio que mantém o time vivo. Use o escudo de gelo para salvar aliados em apuros e a cura para sustentar as lutas longas.', 'Fique sempre atrás da linha de frente e acompanhe o minimapa para chegar a tempo.']
+    }
+];
+const MATCHES = [
+    { id: 'm1', a: 'FURIA', b: 'LOUD', sa: '3', sb: '1', status: 'ao-vivo', statusLabel: 'Ao vivo', time: 'Hoje • 20:00', desc: 'Série melhor de cinco em andamento. A FURIA abriu vantagem no mapa central.' },
+    { id: 'm2', a: 'paiN', b: 'INTZ', sa: '—', sb: '—', status: 'proximo', statusLabel: 'Próximo', time: 'Amanhã • 19:00', desc: 'Confronto agendado para amanhã à noite, com transmissão ao vivo.' },
+    { id: 'm3', a: 'MIBR', b: 'VIVO Keyd', sa: '—', sb: '—', status: 'proximo', statusLabel: 'Próximo', time: 'Sábado • 16:00', desc: 'Duelo de sábado à tarde pela fase de grupos do torneio nacional.' }
+];
+
+/* Logos dos times: badges originais (feitos por nós, não são logos oficiais) */
+const TEAMS = {
+    'FURIA': { i: 'FUR', c: ['#1a1a1f', '#c8a24a'] },
+    'LOUD': { i: 'LOUD', c: ['#0de05b', '#04381a'] },
+    'paiN': { i: 'paiN', c: ['#ef2b43', '#3b0a10'] },
+    'INTZ': { i: 'INTZ', c: ['#1d4ed8', '#0b1220'] },
+    'MIBR': { i: 'MIBR', c: ['#e01a2b', '#1a0505'] },
+    'VIVO Keyd': { i: 'Keyd', c: ['#7c3aed', '#22d3ee'] }
+};
+function teamBadge(name, cls = '') {
+    const t = TEAMS[name] || { i: String(name).slice(0, 3).toUpperCase(), c: ['#6b7280', '#111827'] };
+    return `<span class="team-badge ${cls}" style="background:linear-gradient(135deg,${t.c[0]},${t.c[1]})">${esc(t.i)}</span>`;
+}
+
+/* Builds sugeridas por função */
+const BUILDS = [
+    {
+        id: 'bd1', cat: 'Build', title: 'Tanque — linha de frente', img: 'Abrams.png', date: '15 out 2026',
+        desc: 'Itens para aguentar pancada e abrir as lutas.',
+        items: [['Pele Resistente', 500], ['Fôlego Extra', 500], ['Bateria de Vida', 1250], ['Escudo Pulsante', 3000], ['Colosso', 6200]],
+        body: ['Compre itens de vitalidade primeiro para sobreviver aos primeiros confrontos.', 'Depois parta para resistência mágica e itens de aura para ajudar o time.']
+    },
+    {
+        id: 'bd2', cat: 'Build', title: 'Suporte — sustentar o time', img: 'Kelvin.png', date: '14 out 2026',
+        desc: 'Cura, escudo e utilidade para manter o time vivo.',
+        items: [['Foco Mental', 500], ['Eco Arcano', 1250], ['Surto de Energia', 1250], ['Ruptura Espiritual', 3000], ['Ápice Arcano', 6200]],
+        body: ['Priorize itens de espírito para melhorar curas e escudos.', 'Fique atrás da linha de frente e use a utilidade nos momentos certos.']
+    },
+    {
+        id: 'bd3', cat: 'Build', title: 'Carry — dano à distância', img: 'Vindicta.png', date: '13 out 2026',
+        desc: 'Itens de dano e cadência para derreter os inimigos.',
+        items: [['Munição Reforçada', 500], ['Disparo Rápido', 500], ['Cano Longo', 1250], ['Rajada Perfurante', 3000], ['Frenesi de Combate', 6200]],
+        body: ['Aumente o dano por tiro e a cadência antes de itens defensivos.', 'Posicione-se atrás do time e aproveite os erros dos inimigos.']
+    },
+    {
+        id: 'bd4', cat: 'Build', title: 'Assassino — matar e escapar', img: 'Sinclair.png', date: '12 out 2026',
+        desc: 'Mobilidade e explosão de dano para eliminar alvos isolados.',
+        items: [['Munição Reforçada', 500], ['Disparo Rápido', 500], ['Pente Estendido', 1250], ['Rajada Perfurante', 3000], ['Frenesi de Combate', 6200]],
+        body: ['Busque alvos isolados e use a mobilidade para entrar e sair.', 'Compre itens de fuga se a partida estiver difícil.']
+    },
+    {
+        id: 'bd5', cat: 'Build', title: 'Controle — dominar as lutas', img: 'Dynamo.png', date: '11 out 2026',
+        desc: 'Utilidade em área para virar as lutas de equipe.',
+        items: [['Foco Mental', 500], ['Eco Arcano', 1250], ['Escudo Pulsante', 3000], ['Ruptura Espiritual', 3000], ['Ápice Arcano', 6200]],
+        body: ['Reduza a recarga para usar as habilidades de controle mais vezes.', 'Guarde a habilidade principal para o momento decisivo da luta.']
+    }
+];
+
+/* ================= início ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    applyProfile();
+    initSections();
+    initHeroes();
+    initContents();
+    initCompare();
+    initTierList();
+    initMap();
+    initEvents();
+    initQuiz();
+    initProfile();
+    initModals();
+    initToast();
+    initToTop();
+    fixShareMeta();
+    updateChip();
+    checkSharedCard();
+});
+
+/* ================= navegação ================= */
+function showSection(id) {
+    const target = document.getElementById(id);
+    if (!target || !target.classList.contains('section')) return;
+    $$('.section').forEach(s => s.classList.toggle('active', s.id === id));
+    $$('.nav-item[data-section]').forEach(n => n.classList.toggle('active', n.getAttribute('data-section') === id));
+    if (!stats.visited[id]) { stats.visited[id] = 1; saveStats(); }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    if (id === 'favoritos') renderFavs();
+    if (id === 'perfil') renderProfileUI();
+}
+
+/* ================= voltar ao topo ================= */
+function initToTop() {
+    const btn = $('#toTop');
+    if (!btn) return;
+    const checar = () => btn.classList.toggle('show', window.scrollY > 500);
+    window.addEventListener('scroll', checar, { passive: true });
+    window.addEventListener('resize', checar);
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    checar();
+}
+
+/* ================= compartilhamento (og:image) ================= */
+function fixShareMeta() {
+    // quando o site estiver publicado (http/https), aponta as URLs de
+    // compartilhamento para o endereço real, mesmo que o index.html ainda
+    // esteja com o texto "SEU-USUARIO".
+    if (!/^https?:/.test(location.protocol)) return;
+    const base = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '');
+    const trocar = (sel, valor) => { const m = document.querySelector(sel); if (m) m.setAttribute('content', valor); };
+    trocar('meta[property="og:url"]', base);
+    trocar('meta[property="og:image"]', base + 'assets/brand/share.jpg');
+    trocar('meta[name="twitter:image"]', base + 'assets/brand/share.jpg');
+}
+
+function initSections() {
+    const sidebar = $('#sidebar');
+    const overlay = $('#sidebarOverlay');
+    const closeSidebar = () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; };
+
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-section],[data-goto]');
+        if (!el) return;
+        e.preventDefault();
+        showSection(el.dataset.section || el.dataset.goto);
+        closeSidebar();
+    });
+
+    $('#menuBurger').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    $('#closeSidebar').addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    $('#userChip').addEventListener('click', () => showSection('perfil'));
+    $('#btnProfileTop').addEventListener('click', () => showSection('perfil'));
+    $('#btnDownload').addEventListener('click', () => { openOverlay($('#downloadModal')); });
+
+    // marca "coruja" se estiver de madrugada
+    const h = new Date().getHours();
+    if (h >= 0 && h < 5) { stats.night = 1; saveStats(); }
+
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(hash) && document.getElementById(hash).classList.contains('section')) {
+        showSection(hash);
+    } else {
+        showSection('home');
+    }
+}
+
+/* ================= estandartes ================= */
+function pennant(hero, w) {
+    const file = 'assets/heroes/' + hero.file;
+    const words = hero.name.split(/\s+/).reduce((a, t) => { if (t === '&' && a.length) a[a.length - 1] += ' &'; else a.push(t); return a; }, []);
+    const soon = hero.soon ? '<div class="pen-soon">EM BREVE</div>' : '';
+    return `<div class="pen" style="--w:${w}px">
+        <div class="pen-in">
+            <div class="pen-ph"><span>${esc(initials(hero.name))}</span></div>
+            <img class="pen-img" src="${file}" alt="${esc(hero.name)}" loading="lazy" onerror="this.remove()">
+            ${soon}
+            <div class="pen-name">${words.map(t => `<span>${esc(t)}</span>`).join(' ')}</div>
+        </div>
+    </div>`;
+}
+
+function heroCard(hero, w) {
+    const tags = hero.soon
+        ? '<span class="tag vio">Em breve</span>'
+        : `<span class="tag">${esc(hero.role)}</span><span class="tag ${tierClass(hero.tier)}">Tier ${hero.tier}</span>`;
+    return `<article class="hc" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
+        <div class="hc-pen">
+            ${pennant(hero, w)}
+            <button class="fav ${favs.includes(hero.name) ? 'on' : ''}" data-fav="${esc(hero.name)}" title="Favoritar">★</button>
+        </div>
+        <div class="hc-tags">${tags}</div>
+    </article>`;
+}
+
+/* ================= heróis ================= */
+let heroFilter = { q: '', role: 'Todos', sort: 'az' };
+
+function initHeroes() {
+    const grid = $('#heroesGrid');
+    const search = $('#heroSearch');
+    const sort = $('#heroSort');
+    const rolesRow = $('#rolesRow');
+    const subtitle = $('#heroSubtitle');
+
+    subtitle.textContent = `${HEROES.length} heróis de Deadlock. Clique em um para ver os detalhes.`;
+
+    const counts = { Todos: HEROES.length };
+    ROLES.forEach(r => counts[r] = HEROES.filter(h => h.role === r).length);
+    rolesRow.innerHTML = ['Todos', ...ROLES].map(r =>
+        `<button class="pill ${r === heroFilter.role ? 'on' : ''}" data-role="${r}">${r} <small>${counts[r] || 0}</small></button>`
+    ).join('');
+
+    function render() {
+        const term = heroFilter.q.trim().toLowerCase();
+        const order = { az: 1, za: -1 }[heroFilter.sort] || 0;
+        const idx = { S: 0, A: 1, B: 2, C: 3, D: 4 };
+
+        let list = HEROES.filter(h => {
+            const okRole = heroFilter.role === 'Todos' || h.role === heroFilter.role;
+            const okTerm = !term || h.name.toLowerCase().includes(term);
+            return okRole && okTerm;
+        });
+        // heróis "em breve" sempre no fim
+        list.sort((a, b) => (a.soon - b.soon) || a.name.localeCompare(b.name));
+        if (heroFilter.sort === 'za') list.sort((a, b) => (a.soon - b.soon) || b.name.localeCompare(a.name));
+        else if (heroFilter.sort === 'tier') list.sort((a, b) => (a.soon - b.soon) || idx[a.tier] - idx[b.tier] || a.name.localeCompare(b.name));
+        else if (heroFilter.sort === 'win') list.sort((a, b) => (a.soon - b.soon) || (+b.win) - (+a.win) || a.name.localeCompare(b.name));
+        else if (heroFilter.sort === 'fav') list.sort((a, b) => (a.soon - b.soon) || (favs.includes(b.name) - favs.includes(a.name)) || a.name.localeCompare(b.name));
+
+        grid.innerHTML = list.length
+            ? list.map(h => heroCard(h, 138)).join('')
+            : '<p style="color:var(--text-faint);grid-column:1/-1;text-align:center;padding:40px 0;">Nenhum herói encontrado.</p>';
+    }
+
+    search.addEventListener('input', e => { heroFilter.q = e.target.value; render(); });
+    sort.addEventListener('change', e => { heroFilter.sort = e.target.value; render(); });
+    rolesRow.addEventListener('click', e => {
+        const b = e.target.closest('[data-role]'); if (!b) return;
+        heroFilter.role = b.dataset.role;
+        $$('.pill', rolesRow).forEach(p => p.classList.toggle('on', p === b));
+        render();
+    });
+    $('#btnFilter').addEventListener('click', () => $('#filtersBar').classList.toggle('show'));
+
+    // clique no card / favoritar (delegação global, cobre todas as grades)
+    document.addEventListener('click', (e) => {
+        const fav = e.target.closest('[data-fav]');
+        if (fav) { e.preventDefault(); e.stopPropagation(); toggleFav(fav.dataset.fav); return; }
+        const card = e.target.closest('.hc[data-hero]');
+        if (card) { openHero(card.dataset.hero); }
+    });
+
+    render();
+}
+
+function toggleFav(name) {
+    favs = favs.includes(name) ? favs.filter(x => x !== name) : [...favs, name];
+    store.set('cdl_favs', favs);
+    $$(`[data-fav="${CSS.escape(name)}"]`).forEach(b => b.classList.toggle('on', favs.includes(name)));
+    if ($('#favoritos').classList.contains('active')) renderFavs();
+    renderProfileUI();
+    showToast(favs.includes(name) ? name + ' adicionado aos favoritos ★' : name + ' removido dos favoritos');
+}
+
+function renderFavs() {
+    const grid = $('#favGrid');
+    const list = favs.map(heroByName).filter(Boolean);
+    grid.innerHTML = list.length
+        ? list.map(h => heroCard(h, 138)).join('')
+        : '<p style="color:var(--text-faint);grid-column:1/-1;text-align:center;padding:40px 0;">Você ainda não favoritou nenhum herói. Clique na ★ de um estandarte.</p>';
+}
+
+/* ================= modal de herói ================= */
+let heroTab = 'visao';
+let heroCurrent = null;
+
+const BUILD_PRESETS = {
+    'Tanque': [['Pele Resistente', 500], ['Fôlego Extra', 500], ['Bateria de Vida', 1250], ['Escudo Pulsante', 3000], ['Colosso', 6200]],
+    'Suporte': [['Foco Mental', 500], ['Eco Arcano', 1250], ['Surto de Energia', 1250], ['Ruptura Espiritual', 3000], ['Ápice Arcano', 6200]],
+    'Carry': [['Munição Reforçada', 500], ['Disparo Rápido', 500], ['Cano Longo', 1250], ['Rajada Perfurante', 3000], ['Frenesi de Combate', 6200]],
+    'Controle': [['Foco Mental', 500], ['Eco Arcano', 1250], ['Escudo Pulsante', 3000], ['Ruptura Espiritual', 3000], ['Ápice Arcano', 6200]],
+    'Assassino': [['Munição Reforçada', 500], ['Disparo Rápido', 500], ['Pente Estendido', 1250], ['Rajada Perfurante', 3000], ['Frenesi de Combate', 6200]]
+};
+
+function openHero(name) {
+    const h = heroByName(name); if (!h) return;
+    heroCurrent = h;
+    if (!stats.heroesSeen.includes(name)) { stats.heroesSeen.push(name); saveStats(); }
+    heroTab = 'visao';
+    renderHeroModal();
+    openOverlay($('#heroModal'));
+}
+
+function miniHero(h) {
+    return `<a class="hp-rel" href="#" data-hero-link="${esc(h.name)}">
+        <img src="assets/heroes/${h.file}" alt="" onerror="this.remove()">
+        <span>${esc(h.name)}</span><span class="tag">${esc(h.role)}</span></a>`;
+}
+
+function renderHeroModal() {
+    const h = heroCurrent;
+    const n = PLAYABLE.length;
+    const strong = [3, 7, 11].map(k => PLAYABLE[(h.idx + k) % n]).filter(Boolean);
+    const weak = [5, 9, 14].map(k => PLAYABLE[(h.idx + k) % n]).filter(Boolean);
+    const rel = HEROES.filter(x => x.role === h.role && x.name !== h.name).slice(0, 4);
+    const preset = h.role === 'Tanque' ? 'Tanque' : (h.role === 'Suporte' || h.role === 'Controle') ? (h.role === 'Controle' ? 'Controle' : 'Suporte') : h.role === 'Carry' ? 'Carry' : 'Assassino';
+    const pick = BUILD_PRESETS[preset] || BUILD_PRESETS.Assassino;
+
+    const bar = (label, val, max, unit = '') =>
+        `<div class="statline">${label}: <b>${val}${unit}</b></div><div class="bar"><i style="width:${Math.max(4, Math.min(100, val / max * 100))}%"></i></div>`;
+
+    const tabVisao = h.soon
+        ? `<p>${esc(h.desc)}</p><div class="hp-tags" style="justify-content:flex-start;margin-top:14px"><span class="tag vio">Em breve</span></div>
+           <p style="margin-top:14px;color:var(--text-soft)">Estatísticas, habilidades e builds entram aqui depois do lançamento.</p>`
+        : `<p>${esc(h.desc)}</p>
+           <div class="hp-tags" style="justify-content:flex-start;margin:14px 0">
+             <span class="tag">${esc(h.role)}</span>
+             ${h.arch !== '—' ? `<span class="tag vio">${esc(h.arch)}</span>` : ''}
+             <span class="tag cy">Dificuldade: ${DIFF_LABEL[h.diff]}</span>
+             <span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span>
+           </div>
+           <h2 class="pform-sec" style="margin-top:20px">Atributos base</h2>
+           ${bar('Vida', h.hp, 1000)}
+           ${bar('Velocidade', h.spd, 10, ' m/s')}
+           <h2 class="pform-sec" style="margin-top:20px">Estatísticas (exemplo)</h2>
+           ${bar('Win rate', +h.win, 70, '%')}
+           ${bar('Pick rate', +h.pick, 20, '%')}`;
+
+    const tabHab = h.soon
+        ? '<p style="color:var(--text-soft)">Habilidades disponíveis após o lançamento.</p>'
+        : `<p style="color:var(--text-soft);font-size:13px;margin-bottom:6px">Nomes oficiais em inglês, conforme a deadlock.wiki. Recargas sujeitas a mudanças.</p>`
+          + h.skills.map(s => `<div class="skill"><div class="k">${esc(s.key)}</div><div style="flex:1">
+               <div class="sname"><b>${esc(s.name)}</b>
+                 ${s.key === '★' ? '<span class="tag acc">Suprema</span>' : ''}
+                 ${s.passive ? '<span class="tag">Passiva</span>' : ''}
+                 ${s.cd != null ? `<span class="tag cy">Recarga ${s.cd}s</span>` : ''}
+               </div>
+               <div class="sdesc">${esc(s.desc)}</div></div></div>`).join('');
+
+    const tabBuild = h.soon
+        ? '<p style="color:var(--text-soft)">Sugestões de build após o lançamento.</p>'
+        : `<p style="color:var(--text-soft);font-size:13px;margin-bottom:12px">Sugestão de exemplo para ${esc(h.name)}.</p>`
+          + pick.map(([nm, cost]) => `<div class="item-row"><span>${esc(nm)}</span><span class="cost">${money(cost)}</span></div>`).join('');
+
+    const tabMatch = h.soon
+        ? '<p style="color:var(--text-soft)">Confrontos disponíveis após o lançamento.</p>'
+        : `<div class="matchup">
+             <div><h2 class="pform-sec">Vai bem contra</h2>${strong.map(miniHero).join('')}</div>
+             <div><h2 class="pform-sec">Sofre contra</h2>${weak.map(miniHero).join('')}</div>
+           </div>
+           <p style="color:var(--text-faint);font-size:12.5px;margin-top:12px">Confrontos de exemplo, sem base em dados reais.</p>`;
+
+    const body = { visao: tabVisao, hab: tabHab, build: tabBuild, match: tabMatch }[heroTab];
+
+    $('#heroModalBox').innerHTML = `
+        <button class="modal-close" data-close="heroModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="hp">
+            <aside class="hp-side">
+                <div class="hp-pen">${pennant(h, 190)}</div>
+                <h1>${esc(h.name)}</h1>
+                <p class="hp-role">${h.soon ? 'Em breve' : esc(h.role) + (h.arch !== '—' ? ' · ' + esc(h.arch) : '')}</p>
+                <div class="hp-tags">
+                    ${h.soon ? '' : `<span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span><span class="tag cy">${DIFF_LABEL[h.diff]}</span>`}
+                </div>
+                <button class="btn ${favs.includes(h.name) ? 'btn-lime' : 'btn-dark'} btn-block" data-favtoggle="${esc(h.name)}">
+                    ${favs.includes(h.name) ? '★ Favorito' : '☆ Favoritar'}
+                </button>
+                ${rel.length ? `<div class="hp-parecidos"><small>PARECIDOS</small>${rel.map(miniHero).join('')}</div>` : ''}
+            </aside>
+            <section>
+                <div class="htabs">
+                    ${[['visao', 'Visão geral'], ['hab', 'Habilidades'], ['build', 'Build'], ['match', 'Confrontos']]
+            .map(([k, l]) => `<button data-tab="${k}" class="${heroTab === k ? 'on' : ''}">${l}</button>`).join('')}
+                </div>
+                <div>${body}</div>
+            </section>
+        </div>`;
+
+    // bindings do modal
+    $$('#heroModalBox [data-tab]').forEach(b => b.addEventListener('click', () => { heroTab = b.dataset.tab; renderHeroModal(); }));
+    const ft = $('#heroModalBox [data-favtoggle]');
+    if (ft) ft.addEventListener('click', () => { toggleFav(ft.dataset.favtoggle); renderHeroModal(); });
+    $$('#heroModalBox [data-hero-link]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); openHero(a.dataset.heroLink); }));
+}
+
+/* ================= notícias automáticas (Steam) =================
+   O arquivo data/steam-news.js é gerado pelo script tools/update-news.py
+   (ou pelo GitHub Actions, todo dia). Se ele não existir, o site usa as
+   notícias fixas do array NEWS acima. */
+const STEAM_POOL = ['McGinnis.png', 'Vindicta.png', 'Kelvin.png', 'Holliday.png', 'Shiv.png',
+    'Abrams.png', 'Pocket.png', 'Ivy.png', 'Sinclair.png', 'Vyper.png'];
+
+function steamHeroImg(texto, i) {
+    const t = ' ' + String(texto || '').toLowerCase() + ' ';
+    const nomes = HEROES.map(h => h.name).sort((a, b) => b.length - a.length);
+    for (const nome of nomes) {
+        const alvo = nome.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (new RegExp('\\b' + alvo + '\\b').test(t)) return heroByName(nome).file;
+        const curto = alvo.split(/\s+/)[0];
+        if (curto.length >= 4 && new RegExp('\\b' + curto + '\\b').test(t)) return heroByName(nome).file;
+    }
+    return STEAM_POOL[i % STEAM_POOL.length];
+}
+
+function buildSteamArticles() {
+    const pack = window.STEAM_NEWS;
+    if (!pack || !Array.isArray(pack.items) || !pack.items.length) return [];
+    return pack.items.map((n, i) => ({
+        id: n.id,
+        cat: n.cat || 'Steam',
+        title: n.title,
+        img: steamHeroImg(n.title + ' ' + (n.lines || []).slice(0, 6).join(' '), i),
+        date: n.date,
+        desc: n.desc,
+        body: (n.lines || []).slice(0, 40),
+        url: n.url,
+        patch: !!n.patch,
+        steam: true
+    }));
+}
+
+const STEAM_ARTICLES = buildSteamArticles();
+
+/* ================= conteúdos clicáveis ================= */
+function initContents() {
+    const cardHTML = (a, type) => {
+        if (type === 'guide' || type === 'build') {
+            const label = type === 'build' ? 'Ver build' : 'Ler guia';
+            return `<article class="guide-card" data-article="${a.id}">
+                <div class="guide-head"><img src="assets/heroes/${a.img}" alt=""><span>${esc(a.cat)}</span></div>
+                <h3 class="news-title">${esc(a.title)}</h3>
+                <p class="news-desc">${esc(a.desc)}</p>
+                <span class="news-more">${label} <i class="fa-solid fa-arrow-right"></i></span>
+            </article>`;
+        }
+        return `<article class="news-card" data-article="${a.id}">
+            <img src="assets/heroes/${a.img}" alt="">
+            <div class="news-body">
+                <span class="news-cat">${esc(a.cat)}</span>
+                <h3 class="news-title">${esc(a.title)}</h3>
+                <p class="news-desc">${esc(a.desc)}</p>
+                <span class="news-date">${esc(a.date)}</span>
+                <span class="news-more">Ler matéria <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+        </article>`;
+    };
+
+    $('#homeGrid').innerHTML = FEATURED.map(a => cardHTML(a, 'news')).join('');
+    const listaNoticias = STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS;
+    $('#newsGrid').innerHTML = listaNoticias.map(a => cardHTML(a, 'news')).join('');
+    $('#guidesGrid').innerHTML = GUIDES.map(a => cardHTML(a, 'guide')).join('');
+
+    // aviso de "atualizado em" quando as notícias vêm da Steam
+    const sub = $('#newsSub');
+    if (sub) {
+        sub.innerHTML = STEAM_ARTICLES.length
+            ? `As últimas notícias oficiais do Deadlock, direto da Steam. Clique para ler.
+               <span class="news-sub-note"><i class="fa-solid fa-rotate"></i> Atualizado em <b>${esc((window.STEAM_NEWS || {}).updated || '')}</b> · textos originais da Valve (em inglês)</span>`
+            : 'As últimas novidades sobre Deadlock. Clique para ler.';
+    }
+
+    // patch notes automáticos (posts do Steam marcados como patch)
+    const pl = $('#patchList');
+    if (pl && STEAM_ARTICLES.length) {
+        const patches = STEAM_ARTICLES.filter(a => a.patch).slice(0, 6);
+        if (patches.length) {
+            pl.innerHTML = patches.map(a => {
+                const primeira = (a.body[0] || a.desc || '');
+                const resumo = primeira.slice(0, 210) + (primeira.length > 210 ? '...' : '');
+                return `<article class="patch-entry" data-article="${a.id}">
+                    <div class="patch-head"><span class="patch-version">${esc(a.title)}</span><span class="patch-date">${esc(a.date)}</span></div>
+                    <p>${esc(resumo)}</p>
+                    <span class="patch-more">Ver o patch completo <i class="fa-solid fa-arrow-right"></i></span>
+                </article>`;
+            }).join('');
+        }
+    }
+    $('#buildsGrid').innerHTML = BUILDS.map(a => cardHTML(a, 'build')).join('');
+    $('#matchesGrid').innerHTML = MATCHES.map(m => `
+        <article class="match-card" data-match="${m.id}">
+            <div class="match-teams">
+                <div class="team">${teamBadge(m.a)}<span class="team-name">${esc(m.a)}</span><span class="score">${esc(m.sa)}</span></div>
+                <span class="vs">vs</span>
+                <div class="team">${teamBadge(m.b)}<span class="team-name">${esc(m.b)}</span><span class="score">${esc(m.sb)}</span></div>
+            </div>
+            <div class="match-info">
+                <span class="status ${m.status}">${esc(m.statusLabel)}</span>
+                <span class="time">${esc(m.time)}</span>
+            </div>
+        </article>`).join('');
+
+    document.addEventListener('click', (e) => {
+        const art = e.target.closest('[data-article]');
+        if (art) { openArticle(art.dataset.article); return; }
+        const mat = e.target.closest('[data-match]');
+        if (mat) { openMatch(mat.dataset.match); }
+    });
+}
+
+function findArticle(id) { return [...FEATURED, ...NEWS, ...GUIDES, ...BUILDS, ...STEAM_ARTICLES].find(a => a.id === id); }
+
+function openArticle(id) {
+    const a = findArticle(id); if (!a) return;
+    const items = a.items ? `<div class="pform-sec" style="margin-top:18px">Itens recomendados</div>`
+        + a.items.map(([nm, cost]) => `<div class="item-row"><span>${esc(nm)}</span><span class="cost">${money(cost)}</span></div>`).join('') : '';
+    const corpo = a.patch
+        ? `<div class="cm-patch">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`
+        : `<div class="cm-text">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
+    const linkSteam = a.url
+        ? `<a class="cm-link" href="${esc(a.url)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
+        : '';
+    $('#contentModalBox').innerHTML = `
+        <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <img class="cm-img" src="assets/heroes/${a.img}" alt="">
+        <div class="cm-body">
+            <div class="cm-meta"><span class="tag acc">${esc(a.cat)}</span><span class="cm-date">${esc(a.date)}</span>${a.steam ? '<span class="news-src"><i class="fa-brands fa-steam"></i> Notícia oficial</span>' : ''}</div>
+            <h2 class="cm-title">${esc(a.title)}</h2>
+            ${corpo}
+            ${items}
+            ${linkSteam}
+        </div>`;
+    openOverlay($('#contentModal'));
+}
+
+function openMatch(id) {
+    const m = MATCHES.find(x => x.id === id); if (!m) return;
+    $('#contentModalBox').innerHTML = `
+        <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="cm-body">
+            <div class="cm-meta"><span class="status ${m.status}">${esc(m.statusLabel)}</span><span class="cm-date">${esc(m.time)}</span></div>
+            <h2 class="cm-title">Confronto</h2>
+            <div class="match-teams" style="margin-bottom:18px">
+                <div class="team">${teamBadge(m.a)}<span class="team-name">${esc(m.a)}</span><span class="score">${esc(m.sa)}</span></div>
+                <span class="vs">vs</span>
+                <div class="team">${teamBadge(m.b)}<span class="team-name">${esc(m.b)}</span><span class="score">${esc(m.sb)}</span></div>
+            </div>
+            <div class="cm-text"><p>${esc(m.desc)}</p></div>
+        </div>`;
+    openOverlay($('#contentModal'));
+}
+
+/* ================= comparar heróis ================= */
+let cmpState = { a: 'Abrams', b: 'Bebop' };
+
+function initCompare() {
+    const A = $('#cmpA'), B = $('#cmpB');
+    const opts = HEROES.map(h => `<option value="${esc(h.name)}">${esc(h.name)}</option>`).join('');
+    A.innerHTML = opts; B.innerHTML = opts;
+    if (!heroByName(cmpState.a)) cmpState.a = PLAYABLE[0].name;
+    if (!heroByName(cmpState.b)) cmpState.b = PLAYABLE[1].name;
+    A.value = cmpState.a; B.value = cmpState.b;
+    A.addEventListener('change', () => { cmpState.a = A.value; renderCompare(); });
+    B.addEventListener('change', () => { cmpState.b = B.value; renderCompare(); });
+    $('#cmpSwap').addEventListener('click', () => {
+        const t = cmpState.a; cmpState.a = cmpState.b; cmpState.b = t;
+        A.value = cmpState.a; B.value = cmpState.b; renderCompare();
+    });
+    $('#cmpRandom').addEventListener('click', () => {
+        const pick = () => PLAYABLE[Math.floor(Math.random() * PLAYABLE.length)].name;
+        cmpState.a = pick(); cmpState.b = pick();
+        A.value = cmpState.a; B.value = cmpState.b; renderCompare();
+    });
+    renderCompare();
+}
+
+function renderCompare() {
+    const a = heroByName(cmpState.a), b = heroByName(cmpState.b);
+    if (!a || !b) return;
+
+    $('#cmpHead').innerHTML = [a, b].map(h => `
+        <div class="cmp-hero">
+            ${pennant(h, 150)}
+            <h3>${esc(h.name)}</h3>
+            <p>${h.soon ? 'Em breve' : esc(h.role) + (h.arch !== '—' ? ' · ' + esc(h.arch) : '')}</p>
+            <div class="hc-tags">${h.soon ? '<span class="tag vio">Em breve</span>' : `<span class="tag">${esc(h.role)}</span><span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span>`}</div>
+        </div>`).join('');
+
+    const score = { tier: h => 5 - 'SABCD'.indexOf(h.tier), hp: h => h.hp, spd: h => h.spd, win: h => +h.win, pick: h => +h.pick, diff: h => 4 - h.diff };
+    const disp = { tier: h => h.tier, hp: h => String(h.hp), spd: h => h.spd + ' m/s', win: h => h.win + '%', pick: h => h.pick + '%', diff: h => DIFF_LABEL[h.diff] };
+    const labels = { tier: 'Tier', hp: 'Vida', spd: 'Velocidade', win: 'Win rate', pick: 'Pick rate', diff: 'Facilidade' };
+
+    $('#cmpRows').innerHTML = ['tier', 'hp', 'spd', 'win', 'pick', 'diff'].map(k => {
+        const sa = a.soon ? 0 : score[k](a), sb = b.soon ? 0 : score[k](b);
+        const max = Math.max(sa, sb, 1);
+        const aBest = !a.soon && sa > sb, bBest = !b.soon && sb > sa;
+        const aw = a.soon ? 0 : Math.max(4, sa / max * 100), bw = b.soon ? 0 : Math.max(4, sb / max * 100);
+        return `<div class="cmp-row">
+            <div class="cmp-cell a"><div class="cmp-val ${aBest ? 'best' : ''}">${a.soon ? '—' : esc(disp[k](a))}</div><div class="cmp-bar"><i style="width:${aw}%"></i></div></div>
+            <div class="cmp-label">${labels[k]}</div>
+            <div class="cmp-cell b"><div class="cmp-val ${bBest ? 'best' : ''}">${b.soon ? '—' : esc(disp[k](b))}</div><div class="cmp-bar"><i style="width:${bw}%"></i></div></div>
+        </div>`;
+    }).join('');
+}
+
+/* ================= tier list ================= */
+function initTierList() {
+    const tiers = ['S', 'A', 'B', 'C', 'D'];
+    $('#tierRows').innerHTML = tiers.map(t => {
+        const list = PLAYABLE.filter(h => h.tier === t);
+        const inner = list.length
+            ? list.map(h => heroCard(h, 92)).join('')
+            : '<span style="color:var(--text-faint);font-size:13px">Nenhum herói neste tier.</span>';
+        return `<div class="tier-row"><div class="tier-badge tier-${t}">${t}</div><div class="tier-heroes">${inner}</div></div>`;
+    }).join('');
+}
+
+/* ================= mapa ================= */
+const MAP_LANES = [
+    { id: 'top', label: 'Rota Superior', d: 'M150,400 C150,150 300,70 690,120', lx: 315, ly: 148 },
+    { id: 'mid', label: 'Rota do Meio', d: 'M150,400 L690,120', lx: 560, ly: 178 },
+    { id: 'bot', label: 'Rota Inferior', d: 'M150,400 C300,470 600,430 690,120', lx: 330, ly: 375 }
+];
+const MAP_MARKERS = [
+    { id: 'amber', label: 'Base Âmbar', color: '#ffb74d', x: 150, y: 400 },
+    { id: 'sapphire', label: 'Base Safira', color: '#4fc3f7', x: 690, y: 120 },
+    { id: 'midboss', label: 'Midboss', color: '#8b5cf6', x: 400, y: 252 }
+];
+const MAP_INFO = {
+    top: { n: 'Rota Superior', d: 'Rota longa no topo do mapa. Boa para farmar com segurança, mas fique de olho nas tirolesas: os inimigos chegam rápido.' },
+    mid: { n: 'Rota do Meio', d: 'A rota mais curta e movimentada. Passa perto do Midboss e das runas, então acontecem muitas lutas por aqui.' },
+    bot: { n: 'Rota Inferior', d: 'Rota longa na parte de baixo do mapa. Muito espaço para farm e lutas frequentes perto do Midboss.' },
+    amber: { n: 'Base Âmbar', d: 'Uma das bases. Aqui ficam o Patron e a fonte de cura do time. Proteja-a a todo custo.' },
+    sapphire: { n: 'Base Safira', d: 'A base oposta, no outro canto do mapa. Destrua o Patron inimigo aqui para vencer a partida.' },
+    midboss: { n: 'Midboss', d: 'Chefe que aparece no centro do mapa. O time que o derrota ganha um bônus poderoso (exemplo ilustrativo).' }
+};
+const FONT = 'Poppins, system-ui, sans-serif';
+
+function initMap() {
+    const lanes = MAP_LANES.map(l => `
+        <g class="map-zone" data-area="${l.id}">
+            <path d="${l.d}" stroke="transparent" stroke-width="48" fill="none" pointer-events="stroke"></path>
+            <path class="zone-shape" style="stroke:var(--lime)" d="${l.d}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".75" pointer-events="none"></path>
+            <text x="${l.lx}" y="${l.ly}" fill="#cfd2dc" font-size="14" font-weight="700" text-anchor="middle" pointer-events="none" font-family="${FONT}">${l.label}</text>
+        </g>`).join('');
+    const markers = MAP_MARKERS.map(m => `
+        <g class="map-zone" data-area="${m.id}">
+            <circle cx="${m.x}" cy="${m.y}" r="26" fill="transparent" pointer-events="all"></circle>
+            <circle class="zone-shape" cx="${m.x}" cy="${m.y}" r="15" fill="${m.color}" stroke="#0c0c0e" stroke-width="3" pointer-events="none"></circle>
+            <text x="${m.x}" y="${m.y + 40}" fill="#cfd2dc" font-size="13" font-weight="700" text-anchor="middle" pointer-events="none" font-family="${FONT}">${m.label}</text>
+        </g>`).join('');
+
+    $('#mapBox').innerHTML = `<svg viewBox="0 0 800 500" role="img" aria-label="Mapa esquemático do jogo">
+        <defs><linearGradient id="mapBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#141420"></stop><stop offset="1" stop-color="#0b0b12"></stop>
+        </linearGradient></defs>
+        <rect width="800" height="500" rx="14" fill="url(#mapBg)"></rect>
+        <rect x="6" y="6" width="788" height="488" rx="12" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="2"></rect>
+        ${lanes}${markers}
+    </svg>`;
+
+    $('#mapBox').addEventListener('click', (e) => {
+        const z = e.target.closest('.map-zone'); if (!z) return;
+        setMapArea(z.dataset.area);
+    });
+    setMapArea('mid');
+}
+
+function setMapArea(id) {
+    document.querySelectorAll('#mapBox .map-zone').forEach(z => z.classList.toggle('active', z.dataset.area === id));
+    const info = MAP_INFO[id]; if (!info) return;
+    $('#mapInfo').innerHTML = `<h3>${esc(info.n)}</h3><p>${esc(info.d)}</p>
+        <div class="map-legend">
+            <span><i class="fa-solid fa-circle" style="color:#b6f24a"></i>Rotas</span>
+            <span><i class="fa-solid fa-circle" style="color:#ffb74d"></i>Base Âmbar</span>
+            <span><i class="fa-solid fa-circle" style="color:#4fc3f7"></i>Base Safira</span>
+            <span><i class="fa-solid fa-circle" style="color:#8b5cf6"></i>Midboss</span>
+        </div>`;
+}
+
+/* ================= eventos ================= */
+const EVENTS = [
+    { id: 'ev1', d: '25', m: 'out', title: 'Torneio Central Deadlock BR', desc: 'Competição aberta para a comunidade, com premiação simbólica.', time: '19:00' },
+    { id: 'ev2', d: '01', m: 'nov', title: 'Noite de duplas (Duo Queue)', desc: 'Junte um amigo e participe das partidas em grupo.', time: '21:00' },
+    { id: 'ev3', d: '09', m: 'nov', title: 'Patch Watch — análise ao vivo', desc: 'Acompanhe as mudanças do novo patch com a gente.', time: '18:30' },
+    { id: 'ev4', d: '17', m: 'nov', title: 'Campeonato interno do Discord', desc: 'Times formados no nosso servidor disputam o título.', time: '15:00' },
+    { id: 'ev5', d: '30', m: 'nov', title: 'Entrega de prêmios da temporada', desc: 'Divulgação dos vencedores e das conquistas da comunidade.', time: '20:00' }
+];
+
+function initEvents() {
+    renderEvents();
+    $('#eventList').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-remind]'); if (!b) return;
+        const id = b.dataset.remind;
+        let list = store.get('cdl_events', []);
+        list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+        store.set('cdl_events', list);
+        renderEvents();
+        showToast(list.includes(id) ? 'Vamos te lembrar deste evento!' : 'Lembrete removido.');
+    });
+}
+
+function renderEvents() {
+    const reminded = store.get('cdl_events', []);
+    $('#eventList').innerHTML = EVENTS.map(ev => {
+        const on = reminded.includes(ev.id);
+        return `<div class="event-item">
+            <div class="event-date"><b>${esc(ev.d)}</b><span>${esc(ev.m)}</span></div>
+            <div class="event-body"><h3>${esc(ev.title)}</h3><p>${esc(ev.desc)} · ${esc(ev.time)}</p></div>
+            <button class="btn btn-dark event-remind ${on ? 'on' : ''}" data-remind="${ev.id}">${on ? '<i class="fa-solid fa-check"></i> Lembrando' : 'Lembrar'}</button>
+        </div>`;
+    }).join('');
+}
+
+/* ================= quiz ================= */
+const QUIZ = [
+    {
+        q: 'Como você prefere entrar nas lutas?', o: [
+            { t: 'Na frente, aguentando a pancada', w: { role: 'Tanque', arch: 'Lutador' } },
+            { t: 'De longe, causando dano sem parar', w: { role: 'Carry', arch: 'Assassino' } },
+            { t: 'Ajudando e protegendo o time', w: { role: 'Suporte', arch: 'Místico' } },
+            { t: 'Criando confusão e controlando a área', w: { role: 'Controle', arch: 'Místico' } }
+        ]
+    },
+    {
+        q: 'Qual dessas habilidades te agrada mais?', o: [
+            { t: 'Ficar impossível de matar', w: { role: 'Tanque' } },
+            { t: 'Escapar e reaparecer do nada', w: { arch: 'Assassino' } },
+            { t: 'Curar e dar escudo nos aliados', w: { role: 'Suporte' } },
+            { t: 'Prender vários inimigos de uma vez', w: { role: 'Controle' } }
+        ]
+    },
+    {
+        q: 'Quanto tempo você tem para treinar?', o: [
+            { t: 'Pouco — quero algo fácil de jogar', w: { diff: 1 } },
+            { t: 'Médio — gosto de aprender', w: { diff: 2 } },
+            { t: 'Muito — quero um herói desafiador', w: { diff: 3 } }
+        ]
+    },
+    {
+        q: 'Qual estilo combina mais com você?', o: [
+            { t: 'Tanque resistente', w: { arch: 'Lutador' } },
+            { t: 'Atirador preciso', w: { arch: 'Assassino' } },
+            { t: 'Místico cheio de habilidades', w: { arch: 'Místico' } },
+            { t: 'Híbrido / tanto faz', w: { arch: '—' } }
+        ]
+    }
+];
+let quizState = { i: 0, ans: [] };
+
+function initQuiz() { quizState = { i: 0, ans: [] }; renderQuiz(); }
+
+function renderQuiz() {
+    const box = $('#quizBox');
+    if (quizState.i >= QUIZ.length) { box.innerHTML = quizResultHTML(); bindQuizResult(); return; }
+    const q = QUIZ[quizState.i];
+    box.innerHTML = `
+        <div class="quiz-progress"><i style="width:${Math.round(quizState.i / QUIZ.length * 100)}%"></i></div>
+        <div class="quiz-step">Pergunta ${quizState.i + 1} de ${QUIZ.length}</div>
+        <div class="quiz-q">${esc(q.q)}</div>
+        <div class="quiz-opts">${q.o.map((o, k) => `<button class="quiz-opt" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+    box.querySelectorAll('.quiz-opt').forEach(b => b.addEventListener('click', () => {
+        quizState.ans.push(q.o[+b.dataset.k].w);
+        quizState.i++;
+        renderQuiz();
+    }));
+}
+
+function quizScores() {
+    return PLAYABLE.map(h => {
+        let s = 0;
+        quizState.ans.forEach(w => {
+            if (w.role && h.role === w.role) s += 3;
+            if (w.arch && h.arch === w.arch) s += 2;
+            if (w.diff && h.diff === w.diff) s += 1;
+        });
+        return { h, s };
+    }).sort((x, y) => y.s - x.s);
+}
+
+function quizResultHTML() {
+    const top = quizScores().slice(0, 3).map(x => x.h);
+    return `
+        <div class="quiz-step">Resultado</div>
+        <div class="quiz-q">Seu herói ideal é ${esc(top[0].name)}!</div>
+        <div class="quiz-result">
+            ${top.map((h, i) => `<div class="qr">${pennant(h, 120)}<small>${i === 0 ? '★ Melhor combinação' : (i + 1) + 'ª opção'}</small></div>`).join('')}
+        </div>
+        <div class="quiz-actions">
+            <button class="btn btn-lime" data-qact="open" data-hero="${esc(top[0].name)}">Ver ficha de ${esc(top[0].name)}</button>
+            <button class="btn btn-dark" data-qact="redo">Refazer o quiz</button>
+        </div>`;
+}
+
+function bindQuizResult() {
+    const box = $('#quizBox');
+    const redo = box.querySelector('[data-qact="redo"]');
+    if (redo) redo.addEventListener('click', () => { quizState = { i: 0, ans: [] }; renderQuiz(); });
+    const open = box.querySelector('[data-qact="open"]');
+    if (open) open.addEventListener('click', () => openHero(open.dataset.hero));
+}
+
+/* ================= modais (fechar) ================= */
+function openOverlay(el) { el.classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeOverlay(el) { el.classList.remove('show'); if (!document.querySelector('.modal-overlay.show')) document.body.style.overflow = ''; }
+
+function initModals() {
+    document.addEventListener('click', (e) => {
+        const closeBtn = e.target.closest('[data-close]');
+        if (closeBtn) { const el = document.getElementById(closeBtn.dataset.close); if (el) closeOverlay(el); return; }
+        const generic = e.target.closest('.modal-close');
+        if (generic) { const ov = generic.closest('.modal-overlay'); if (ov) closeOverlay(ov); return; }
+        if (e.target.classList && e.target.classList.contains('modal-overlay')) closeOverlay(e.target);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        $$('.modal-overlay.show').forEach(closeOverlay);
+    });
+}
+
+/* ================= perfil ================= */
+function bannerColors(p) { return p.banner === 'custom' ? [p.bc1, p.bc2] : (BANNERS[p.banner] || BANNERS.lima)[1]; }
+
+function bannerStyle(p) {
+    if (p.bannerImg) return `background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),url('${p.bannerImg}') center/cover no-repeat;`;
+    const [a, b] = bannerColors(p);
+    const base = `linear-gradient(120deg,${a},${b})`;
+    if (p.pattern === 'grid') return `background:linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px),${base};background-size:24px 24px,24px 24px,auto;`;
+    if (p.pattern === 'dots') return `background:radial-gradient(rgba(255,255,255,.32) 1.5px,transparent 1.6px),${base};background-size:16px 16px,auto;`;
+    if (p.pattern === 'diag') return `background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 2px,transparent 2px 12px),${base};`;
+    return `background:${base};`;
+}
+
+function shapeCss(shape) {
+    if (shape === 'circle') return 'border-radius:50%;';
+    if (POLY[shape]) return 'clip-path:polygon(' + POLY[shape].map(([x, y]) => `${+(50 + 50 * x).toFixed(2)}% ${+(50 + 50 * y).toFixed(2)}%`).join(',') + ');';
+    return 'border-radius:22px;';
+}
+
+function avatarInner(p) {
+    if (p.av.img) return '';
+    const nick = (p.nick || 'Você').trim().split(/\s+/);
+    return nick.length > 1 ? (nick[0][0] + nick[1][0]).toUpperCase() : nick[0].slice(0, 2).toUpperCase();
+}
+
+/* avatar com forma + moldura (a moldura é um "aro" desenhado atrás) */
+function avatarBox(size, p) {
+    const shape = shapeCss(p.av.shape);
+    const hasImg = !!p.av.img;
+    const [c1, c2] = bannerColors(p);
+    const zoom = p.av.zoom || 1, px = p.av.px ?? 50, py = p.av.py ?? 50;
+    const inner = hasImg
+        ? `<img src="${p.av.img}" alt="" style="object-position:${px}% ${py}%;transform:scale(${zoom})">`
+        : `<span class="pav-txt">${avatarInner(p)}</span>`;
+    const bg = hasImg ? '#111417' : `linear-gradient(135deg,${c1},${c2})`;
+    const core = `<div class="pav" style="${shape}width:${size}px;height:${size}px;font-size:${Math.round(size * 0.34)}px;background:${bg}">${inner}</div>`;
+    const frame = p.av.frame;
+    if (frame === 'none') return core;
+    if (frame === 'double') {
+        return `<div class="pav-wrap" style="${shape}background:var(--lime);padding:3px"><div class="pav-wrap" style="${shape}background:var(--card);padding:3px">${core}</div></div>`;
+    }
+    const ring = frame === 'gold' ? 'linear-gradient(135deg,#f6d36b,#a8741a)' : 'var(--lime)';
+    const glow = frame === 'neon' ? ';filter:drop-shadow(0 0 10px var(--lime))' : '';
+    return `<div class="pav-wrap" style="${shape}background:${ring};padding:4px${glow}">${core}</div>`;
+}
+
+/* abas do editor de perfil */
+let pTab = 'id', avAdjustOpen = false;
+const PROFILE_TABS = [
+    ['id', 'fa-user', 'Identidade'],
+    ['game', 'fa-gamepad', 'Jogo'],
+    ['avatar', 'fa-circle-user', 'Avatar'],
+    ['card', 'fa-id-card', 'Cartão'],
+    ['site', 'fa-gear', 'Site'],
+    ['ach', 'fa-star', 'Conquistas'],
+    ['data', 'fa-database', 'Dados']
+];
+function renderPTabs() {
+    $('#ptabs').innerHTML = PROFILE_TABS.map(([k, ic, n]) =>
+        `<button type="button" data-pt="${k}" class="${pTab === k ? 'on' : ''}"><i class="fa-solid ${ic}"></i> ${n}</button>`).join('');
+}
+
+/* cartão do jogador (pré-visualização e link compartilhado) */
+function profileCardHTML(p) {
+    const mains = p.mains.map(heroByName).filter(Boolean);
+    const lv = level();
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]].filter(x => x[1]);
+    return `<div class="pcard">
+        <div class="pban" style="${bannerStyle(p)}"></div>
+        <div class="pbody">
+            <div class="pav-holder">${avatarBox(96, p)}</div>
+            <h2>${esc(p.nick || 'Seu apelido')}</h2>
+            ${p.pronouns ? `<div style="color:var(--text-faint);font-size:12.5px;margin-bottom:4px">${esc(p.pronouns)}</div>` : ''}
+            ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}
+            <div class="prow">
+                <span class="tag acc">${esc(p.title || 'Jogador')}</span>
+                <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
+                ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
+            </div>
+            <p class="pbio">${esc(p.bio || 'Escreva uma bio para aparecer aqui.')}</p>
+            ${mains.length ? `<div class="pmains">${mains.map((h, i) => `<div class="pm">${pennant(h, 74)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>` : ''}
+            ${lk.length ? `<div class="plinks">${lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
+            <div class="plvl"><span>${esc(p.id)}</span><span>${lv.xp} XP</span></div>
+        </div>
+    </div>`;
+}
+function renderSideCard() { $('#pprev').innerHTML = profileCardHTML(profile); }
+
+/* perfil grande (topo da aba Perfil) */
+function renderProfileView() {
+    const p = profile, lv = level();
+    const mains = p.mains.map(heroByName).filter(Boolean);
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]].filter(x => x[1]);
+    const done = ACH.filter(x => x.p() >= x.max).length;
+    const seen = stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length;
+    const tile = (n, l) => `<div class="pv-t"><b>${n}</b><span>${l}</span></div>`;
+
+    $('#pvBan').setAttribute('style', bannerStyle(p));
+    $('#pvAv').innerHTML = avatarBox(112, p);
+    $('#pvId').innerHTML = `
+        <h1>${esc(p.nick || 'Seu apelido')}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
+        <div class="prow" style="margin:10px 0 6px">
+            <span class="tag acc">${esc(p.title || 'Jogador')}</span>
+            <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
+            ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
+        </div>
+        ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}`;
+    $('#pvGrid').innerHTML = `
+        <div class="pv-col">
+            <section class="card pv-sec">
+                <h2>Sobre</h2>
+                <p class="muted-txt">${esc(p.bio || 'Sem bio ainda.')}</p>
+                ${lk.length ? `<div class="plinks">${lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
+            </section>
+            <section class="card pv-sec">
+                <h2>Heróis principais</h2>
+                ${mains.length
+                    ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 97)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>`
+                    : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
+            </section>
+        </div>
+        <div class="pv-col">
+            <section class="card pv-sec">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <h2 style="margin:0">Nível ${lv.n} · ${rankName(lv.n)}</h2>
+                    <span class="muted-txt" style="font-size:13px">${lv.xp} XP</span>
+                </div>
+                <div class="bar"><i style="width:${Math.round(lv.cur / lv.next * 100)}%"></i></div>
+                <p class="muted-txt" style="font-size:13px">Faltam ${lv.next - lv.cur} XP para o nível ${lv.n + 1}.</p>
+            </section>
+            <section class="card pv-sec">
+                <h2>Atividade</h2>
+                <div class="pv-tiles">
+                    ${tile(Object.keys(stats.visited).length, 'páginas')}
+                    ${tile(seen + '/' + PLAYABLE.length, 'heróis vistos')}
+                    ${tile(favs.length, 'favoritos')}
+                    ${tile(done + '/' + ACH.length, 'conquistas')}
+                </div>
+            </section>
+            <section class="card pv-sec">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                    <h2 style="margin:0">Conquistas</h2>
+                    <span class="muted-txt" style="font-size:13px">${done}/${ACH.length}</span>
+                </div>
+                <div class="pv-ach">${ACH.map((x, i) => {
+                    const v = Math.min(x.p(), x.max), ok = v >= x.max;
+                    const pct = Math.round(v / x.max * 100);
+                    return `<div class="ach-b ${ok ? 'on' : ''}" title="${esc(x.n)}: ${esc(x.d)}">
+                        <span class="ach-badge"><i class="fa-solid ${ok ? 'fa-check' : 'fa-lock'}"></i></span>
+                        <span class="ach-medal"><i class="fa-solid ${ACH_ICON[i]}"></i></span>
+                        <span class="ach-name">${esc(x.n)}</span>
+                        ${ok
+                            ? '<span class="ach-prog">Concluída</span>'
+                            : `<span class="ach-prog">${v}/${x.max}</span><span class="ach-track"><i style="width:${pct}%"></i></span>`}
+                    </div>`;
+                }).join('')}</div>
+            </section>
+        </div>`;
+}
+
+/* blocos da aba Conquistas */
+function levelBlockHTML() {
+    const lv = level();
+    return `<div style="display:flex;justify-content:space-between;align-items:baseline">
+        <b style="font-family:var(--font-ui)">Nível ${lv.n} · ${rankName(lv.n)}</b>
+        <span style="color:var(--text-faint);font-size:12.5px">${lv.xp} XP</span></div>
+        <div class="bar"><i style="width:${Math.round(lv.cur / lv.next * 100)}%"></i></div>
+        <p style="color:var(--text-faint);font-size:12.5px">Faltam ${lv.next - lv.cur} XP para o nível ${lv.n + 1}. Ganhe XP visitando páginas, abrindo heróis, favoritando e personalizando o perfil.</p>`;
+}
+function activityBlockHTML() {
+    const seen = stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length;
+    const done = ACH.filter(x => x.p() >= x.max).length;
+    const tile = (n, l) => `<div class="pv-t"><b>${n}</b><span>${l}</span></div>`;
+    return `<div class="pv-tiles">
+        ${tile(Object.keys(stats.visited).length, 'páginas')}
+        ${tile(seen + '/' + PLAYABLE.length, 'heróis vistos')}
+        ${tile(favs.length, 'favoritos')}
+        ${tile(done + '/' + ACH.length, 'conquistas')}
+        ${tile(level().n, 'nível')}
+        ${tile(stats.heroesSeen.length, 'heróis abertos')}</div>`;
+}
+function achBlockHTML() {
+    const done = ACH.filter(x => x.p() >= x.max).length;
+    return `<div style="color:var(--text-faint);font-size:12.5px;margin-bottom:12px">${done}/${ACH.length} desbloqueadas</div>
+        <div class="ach-list">${ACH.map((x, i) => {
+            const v = Math.min(x.p(), x.max), ok = v >= x.max;
+            const pct = Math.round(v / x.max * 100);
+            return `<div class="ach ${ok ? 'on' : ''}">
+                <span class="ic"><i class="fa-solid ${ACH_ICON[i]}"></i></span>
+                <div class="ach-info">
+                    <b>${esc(x.n)}</b>
+                    <div>${esc(x.d)}</div>
+                    ${ok ? '' : `<div class="ach-track" style="margin-top:7px"><i style="width:${pct}%"></i></div>`}
+                </div>
+                <span class="ach-flag">${ok ? '<i class="fa-solid fa-check"></i>' : `${v}/${x.max}`}</span>
+            </div>`;
+        }).join('')}</div>`;
+}
+
+function updateMeter() {
+    const p = profile;
+    const checks = [
+        !!p.nick, !!p.bio, !!p.status, p.title !== 'Jogador', p.mains.length > 0,
+        !!(p.links.discord || p.links.twitch || p.links.youtube), !!p.av.img,
+        (p.banner !== 'lima' || p.pattern !== 'none' || !!p.bannerImg), p.accent !== 'auto'
+    ];
+    const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
+    const t = $('#pmtxt'), b = $('#pmbar');
+    if (t) t.textContent = `Perfil ${pct}% completo`;
+    if (b) b.style.width = pct + '%';
+}
+
+function renderProfileUI() {
+    renderPTabs();
+    renderSideCard();
+    renderProfileView();
+    renderForm();
+    updateChip();
+    updateMeter();
+}
+
+function renderForm() {
+    const p = profile, form = $('#pform');
+    form.className = 'card' + (pTab === 'id' ? ' cols' : '');
+    const sel = (list, cur) => list.map(v => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('');
+    const swatches = Object.entries(BANNERS).filter(([k]) => k !== 'custom').map(([k, [nm, [c1, c2]]]) =>
+        `<button type="button" class="sw ${p.banner === k ? 'on' : ''}" data-bn="${k}" title="${nm}" style="background:linear-gradient(120deg,${c1},${c2})"></button>`).join('');
+    const patPills = PATTERNS.map(([k, n]) => `<button type="button" class="pill ${p.pattern === k ? 'on' : ''}" data-pat="${k}">${n}</button>`).join('');
+    const shPills = SHAPES.map(([k, n]) => `<button type="button" class="pill ${p.av.shape === k ? 'on' : ''}" data-sh="${k}">${n}</button>`).join('');
+    const frPills = FRAMES.map(([k, n]) => `<button type="button" class="pill ${p.av.frame === k ? 'on' : ''}" data-fr="${k}">${n}</button>`).join('');
+    const acSw = ACCENTS.map(([c, n]) => `<button type="button" class="sw ${p.accent === c ? 'on' : ''}" data-ac="${c}" title="${n}" style="background:${c === 'auto' ? 'linear-gradient(135deg,#b6f24a,#2f7a1a)' : c}"></button>`).join('');
+    const mainsHTML = HEROES.map(h => {
+        const i = p.mains.indexOf(h.name);
+        return `<button type="button" class="mp ${i >= 0 ? 'on' : ''}" data-mh="${esc(h.name)}">
+            <img src="assets/heroes/${h.file}" alt="" onerror="this.remove()">
+            <span>${esc(h.name)}</span>${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
+    }).join('');
+    let html = '';
+
+    if (pTab === 'id') {
+        html = `
+            <label class="field">Apelido<input data-f="nick" maxlength="20" value="${esc(p.nick)}" placeholder="Como quer ser chamado"></label>
+            <label class="field">Pronomes (opcional)<input data-f="pronouns" maxlength="20" value="${esc(p.pronouns)}" placeholder="ex.: ele/dele"></label>
+            <label class="field span2">Status<input data-f="status" maxlength="40" value="${esc(p.status)}" placeholder="O que você está fazendo agora?"></label>
+            <label class="field span2">Bio<textarea data-f="bio" maxlength="140" placeholder="Conte algo sobre você (até 140 caracteres)">${esc(p.bio)}</textarea></label>
+            <label class="field">Título<select data-f="title">${sel(TITLES, p.title)}</select></label>
+            <label class="field">Região<select data-f="region">${sel(REGIONS, p.region)}</select></label>
+            <div class="pform-sec">Redes sociais</div>
+            <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
+            <label class="field">Twitch<input data-f="l_twitch" maxlength="30" value="${esc(p.links.twitch)}" placeholder="canal"></label>
+            <label class="field span2">YouTube<input data-f="l_youtube" maxlength="30" value="${esc(p.links.youtube)}" placeholder="canal"></label>`;
+    } else if (pTab === 'game') {
+        html = `
+            <div class="pform-sec">Heróis principais (até 3)</div>
+            <p class="field-note">Escolha até 3 heróis. Eles aparecem no seu cartão e na sua lista de destaques.</p>
+            <input id="mainsSearch" placeholder="Buscar herói..." style="width:100%;margin:10px 0;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;padding:10px 12px;color:var(--text)">
+            <div class="mp-pick" id="mpPick">${mainsHTML}</div>`;
+    } else if (pTab === 'avatar') {
+        const has = !!p.av.img;
+        html = `
+            <div class="pform-sec">Foto do avatar</div>
+            <div class="phbox" id="phbox">
+                ${avatarBox(84, p)}
+                <div class="phbox-body">
+                    <b>${has ? 'Sua foto' : 'Sem foto ainda'}</b>
+                    <p>Envie uma imagem (JPG, PNG, WebP, GIF…). Também dá para arrastar uma imagem para cá.</p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <label class="btn btn-lime" style="cursor:pointer"><i class="fa-solid fa-camera"></i> ${has ? 'Trocar' : 'Escolher foto'}<input type="file" id="pavFile" accept="image/*" hidden></label>
+                        ${has ? `<button type="button" class="btn btn-dark" data-act="avatar-adjust"><i class="fa-solid fa-crop-simple"></i> Reajustar</button>
+                        <button type="button" class="btn btn-dark" data-act="avatar-remove"><i class="fa-solid fa-trash"></i> Remover</button>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${has && avAdjustOpen ? `<div class="adjust">
+                <label>Zoom <input type="range" data-adj="zoom" min="1" max="2.4" step="0.02" value="${p.av.zoom || 1}"></label>
+                <label>Horizontal <input type="range" data-adj="px" min="0" max="100" step="1" value="${p.av.px ?? 50}"></label>
+                <label>Vertical <input type="range" data-adj="py" min="0" max="100" step="1" value="${p.av.py ?? 50}"></label>
+            </div>` : ''}
+            <div class="pform-sec">Forma</div>
+            <div class="picker-row">${shPills}</div>
+            <div class="pform-sec">Moldura</div>
+            <div class="picker-row">${frPills}</div>`;
+    } else if (pTab === 'card') {
+        html = `
+            <div class="pform-sec">Cor do banner</div>
+            <div class="picker-row">${swatches}</div>
+            <div class="pform-sec">Padrão</div>
+            <div class="picker-row">${patPills}</div>
+            <div class="pform-sec">Cores personalizadas</div>
+            <div class="grid2">
+                <label class="field">Cor 1<input type="color" data-f="bc1" value="${p.bc1}" style="padding:2px;height:40px"></label>
+                <label class="field">Cor 2<input type="color" data-f="bc2" value="${p.bc2}" style="padding:2px;height:40px"></label>
+            </div>
+            <div class="pform-sec">Imagem do banner</div>
+            <div class="grid2">
+                <label class="field" style="cursor:pointer">Enviar imagem<input type="file" id="bannerFile" accept="image/*" style="padding:8px"></label>
+                <button type="button" class="btn btn-dark btn-block" data-act="banner-remove" style="align-self:end;height:44px">Remover imagem</button>
+            </div>`;
+    } else if (pTab === 'site') {
+        html = `
+            <div class="pform-sec">Cor de destaque</div>
+            <div class="picker-row">${acSw}</div>
+            <div class="pform-sec">Preferências</div>
+            <div class="grid2">
+                <label class="field">Tema<select data-f="theme"><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
+                <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
+            </div>
+            <label class="chk"><input type="checkbox" data-f="compact" ${p.compact ? 'checked' : ''}> Layout compacto (menos espaço nos cards)</label>`;
+    } else if (pTab === 'ach') {
+        html = `
+            <div class="pform-sec">Progresso</div>
+            ${levelBlockHTML()}
+            <div class="pform-sec">Atividade</div>
+            ${activityBlockHTML()}
+            <div class="pform-sec">Conquistas</div>
+            ${achBlockHTML()}`;
+    } else {
+        html = `
+            <div class="pform-sec">Salvar e restaurar</div>
+            <p class="field-note">Tudo é salvo automaticamente neste navegador. Use os botões para gerenciar seus dados.</p>
+            <div class="grid2" style="margin-top:6px">
+                <button type="button" class="btn btn-lime btn-block" data-act="save"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+                <button type="button" class="btn btn-dark btn-block" data-act="reset"><i class="fa-solid fa-rotate-left"></i> Redefinir padrão</button>
+                <button type="button" class="btn btn-dark btn-block" data-act="export"><i class="fa-solid fa-file-export"></i> Exportar dados</button>
+                <label class="btn btn-dark btn-block" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Importar dados<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+            </div>`;
+    }
+    form.innerHTML = html;
+}
+
+function initProfile() {
+    const tabs = $('#ptabs'), form = $('#pform');
+
+    // troca de abas
+    tabs.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-pt]'); if (!b) return;
+        pTab = b.dataset.pt;
+        renderPTabs(); renderForm();
+    });
+
+    // digitação, selects, cores e sliders
+    form.addEventListener('input', (e) => {
+        const f = e.target.dataset.f;
+        if (f) {
+            setField(f, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
+            saveProfile(); applyProfile();
+            if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'l_discord', 'l_twitch', 'l_youtube'].includes(f)) touch('id_' + f);
+            renderSideCard(); renderProfileView(); updateChip(); updateMeter();
+            return;
+        }
+        if (e.target.id === 'mainsSearch') {
+            const q = e.target.value.trim().toLowerCase();
+            $$('#mpPick .mp').forEach(b => { b.style.display = !q || b.dataset.mh.toLowerCase().includes(q) ? '' : 'none'; });
+            return;
+        }
+        const adj = e.target.dataset.adj;
+        if (adj) { profile.av[adj] = parseFloat(e.target.value); touch('avatar'); commitLight(); }
+    });
+
+    form.addEventListener('change', (e) => {
+        if (e.target.id === 'bannerFile') handleBanner(e.target.files[0]);
+        else if (e.target.id === 'pavFile') handleAvatar(e.target.files[0]);
+        else if (e.target.id === 'importFile') importData(e.target.files[0]);
+        else if (e.target.dataset.f === 'bc1' || e.target.dataset.f === 'bc2') { profile.banner = 'custom'; touch('banner'); commit(); }
+    });
+
+    form.addEventListener('click', (e) => {
+        const bn = e.target.closest('[data-bn]'); if (bn) { profile.banner = bn.dataset.bn; profile.bannerImg = ''; touch('banner'); commit(); return; }
+        const pat = e.target.closest('[data-pat]'); if (pat) { profile.pattern = pat.dataset.pat; touch('pattern'); commit(); return; }
+        const sh = e.target.closest('[data-sh]'); if (sh) { profile.av.shape = sh.dataset.sh; touch('shape'); commit(); return; }
+        const fr = e.target.closest('[data-fr]'); if (fr) { profile.av.frame = fr.dataset.fr; touch('frame'); commit(); return; }
+        const ac = e.target.closest('[data-ac]'); if (ac) { profile.accent = ac.dataset.ac; touch('accent'); commit(); return; }
+        const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
+        const act = e.target.closest('[data-act]');
+        if (act) {
+            const a = act.dataset.act;
+            if (a === 'banner-remove') { profile.bannerImg = ''; commit(); showToast('Imagem do banner removida.'); }
+            else if (a === 'avatar-remove') { profile.av.img = ''; profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50; avAdjustOpen = false; touch('avatar'); commit(); showToast('Foto removida.'); }
+            else if (a === 'avatar-adjust') { avAdjustOpen = !avAdjustOpen; renderForm(); }
+            else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
+            else if (a === 'reset') resetProfile();
+            else if (a === 'export') exportData();
+        }
+    });
+
+    // botões do cartão (pré-visualização)
+    $('#pavQuick').addEventListener('change', (e) => handleAvatar(e.target.files[0]));
+    $('#prand').addEventListener('click', randomizeProfile);
+    $('#pdl').addEventListener('click', downloadCard);
+    $('#plink').addEventListener('click', copyLink);
+    $('#pcp').addEventListener('click', copyText);
+
+    // botões do perfil grande (topo)
+    $('#pvEdit').addEventListener('click', () => {
+        const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    $('#pvLink').addEventListener('click', copyLink);
+    $('#pvDl').addEventListener('click', downloadCard);
+    $('#pvGrid').addEventListener('click', (e) => {
+        const g = e.target.closest('[data-goto]'); if (!g) return;
+        pTab = g.dataset.goto; renderPTabs(); renderForm();
+        const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // arrastar imagem sobre o cartão
+    const prev = $('#pprev');
+    ['dragover', 'dragleave', 'drop'].forEach(ev => prev.addEventListener(ev, (e) => {
+        e.preventDefault();
+        if (ev === 'dragover') prev.classList.add('drop');
+        else if (ev === 'dragleave') prev.classList.remove('drop');
+        else { prev.classList.remove('drop'); const f = e.dataTransfer.files[0]; if (f) handleAvatar(f); }
+    }));
+
+    renderProfileUI();
+}
+
+function setField(f, v) {
+    if (f === 'l_discord') profile.links.discord = v;
+    else if (f === 'l_twitch') profile.links.twitch = v;
+    else if (f === 'l_youtube') profile.links.youtube = v;
+    else if (f === 'compact') profile.compact = !!v;
+    else profile[f] = v;
+}
+
+function commit() { saveProfile(); applyProfile(); renderSideCard(); renderProfileUI(); }
+function commitLight() { saveProfile(); applyProfile(); renderSideCard(); renderProfileView(); updateChip(); updateMeter(); }
+
+function toggleMain(name) {
+    const i = profile.mains.indexOf(name);
+    if (i >= 0) profile.mains.splice(i, 1);
+    else { if (profile.mains.length >= 3) profile.mains.shift(); profile.mains.push(name); }
+    touch('mains');
+    commit();
+}
+
+function handleAvatar(file) {
+    if (!file || !/^image\//.test(file.type)) { showToast('Selecione uma imagem válida.', 'error'); return; }
+    const r = new FileReader();
+    r.onload = (ev) => {
+        const im = new Image();
+        im.onload = () => {
+            const sc = Math.min(600 / im.width, 600 / im.height, 1);
+            const w = Math.max(1, Math.round(im.width * sc)), h = Math.max(1, Math.round(im.height * sc));
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(im, 0, 0, w, h);
+            profile.av.img = c.toDataURL('image/jpeg', 0.85);
+            profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50;
+            avAdjustOpen = false;
+            touch('avatar'); commit(); showToast('Foto atualizada!');
+        };
+        im.onerror = () => showToast('Não foi possível usar essa imagem.', 'error');
+        im.src = ev.target.result;
+    };
+    r.readAsDataURL(file);
+}
+
+function handleBanner(file) {
+    if (!file || !/^image\//.test(file.type)) { showToast('Selecione uma imagem válida.', 'error'); return; }
+    const r = new FileReader();
+    r.onload = (ev) => {
+        const im = new Image();
+        im.onload = () => {
+            const sc = Math.min(1200 / im.width, 500 / im.height, 1);
+            const w = Math.max(1, Math.round(im.width * sc)), h = Math.max(1, Math.round(im.height * sc));
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(im, 0, 0, w, h);
+            profile.bannerImg = c.toDataURL('image/jpeg', 0.8);
+            touch('banner'); commit(); showToast('Banner atualizado!');
+        };
+        im.onerror = () => showToast('Não foi possível usar essa imagem.', 'error');
+        im.src = ev.target.result;
+    };
+    r.readAsDataURL(file);
+}
+
+function resetProfile() {
+    if (!confirm('Redefinir todas as customizações do perfil?')) return;
+    const id = profile.id;
+    profile = { ...PROFILE_DEF, id, av: { ...PROFILE_DEF.av }, links: { ...PROFILE_DEF.links } };
+    avAdjustOpen = false;
+    saveProfile(); applyProfile(); renderProfileUI();
+    showToast('Perfil redefinido.');
+}
+
+function randomizeProfile() {
+    const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+    const p = profile;
+    p.banner = rnd(Object.keys(BANNERS).filter(k => k !== 'custom'));
+    p.bannerImg = '';
+    p.pattern = rnd(PATTERNS)[0];
+    p.av.shape = rnd(SHAPES)[0];
+    p.av.frame = rnd(FRAMES)[0];
+    p.accent = rnd(ACCENTS)[0];
+    if (!p.nick) p.nick = 'Jogador' + Math.floor(10 + Math.random() * 89);
+    ['banner', 'pattern', 'shape', 'frame', 'accent'].forEach(touch);
+    commit(); showToast('Visual sorteado! 🎲');
+}
+
+/* ---------- compartilhar / baixar o cartão ---------- */
+function cardText(p) {
+    const lv = level();
+    const mains = p.mains.map(heroByName).filter(Boolean).map(h => h.name).join(', ');
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
+        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    return [
+        `${p.nick || 'Jogador'} — Central Deadlock`,
+        p.title ? `Título: ${p.title}` : '',
+        p.region ? `Região: ${p.region}` : '',
+        p.status ? `Status: ${p.status}` : '',
+        p.bio ? `Bio: ${p.bio}` : '',
+        mains ? `Heróis favoritos: ${mains}` : '',
+        lk,
+        `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)`,
+        `ID ${p.id}`
+    ].filter(Boolean).join('\n');
+}
+
+function encShare(p) {
+    try { return btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+    catch (e) { return ''; }
+}
+function decShare(s) {
+    return JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/')))));
+}
+
+async function copyText() {
+    const txt = cardText(profile);
+    try { await navigator.clipboard.writeText(txt); showToast('Texto do cartão copiado!'); }
+    catch (e) { window.prompt('Copie o texto do cartão:', txt); }
+}
+
+async function copyLink() {
+    const url = location.href.split('#')[0] + '#share=' + encShare(profile);
+    try { await navigator.clipboard.writeText(url); showToast('Link do cartão copiado!'); }
+    catch (e) { window.prompt('Copie o link do cartão:', url); }
+}
+
+function exportData() {
+    const data = JSON.stringify({ v: 1, profile, favs, stats }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'central-deadlock-perfil.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('Dados exportados!');
+}
+
+function importData(file) {
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+        try {
+            const d = JSON.parse(ev.target.result);
+            if (d.profile) {
+                profile = Object.assign({}, PROFILE_DEF, d.profile, {
+                    links: { ...PROFILE_DEF.links, ...(d.profile.links || {}) },
+                    av: { ...PROFILE_DEF.av, ...(d.profile.av || {}) },
+                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, 3) : []
+                });
+                saveProfile();
+            }
+            if (Array.isArray(d.favs)) { favs = d.favs; store.set('cdl_favs', favs); }
+            if (d.stats) { stats = Object.assign(stats, d.stats); saveStats(); }
+            applyProfile(); renderProfileUI(); renderFavs();
+            showToast('Dados importados!');
+        } catch (e) { showToast('Arquivo inválido.', 'error'); }
+    };
+    r.readAsText(file);
+}
+
+/* ---------- exportar o cartão como imagem (canvas) ---------- */
+function roundRectPath(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+function shapePath(ctx, x, y, size, shape) {
+    const poly = POLY[shape];
+    if (poly) {
+        ctx.beginPath();
+        poly.forEach(([px, py], i) => {
+            const cx = x + size / 2 + px * size / 2, cy = y + size / 2 + py * size / 2;
+            i ? ctx.lineTo(cx, cy) : ctx.moveTo(cx, cy);
+        });
+        ctx.closePath();
+    } else if (shape === 'circle') {
+        ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.closePath();
+    } else {
+        roundRectPath(ctx, x, y, size, size, size * 0.22);
+    }
+}
+function loadImg(src) {
+    return new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+}
+function drawCover(ctx, im, x, y, w, h) {
+    const s = Math.max(w / im.width, h / im.height);
+    const dw = im.width * s, dh = im.height * s;
+    ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+function wrapText(ctx, text, x, y, maxW, lh, maxLines) {
+    const words = String(text).split(/\s+/);
+    let line = '', n = 0;
+    for (let i = 0; i < words.length; i++) {
+        const test = line ? line + ' ' + words[i] : words[i];
+        if (ctx.measureText(test).width > maxW && line) {
+            if (n === maxLines - 1) {
+                let t = line;
+                while (ctx.measureText(t + '…').width > maxW && t.length > 1) t = t.slice(0, -1);
+                ctx.fillText(t + '…', x, y + n * lh);
+                return;
+            }
+            ctx.fillText(line, x, y + n * lh); n++; line = words[i];
+        } else line = test;
+    }
+    if (line && n < maxLines) ctx.fillText(line, x, y + n * lh);
+}
+
+async function downloadCard() {
+    const p = profile;
+    const W = 1000, H = 600;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    const lime = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+
+    ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+
+    // banner
+    const bx = 26, by = 26, bw = W - 52, bh = 200;
+    ctx.save();
+    roundRectPath(ctx, bx, by, bw, bh, 18); ctx.clip();
+    let drewImg = false;
+    if (p.bannerImg) { const im = await loadImg(p.bannerImg); if (im) { drawCover(ctx, im, bx, by, bw, bh); drewImg = true; } }
+    if (!drewImg) {
+        const [a, b] = bannerColors(p);
+        const g = ctx.createLinearGradient(bx, 0, bx + bw, 0); g.addColorStop(0, a); g.addColorStop(1, b);
+        ctx.fillStyle = g; ctx.fillRect(bx, by, bw, bh);
+        if (p.pattern === 'grid') {
+            ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1;
+            for (let x = bx; x < bx + bw; x += 24) { ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x, by + bh); ctx.stroke(); }
+            for (let y = by; y < by + bh; y += 24) { ctx.beginPath(); ctx.moveTo(bx, y); ctx.lineTo(bx + bw, y); ctx.stroke(); }
+        } else if (p.pattern === 'dots') {
+            ctx.fillStyle = 'rgba(255,255,255,.3)';
+            for (let x = bx + 8; x < bx + bw; x += 18) for (let y = by + 8; y < by + bh; y += 18) { ctx.beginPath(); ctx.arc(x, y, 1.6, 0, 7); ctx.fill(); }
+        } else if (p.pattern === 'diag') {
+            ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;
+            for (let x = bx - bh; x < bx + bw; x += 14) { ctx.beginPath(); ctx.moveTo(x, by + bh); ctx.lineTo(x + bh, by); ctx.stroke(); }
+        }
+    }
+    ctx.restore();
+
+    // avatar
+    const as = 132, ax = 66, ay = 150;
+    const im = p.av.img ? await loadImg(p.av.img) : null;
+    if (p.av.frame !== 'none') {
+        ctx.fillStyle = p.av.frame === 'gold' ? '#e2b94b' : lime;
+        shapePath(ctx, ax - 7, ay - 7, as + 14, p.av.shape); ctx.fill();
+    }
+    ctx.save();
+    shapePath(ctx, ax, ay, as, p.av.shape); ctx.clip();
+    if (im) {
+        const zoom = p.av.zoom || 1, px = p.av.px ?? 50, py = p.av.py ?? 50;
+        const s = Math.max(as / im.width, as / im.height) * zoom;
+        const dw = im.width * s, dh = im.height * s;
+        ctx.drawImage(im, ax + (as - dw) * (px / 100), ay + (as - dh) * (py / 100), dw, dh);
+    } else {
+        const [a, b] = bannerColors(p);
+        const g = ctx.createLinearGradient(ax, ay, ax + as, ay + as); g.addColorStop(0, a); g.addColorStop(1, b);
+        ctx.fillStyle = g; ctx.fillRect(ax, ay, as, as);
+    }
+    ctx.restore();
+    if (!im) {
+        ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.round(as * 0.34)}px ${font}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(avatarInner(p), ax + as / 2, ay + as / 2);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    }
+
+    // textos
+    const lv = level();
+    const tx = ax + as + 34;
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 15px ${font}`;
+    ctx.fillText('CENTRAL DEADLOCK', tx, by + bh + 44);
+    ctx.fillStyle = '#fff'; ctx.font = `800 46px ${font}`;
+    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), tx, by + bh + 94);
+    ctx.fillStyle = lime; ctx.font = `700 18px ${font}`;
+    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, tx, by + bh + 126);
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 17px ${font}`;
+    if (p.status) ctx.fillText(`“${p.status}”`.slice(0, 60), tx, by + bh + 156);
+    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 16px ${font}`;
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', tx, by + bh + 190, W - tx - 40, 22, 2);
+
+    // heróis principais
+    const mains = p.mains.map(heroByName).filter(Boolean);
+    if (mains.length) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 13px ${font}`;
+        ctx.fillText('HERÓIS PRINCIPAIS', 66, 414);
+        let cx = 66; const cy = 430;
+        mains.forEach((h) => {
+            ctx.fillStyle = 'rgba(255,255,255,.07)';
+            roundRectPath(ctx, cx, cy, 150, 46, 10); ctx.fill();
+            ctx.fillStyle = lime; roundRectPath(ctx, cx + 6, cy + 6, 34, 34, 8); ctx.fill();
+            ctx.fillStyle = '#0c0c0e'; ctx.font = `800 15px ${font}`; ctx.textAlign = 'center';
+            ctx.fillText(initials(h.name), cx + 23, cy + 28);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#fff'; ctx.font = `700 14px ${font}`;
+            ctx.fillText(h.name.slice(0, 13), cx + 48, cy + 22);
+            ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 11px ${font}`;
+            ctx.fillText(h.role || '', cx + 48, cy + 37);
+            cx += 158;
+        });
+    }
+
+    // rodapé
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
+        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(lk.slice(0, 72), 66, 516); }
+    ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
+    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 544);
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 13px ${font}`;
+    ctx.fillText(`ID ${p.id}`, 66, 570);
+
+    try {
+        const url = c.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url; a.download = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock.png';
+        a.click();
+        showToast('Cartão baixado!');
+    } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
+}
+
+/* ---------- cartão compartilhado por link ---------- */
+function checkSharedCard() {
+    const m = location.hash.match(/^#share=(.+)$/);
+    if (!m) return;
+    let raw;
+    try { raw = decShare(m[1]); } catch (e) { return; }
+    if (!raw || typeof raw !== 'object') return;
+    const p = Object.assign({}, PROFILE_DEF, raw, {
+        links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
+        av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, 3) : []
+    });
+    const box = $('#shareModalBox'); if (!box) return;
+    box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
+        <div class="modal-head"><h2>Cartão compartilhado</h2><p>Este cartão veio de um link. Os dados ficam salvos no próprio link.</p></div>
+        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
+        <div class="modal-foot"><button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button></div>`;
+    openOverlay($('#shareModal'));
+    history.replaceState(null, '', location.pathname + location.search);
+}
+
+function applyProfile() {
+    document.documentElement.setAttribute('data-theme', profile.theme);
+    document.body.classList.toggle('compact', !!profile.compact);
+    const root = document.documentElement.style;
+    if (profile.accent && profile.accent !== 'auto') root.setProperty('--lime', profile.accent);
+    else root.removeProperty('--lime');
+}
+
+function updateChip() {
+    const nick = profile.nick || 'Jogador';
+    $('#chipName').textContent = nick;
+    $('#chipId').textContent = profile.id;
+    const chip = $('#chipAvatar');
+    if (profile.av.img) { chip.style.backgroundImage = `url('${profile.av.img}')`; chip.textContent = ''; }
+    else { chip.style.backgroundImage = ''; chip.textContent = nick.charAt(0).toUpperCase(); }
+}
+
+/* ================= toast ================= */
+function initToast() { /* usa showToast */ }
+function showToast(msg, type = 'success') {
+    const toast = $('#toast');
+    const icon = toast.querySelector('i');
+    $('#toast-msg').textContent = msg;
+    icon.className = type === 'error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-check-circle';
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
+}
