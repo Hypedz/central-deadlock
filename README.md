@@ -170,9 +170,13 @@ noticias = https://discord.com/api/webhooks/NUMEROS-LONGOS/CODIGO-SECRETO
 > git config core.hooksPath .githooks
 > ```
 
+> ✅ **Já está funcionando.** O bot roda **sozinho no GitHub, todo dia às 09:00**, sem depender do seu PC (veja *"Automático no GitHub"* mais abaixo). O passo a passo acima é só para entender como ele foi montado — ou para refazer tudo em outro servidor.
+
 ### Como usar
 
-- Dê **dois cliques** em `postar-no-discord.bat`, **ou**
+**No dia a dia você não precisa fazer nada.** Se quiser postar na hora:
+
+- Dê **dois cliques** em `atualizar-tudo.bat` (atualiza as notícias **e** posta), **ou**
 - Rode no terminal: `python tools/discord-post.py`
 
 | Comando | O que faz |
@@ -182,7 +186,7 @@ noticias = https://discord.com/api/webhooks/NUMEROS-LONGOS/CODIGO-SECRETO
 | `python tools/discord-post.py --tudo` | Posta as 10 mais recentes de uma vez |
 | `python tools/discord-post.py --dry-run` | **Não envia nada** — só mostra o que iria para qual canal |
 
-O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele nunca repete** a mesma notícia.
+O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele nunca repete** a mesma notícia. O `atualizar-tudo.bat` também **avisa o GitHub** do que já foi postado, para os dois nunca postarem a mesma coisa duas vezes.
 
 ### Se aparecer um erro
 
@@ -202,15 +206,23 @@ cargo = 987654321098765432
 
 O aviso só aparece nos **patches** — nas notícias comuns, não marca ninguém.
 
-### Automático no GitHub (sem ligar o PC)
+### ✅ Automático no GitHub (24h, sem ligar o PC) — já configurado
 
-Se o site estiver publicado pelo GitHub, o robô diário já posta sozinho. Para ligar:
+O robô `.github/workflows/noticias.yml` roda **todo dia às 09:00 (horário de Brasília)** no próprio GitHub: busca as notícias no Steam, posta o que for novo no Discord e manda o site se republicar. **Não depende do seu PC estar ligado.**
 
-1. No repositório, vá em **Settings** → **Secrets and variables** → **Actions**
+Para isso, as URLs ficam guardadas como *secrets* (chaves criptografadas) do repositório:
+
+1. Vá em **Settings** → **Secrets and variables** → **Actions**
 2. Clique em **New repository secret**
 3. Nome: `DISCORD_WEBHOOK` — Valor: a URL do canal **#novidades**
 4. Crie outro secret chamado `DISCORD_WEBHOOK_PATCHES` — Valor: a URL do **#patch-notes**
 5. (Opcional) Crie outro secret chamado `DISCORD_CARGO` com o ID do cargo
+
+> 🔒 *Secrets* são criptografados: depois de salvos, **ninguém consegue ler de volta** (nem você). É o lugar certo para esse tipo de senha.
+
+**Quer testar?** Aba **Actions** → **Notícias do Steam + Discord** → **Run workflow** → marque a caixinha *"Mandar uma mensagem de TESTE"* → **Run workflow**. Deve chegar uma mensagem de teste em cada canal.
+
+> 💡 **Por que a tarefa do Windows ficou desligada?** Porque os dois postavam a mesma notícia duas vezes (cada um tem sua própria lista do que já postou). Agora o **GitHub é o dono** do envio automático. A tarefa continua ali, caso você queira religar (`schtasks /change /tn "Central Deadlock - Noticias e Discord" /enable`), mas **não ligue as duas ao mesmo tempo**.
 
 Pronto! Todo dia às 9h (horário de Brasília), se sair novidade, ela aparece no seu Discord.
 
