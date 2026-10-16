@@ -167,6 +167,14 @@ noticias = https://discord.com/api/webhooks/222222/GhIjKl...
 
 O bot guarda o que já foi postado em `data/discord-posted.json`, então **ele nunca repete** a mesma notícia.
 
+### Se aparecer um erro
+
+| Mensagem | O que fazer |
+|---|---|
+| "A URL do webhook NÃO está certa" ou `HTTP 404` / `HTTP 405` | O texto de exemplo (`COLE_AQUI...`) ainda está no `discord-webhook.txt`. Troque pelas URLs de verdade |
+| `HTTP 401` / `HTTP 403` | O webhook foi apagado, ou você não tem permissão naquele canal. Crie outro webhook |
+| "Nada novo para postar. Tudo em dia!" | **Isso é boa notícia** — quer dizer que está funcionando e não há nada novo desde a última vez |
+
 ### Avise um cargo quando sair patch (opcional)
 
 Quer que o bot marque o cargo **@Patch Notes** quando sair atualização? Adicione esta linha ao `discord-webhook.txt` (ative o *Modo desenvolvedor* no Discord, clique com o botão direito no cargo → **Copiar ID do cargo**):

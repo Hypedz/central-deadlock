@@ -68,6 +68,50 @@ INSTRUCOES = """
 """
 
 
+def mascarar(url):
+    """Mostra a URL sem expor o codigo secreto."""
+    url = (url or "").strip()
+    if len(url) <= 46:
+        return url
+    return url[:46] + "..." + url[-6:]
+
+
+def url_valida(url):
+    """Confere se o texto e mesmo uma URL de webhook do Discord."""
+    return bool(re.match(
+        r"^https://(ptb\.|canary\.)?discord(app)?\.com/api/webhooks/\d+/[\w-]{20,}$",
+        (url or "").strip()))
+
+
+def problemas_na_config(cfg):
+    """Aponta o que esta errado nas URLs, com dica do que fazer."""
+    achados = []
+    vistas = set()
+    for chave, rotulo in (("patches", "patch notes"), ("noticias", "novidades")):
+        url = (cfg.get(chave) or "").strip()
+        if not url or url in vistas:
+            continue
+        vistas.add(url)
+        if url_valida(url):
+            continue
+        if re.search(r"COLE_AQUI|SEU_|SUA_|XXX|exemplo|placeholder", url, re.I):
+            dica = ("o texto de exemplo ainda esta no lugar da URL. "
+                    "Copie a URL de verdade la no Discord.")
+        elif "/api/webhooks/" not in url:
+            dica = "esta faltando a parte \"/api/webhooks/\" no meio da URL."
+        elif not re.search(r"/webhooks/\d+/", url):
+            dica = ("depois de /webhooks/ tem que vir um numero grande (o ID) "
+                    "e mais um codigo. Voce copiou a URL inteira?")
+        elif not url.startswith("https://"):
+            dica = "a URL precisa comecar com https://"
+        else:
+            dica = ("o formato e: https://discord.com/api/webhooks/<numeros>/<codigo>. "
+                    "Copie de novo, sem espacos sobrando.")
+        achados.append("   canal de {} -> {}\n     dica: {}".format(
+            rotulo, mascarar(url), dica))
+    return achados
+
+
 def carregar_config():
     """Le os webhooks do Discord.
 
@@ -219,6 +263,26 @@ def main():
         print(INSTRUCOES)
         return 0 if no_github else 1
 
+    erros_na_url = problemas_na_config(cfg)
+    if erros_na_url:
+        print("\n==========================================================")
+        print("  A URL DO WEBHOOK NAO ESTA CERTA")
+        print("==========================================================")
+        print("")
+        print("\n".join(erros_na_url))
+        print("")
+        print("Como pegar a URL de verdade (leva 1 minuto):")
+        print("  1. No Discord, botao direito no canal > Editar canal")
+        print("  2. Integracoes > Webhooks > Novo webhook")
+        print("  3. Nome: Central Deadlock  >  Copiar URL do webhook")
+        print("  4. Cole no arquivo discord-webhook.txt, depois do =")
+        print("     (e apague a URL de exemplo que estava la)")
+        print("==========================================================\n")
+        if no_github:
+            print("::warning::Webhook do Discord configurado de forma errada.")
+            return 0
+        return 1
+
     if args.teste:
         destinos = [("novidades", cfg["noticias"])]
         if cfg["patches"] != cfg["noticias"]:
@@ -285,8 +349,9 @@ def main():
             time.sleep(1)
         except urllib.error.HTTPError as erro:
             print("  ERRO ao enviar '{}': HTTP {} {}".format(n.get("title"), erro.code, erro.reason))
-            if erro.code in (401, 403, 404):
-                print("  A URL do webhook parece estar errada ou o webhook foi apagado.")
+            if erro.code in (401, 403, 404, 405):
+                print("  A URL do webhook parece estar errada, sem permissao, ou o webhook foi apagado.")
+                print("  Confira o arquivo discord-webhook.txt (o texto de exemplo foi trocado?).")
                 break
         except Exception as erro:
             print("  ERRO ao enviar '{}': {}".format(n.get("title"), erro))
