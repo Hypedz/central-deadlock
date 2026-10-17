@@ -204,25 +204,8 @@ const GUIA_EXEMPLO = [
 ];
 const GUIDES = (window.GUIAS && window.GUIAS.lista && window.GUIAS.lista.length) ? window.GUIAS.lista : GUIA_EXEMPLO;
 
-const MATCHES = [
-    { id: 'm1', a: 'FURIA', b: 'LOUD', sa: '3', sb: '1', status: 'ao-vivo', statusLabel: 'Ao vivo', time: 'Hoje • 20:00', desc: 'Série melhor de cinco em andamento. A FURIA abriu vantagem no mapa central.' },
-    { id: 'm2', a: 'paiN', b: 'INTZ', sa: '—', sb: '—', status: 'proximo', statusLabel: 'Próximo', time: 'Amanhã • 19:00', desc: 'Confronto agendado para amanhã à noite, com transmissão ao vivo.' },
-    { id: 'm3', a: 'MIBR', b: 'VIVO Keyd', sa: '—', sb: '—', status: 'proximo', statusLabel: 'Próximo', time: 'Sábado • 16:00', desc: 'Duelo de sábado à tarde pela fase de grupos do torneio nacional.' }
-];
-
-/* Logos dos times: badges originais (feitos por nós, não são logos oficiais) */
-const TEAMS = {
-    'FURIA': { i: 'FUR', c: ['#c8a24a', '#1a1a1f'] },
-    'LOUD': { i: 'LOUD', c: ['#0de05b', '#04381a'] },
-    'paiN': { i: 'paiN', c: ['#ef2b43', '#3b0a10'] },
-    'INTZ': { i: 'INTZ', c: ['#1d4ed8', '#0b1220'] },
-    'MIBR': { i: 'MIBR', c: ['#e01a2b', '#1a0505'] },
-    'VIVO Keyd': { i: 'Keyd', c: ['#7c3aed', '#22d3ee'] }
-};
-function teamBadge(name, cls = '') {
-    const t = TEAMS[name] || { i: String(name).slice(0, 3).toUpperCase(), c: ['#6b7280', '#111827'] };
-    return `<span class="team-badge ${cls}" style="--c1:${t.c[0]};--c2:${t.c[1]}" title="${esc(name)}"><span class="tb-in"><b>${esc(t.i)}</b></span></span>`;
-}
+/* Os torneios de esports não têm nada escrito à mão aqui dentro: eles vêm do
+   arquivo gerado data/esports.js, com os torneios e resultados REAIS (Liquipedia). */
 
 /* Builds sugeridas por função (exemplo escrito à mão) */
 const BUILD_EXEMPLO = [
@@ -1477,18 +1460,7 @@ function initContents() {
         }
     }
     // os cartões de build agora são montados pelo initBuilds() (dados reais)
-    $('#matchesGrid').innerHTML = MATCHES.map(m => `
-        <article class="match-card" data-match="${m.id}">
-            <div class="match-teams">
-                <div class="team">${teamBadge(m.a)}<span class="team-name">${esc(m.a)}</span><span class="score">${esc(m.sa)}</span></div>
-                <span class="vs">vs</span>
-                <div class="team">${teamBadge(m.b)}<span class="team-name">${esc(m.b)}</span><span class="score">${esc(m.sb)}</span></div>
-            </div>
-            <div class="match-info">
-                <span class="status ${m.status}">${esc(m.statusLabel)}</span>
-                <span class="time">${esc(m.time)}</span>
-            </div>
-        </article>`).join('');
+    initEsports();                     // esports: torneios reais (data/esports.js)
 
     document.addEventListener('click', (e) => {
         const art = e.target.closest('[data-article]');
@@ -1500,8 +1472,6 @@ function initContents() {
             openArticle(art.dataset.article);
             return;
         }
-        const mat = e.target.closest('[data-match]');
-        if (mat) { openMatch(mat.dataset.match); }
     });
 }
 
@@ -1576,21 +1546,90 @@ function openArticle(id) {
     openOverlay($('#contentModal'));
 }
 
-function openMatch(id) {
-    const m = MATCHES.find(x => x.id === id); if (!m) return;
+/* ================= esports (torneios de verdade) =================
+   Tudo o que aparece aqui vem do data/esports.js, gerado pelo script
+   tools/update-esports.py com os torneios da Liquipedia. Nada é inventado. */
+let espLista = { proximos: [], resultados: [] };
+
+function espTierTag(tier) {
+    const letra = String(tier || '').trim().toUpperCase().charAt(0);
+    return letra ? `<span class="esp-tier t-${letra.toLowerCase()}" title="Tier ${letra} (tamanho do torneio)">${letra}</span>` : '';
+}
+
+function espCartaoHTML(t, chave, i) {
+    const logo = t.logo
+        ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.remove()">`
+        : '<i class="fa-solid fa-trophy"></i>';
+    const venceu = t.campeao && ['TBD', 'CANCELLED'].indexOf(String(t.campeao).toUpperCase()) < 0;
+    const linha = venceu
+        ? `Campeão: <b>${esc(t.campeao)}</b>${t.vice && t.vice.toUpperCase() !== 'TBD' ? ` · Vice: ${esc(t.vice)}` : ''}`
+        : `${esc(t.premio || '')}${t.local ? ' · ' + esc(t.local) : ''}`;
+    return `<button type="button" class="esp-card" data-esporte="${chave}:${i}">
+        <span class="esp-logo">${logo}</span>
+        <span class="esp-info">
+            <span class="esp-top">${espTierTag(t.tier)}<span class="esp-data">${esc(t.data || '')}</span></span>
+            <span class="news-title">${esc(t.nome)}</span>
+            <span class="news-desc">${linha}</span>
+        </span>
+    </button>`;
+}
+
+function abrirEsporte(chave, i) {
+    const t = (espLista[chave] || [])[i];
+    if (!t) return;
+    const venceu = t.campeao && ['TBD', 'CANCELLED'].indexOf(String(t.campeao).toUpperCase()) < 0;
+    const linhas = [
+        ['Data', t.data],
+        ['Premiação', t.premio],
+        ['Onde', t.local],
+        ['Times', t.times ? t.times + (String(t.times) === '1' ? ' time' : ' times') : ''],
+        ['Campeão', venceu ? t.campeao : ''],
+        ['Vice-campeão', (venceu && t.vice && t.vice.toUpperCase() !== 'TBD') ? t.vice : '']
+    ].filter(l => l[1]);
     $('#contentModalBox').innerHTML = `
         <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
         <div class="cm-body">
-            <div class="cm-meta"><span class="status ${m.status}">${esc(m.statusLabel)}</span><span class="cm-date">${esc(m.time)}</span></div>
-            <h2 class="cm-title">Confronto</h2>
-            <div class="match-teams" style="margin-bottom:18px">
-                <div class="team">${teamBadge(m.a)}<span class="team-name">${esc(m.a)}</span><span class="score">${esc(m.sa)}</span></div>
-                <span class="vs">vs</span>
-                <div class="team">${teamBadge(m.b)}<span class="team-name">${esc(m.b)}</span><span class="score">${esc(m.sb)}</span></div>
-            </div>
-            <div class="cm-text"><p>${esc(m.desc)}</p></div>
+            <div class="cm-meta">${espTierTag(t.tier)}<span class="cm-date">${esc(t.data || '')}</span><span class="news-src"><i class="fa-solid fa-trophy"></i> Torneio real</span></div>
+            <h2 class="cm-title">${esc(t.nome)}</h2>
+            ${t.logo ? `<img class="cm-logo" src="${esc(t.logo)}" alt="" onerror="this.remove()">` : ''}
+            <div class="esp-ficha">${linhas.map(l => `<div class="esp-linha"><b>${esc(l[0])}</b><span>${esc(l[1])}</span></div>`).join('')}</div>
+            <a class="cm-link" href="${esc(t.url || ((window.ESPORTS || {}).fonteUrl || ''))}" target="_blank" rel="noopener">Ver o torneio na Liquipedia <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>`;
     openOverlay($('#contentModal'));
+}
+
+function initEsports() {
+    const dados = window.ESPORTS || null;
+    const caixaProximos = $('#esportsProximos');
+    const caixaResultados = $('#esportsResultados');
+    const fonte = $('#esportsFonte');
+    if (!caixaProximos || !caixaResultados) return;
+
+    if (!dados || (!(dados.proximos || []).length && !(dados.resultados || []).length)) {
+        caixaProximos.innerHTML = '';
+        caixaResultados.innerHTML = '<p class="items-count">Não consegui buscar os torneios agora. Os dados entram na próxima atualização (rode <b>atualizar-tudo.bat</b>).</p>';
+        return;
+    }
+
+    espLista = { proximos: dados.proximos || [], resultados: dados.resultados || [] };
+    caixaProximos.innerHTML = espLista.proximos.length
+        ? espLista.proximos.map((t, i) => espCartaoHTML(t, 'proximos', i)).join('')
+        : '<p class="items-count">Nenhum torneio marcado para os próximos dias.</p>';
+    caixaResultados.innerHTML = espLista.resultados.length
+        ? espLista.resultados.map((t, i) => espCartaoHTML(t, 'resultados', i)).join('')
+        : '<p class="items-count">Ainda não temos resultados recentes.</p>';
+
+    const grade = $('#esports');
+    if (grade) {
+        $$('[data-esporte]', grade).forEach(b => b.addEventListener('click', () => {
+            const partes = String(b.dataset.esporte).split(':');
+            abrirEsporte(partes[0], Number(partes[1]));
+        }));
+    }
+
+    if (fonte) {
+        fonte.innerHTML = `<i class="fa-solid fa-trophy"></i> Torneios e resultados reais: <a href="${esc(dados.fonteUrl || '')}" target="_blank" rel="noopener">${esc(dados.fonte || 'Liquipedia')}</a> · atualizado em ${esc(dados.updated || '')}. O jogo não tem uma API de esports, então essa é a fonte pública que usamos.`;
+    }
 }
 
 /* ================= comparar heróis ================= */
