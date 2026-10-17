@@ -140,7 +140,8 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 >
 > Cada herói tem duas notas de dificuldade: **`diff`** (para aprender) e **`dominio`** (para masterizar), de 1 a 3.
 > Elas são as notas do **dlbr.gg** (é uma avaliação deles, não do jogo). Nos poucos heróis que ainda não têm a nota
-> lá, o site usa a **complexidade oficial do jogo** e escreve isso embaixo da nota (o herói ganha o campo `dif_fonte: "jogo"`).
+> lá, o site usa a **complexidade oficial do jogo** (o herói ganha o campo `dif_fonte: "jogo"`).
+> Essa informação de origem **não aparece mais na página** — ela fica só aqui, para você saber de onde veio cada número.
 >
 > Para adicionar um herói novo, escreva o nome das habilidades **em inglês** (como está na deadlock.wiki) e rode `python tools/traduzir-jogo.py`: ele traduz sozinho e guarda o original no campo `name_en`.
 
