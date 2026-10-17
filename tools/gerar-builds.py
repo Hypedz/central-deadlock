@@ -4,13 +4,16 @@ Escreve as BUILDS mais usadas de cada herói no arquivo data/builds.js.
 
 O que aparece aqui vem das partidas de verdade:
 
-    data/game-data.js   -> builds mais populares de cada herói (ordem dos itens,
-                           win rate e número de partidas) e os itens com preço
+    data/game-data.js   -> builds mais populares de cada herói (a ordem real de
+                           compra dos itens, o win rate e o número de partidas)
     data/hero-stats.js  -> tier do herói hoje
     heroes-data.js      -> nome, papel, imagem e página do herói
 
 Nada é inventado: os nomes das builds são os da comunidade (limpos), o win rate é
 medido nas partidas e os preços vêm da loja do jogo.
+
+Dica: aqui a gente guarda só os IDs dos itens (o site já tem a lista completa
+da loja carregada), então o arquivo fica leve e a página abre rápido.
 
 Como usar:
     python tools/gerar-builds.py
@@ -91,24 +94,20 @@ def nome_limpo(nome):
     return (nome[:60].strip() or "Build da comunidade")
 
 
-def itens_da_build(lista_ids, itens):
-    """Transforma os ids dos itens em nome + preco + imagem (dados reais da loja)."""
+def ids_da_build(lista_ids, itens):
+    """Guarda só os IDs dos itens (a ordem real de compra).
+
+    O site já tem todos os itens carregados (data/game-data.js), então não
+    precisa repetir nome, preço e link aqui dentro: o arquivo fica bem menor
+    e a página carrega mais rápido. Só entram IDs que existem de verdade."""
     saida = []
     for ident in lista_ids[:MAX_ITENS]:
-        item = itens.get(str(ident)) or itens.get(ident) or {}
-        nome = str(item.get("n") or "").strip()
-        if not nome:
-            continue
-        saida.append({
-            "id": int(ident),
-            "n": nome,
-            "c": int(item.get("c") or 0),
-            "i": str(item.get("i") or "")
-        })
+        if itens.get(str(ident)) or itens.get(ident):
+            saida.append(int(ident))
     return saida
 
 
-def corpo_do_heroi(nome, builds, partidas_total):
+def corpo_do_heroi(nome, builds, partidas_total, itens):
     """Monta os paragrafos (texto puro, em portugues) sobre as builds do herói."""
     corpo = []
     mais_usada = builds[0]
@@ -146,12 +145,14 @@ def corpo_do_heroi(nome, builds, partidas_total):
         )
 
     if mais_usada.get("itens"):
-        caros = sorted(mais_usada["itens"], key=lambda i: i.get("c") or 0, reverse=True)[:2]
-        corpo.append(
-            "Os itens mais caros da build mais usada são {lista}. Compre os itens baratos primeiro: "
-            "eles seguram a rota até você juntar almas para os grandes.".format(
-                lista=" e ".join("{n} ({c})".format(n=i["n"], c=dinheiro(i["c"])) for i in caros))
-        )
+        catalogo = [itens.get(str(i)) or {} for i in mais_usada["itens"]]
+        caros = sorted([c for c in catalogo if c], key=lambda i: i.get("c") or 0, reverse=True)[:2]
+        if caros:
+            corpo.append(
+                "Os itens mais caros da build mais usada são {lista}. Compre os itens baratos primeiro: "
+                "eles seguram a rota até você juntar almas para os grandes.".format(
+                    lista=" e ".join("{n} ({c})".format(n=i["n"], c=dinheiro(i["c"])) for i in caros))
+            )
 
     corpo.append("Os preços e os nomes dos itens vêm da loja do jogo. Fonte: deadlock-api.com")
     return corpo
@@ -184,7 +185,7 @@ def main():
 
         limpas = []
         for b in bruta:
-            itens_b = itens_da_build(b.get("i") or [], itens)
+            itens_b = ids_da_build(b.get("i") or [], itens)
             if not itens_b:
                 continue
             limpas.append({
@@ -211,7 +212,7 @@ def main():
                      "win rate de verdade de cada uma.").format(nome=nome),
             "heroPage": "heroi/{}.html".format(slug(nome)),
             "builds": limpas,
-            "body": corpo_do_heroi(nome, limpas, partidas_total)
+            "body": corpo_do_heroi(nome, limpas, partidas_total, itens)
         })
 
     lista.sort(key=lambda g: g["title"].lower())

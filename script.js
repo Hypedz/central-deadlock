@@ -719,7 +719,7 @@ function indiceBusca() {
         tipo: 'Build', nome: tituloPT(a), sub: a.desc || '', icone: 'fa-cubes',
         chave: [tituloPT(a), a.title, a.desc,
             (a.items || []).map(x => x[0]).join(' '),
-            (a.builds || []).map(b => b.nome + ' ' + (b.itens || []).map(i => i.n).join(' ')).join(' ')].join(' '),
+            (a.builds || []).map(b => b.nome + ' ' + itensDaBuildNomes(b.itens)).join(' ')].join(' '),
         abrir: () => openArticle(a.id)
     }));
 
@@ -1491,7 +1491,7 @@ function openArticle(id) {
                 <span class="build-wr">${String(b.win).replace('.', ',')}% de vitória</span>
             </div>
             <small>${money(b.m)} partidas registradas com esta build</small>
-            <div class="build-itens">${(b.itens || []).map(it => `<button type="button" class="build-item" data-item="${esc(it.id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<em>${esc(it.n)}</em></button>`).join('')}</div>
+            <div class="build-itens">${itensDaBuildHTML(b.itens)}</div>
         </div>`).join('')}
         <p class="stat-fonte"><i class="fa-solid fa-screwdriver-wrench"></i> Builds publicadas pela comunidade dentro do próprio jogo. Fonte: deadlock-api.com</p>` : '';
     const corpo = a.patch
@@ -1709,6 +1709,21 @@ function slugJS(texto) {
 function itemDe(id) {
     const g = dadosJogo();
     return (g && g.itens && g.itens[String(id)]) || null;
+}
+
+/* Os itens de uma build real (aba Builds). O arquivo data/builds.js guarda só
+   os IDs dos itens — o nome, o preço e o ícone vêm da lista da loja que o site
+   já tem carregada. Assim o arquivo fica leve e a página abre rápido. */
+function itensDaBuildHTML(lista) {
+    return (lista || []).map(id => {
+        const it = itemDe(id);
+        if (!it) return '';
+        return `<button type="button" class="build-item" data-item="${esc(id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<em>${esc(it.n)}</em></button>`;
+    }).join('');
+}
+
+function itensDaBuildNomes(lista) {
+    return (lista || []).map(id => { const it = itemDe(id); return it ? it.n : ''; }).join(' ');
 }
 function itemImg(item, cls = '') {
     if (!item || !item.i) return `<i class="fa-solid fa-gem ${cls}"></i>`;
