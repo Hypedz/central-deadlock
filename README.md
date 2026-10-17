@@ -106,7 +106,8 @@ meu-fansite/
 - **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** — **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo.
 - **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
-- **Eventos** — calendário da comunidade com botão **Lembrar** (salvo no navegador).
+- **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
+- **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
 - **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). **Clique em um jogador** para ver a posição dele, os heróis mais jogados e **buscar o perfil de verdade no Steam** (o site mostra as partidas reais daquela conta). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
 - **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
@@ -197,8 +198,8 @@ O que isso muda no site:
 | `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
 | `data/elos.js` | `tools/update-elos.py` | brasões de elo oficiais + quantos jogadores há em cada elo (usado na aba Estatísticas e no Ranking) |
 | `data/guias.js` | `tools/gerar-guias.py` | o guia de cada um dos 43 heróis, já escrito em português e com os números reais (usado na aba Guias e na busca) |
-| `data/builds.js` | `tools/gerar-builds.py` | as builds mais usadas de cada um dos 42 heróis, na ordem real de compra, com win rate e partidas (usado na aba Builds e na busca) |
-| `data/esports.js` | `tools/update-esports.py` | torneios de Deadlock e resultados recentes, com logos, datas, prêmios e campeões (fonte: Liquipedia) |
+| `data/builds.js` | `tools/gerar-builds.py` | as builds mais usadas de cada um dos 42 heróis, na ordem real de compra, com win rate e partidas. Guarda só o **id** de cada item (o nome, o preço e o ícone vêm da loja que o site já tem) — assim o arquivo fica leve (67 KB em vez de 237 KB) e a página abre mais rápido (usado na aba Builds e na busca) |
+| `data/esports.js` | `tools/update-esports.py` | torneios de Deadlock e resultados recentes, com logos, datas, prêmios e campeões (fonte: Liquipedia). Também alimenta a aba **Eventos** (próximos torneios + contagem regressiva) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
@@ -217,6 +218,8 @@ Agora dá para **instalar a Central Deadlock no celular ou no PC**, igual a um a
 Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js` (uma cópia do site guardada no navegador, para abrir rápido) e os ícones em `assets/brand/icon-*.png`.
 
 > **Notícia nunca fica velha:** o `sw.js` foi feito para sempre **buscar as notícias na internet primeiro** e usar a cópia guardada só quando a internet falha.
+>
+> **Aviso de nova versão:** quando você publica uma mudança, quem já tem o site instalado vê um avisinho **"Nova versão do site disponível!"** com o botão **Atualizar agora** — assim ninguém fica preso numa versão antiga. Isso é automático (está no `script.js` e no `pwa.js`).
 >
 > Para gerar os ícones de novo (se algum dia mudar a logo): `python tools/make-icons.py` (precisa da biblioteca Pillow).
 
