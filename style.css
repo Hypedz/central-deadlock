@@ -263,6 +263,32 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .cx-cores span { display: inline-flex; align-items: center; gap: 8px; font-size: .86rem; color: var(--text-soft); }
 .cx-cores i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border-2); display: block; }
 .cx-passos { margin: 6px 0 0; padding-left: 20px; color: var(--text-soft); line-height: 1.8; }
+
+/* ---- elos de verdade (brasões oficiais do jogo) ---- */
+.elos-nota { font-size: .78rem; color: var(--text-faint); font-family: var(--font-ui); }
+.elos-nota i { color: var(--lime); margin-right: 4px; }
+.elos-sub { margin-bottom: 14px; }
+.elos-lista { display: grid; gap: 10px; }
+.elo-linha {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.elo-brasao { width: 46px; height: 46px; object-fit: contain; flex: 0 0 auto; }
+.elo-info { flex: 1; min-width: 0; }
+.elo-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: var(--font-ui); }
+.elo-topo b { font-weight: 700; }
+.elo-topo span { color: var(--lime); font-weight: 700; font-size: .86rem; }
+.elo-barra { height: 7px; margin: 6px 0 4px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
+.elo-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--lime), #6fd12a); }
+.elo-qtd { font-size: .74rem; color: var(--text-faint); }
+
+.rank-nota {
+    display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.rank-nota img { width: 42px; height: 42px; object-fit: contain; flex: 0 0 auto; }
+.rank-nota b { display: block; font-family: var(--font-ui); font-size: .9rem; }
+.rank-nota span { font-size: .8rem; color: var(--text-soft); }
 @media (max-width: 780px) {
     .cx-wrap { grid-template-columns: 1fr; }
 }
@@ -815,10 +841,11 @@ body.compact .cards-grid { gap: 14px; }
 .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .modal-actions .btn { flex: 1; min-width: 140px; }
 
-/* modal de conteúdo (notícias / guias) */
-.content-modal { max-width: 720px; padding: 0; overflow: hidden; }
-.cm-img { width: 100%; height: 260px; object-fit: cover; object-position: center 30%; }
-.cm-body { padding: 26px 30px 30px; }
+/* modal de conteúdo (notícias / guias)
+   A imagem fica presa no topo e só o texto rola, então nada mais é cortado. */
+.content-modal { max-width: 720px; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.cm-img { width: 100%; height: 260px; object-fit: cover; object-position: center 30%; flex: 0 0 auto; }
+.cm-body { padding: 26px 30px 30px; min-height: 0; overflow-y: auto; }
 .cm-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .cm-date { font-size: 0.8rem; color: var(--text-faint); }
 .cm-title { font-family: var(--font-ui); font-weight: 800; font-size: 1.7rem; line-height: 1.2; margin-bottom: 16px; }

@@ -87,7 +87,7 @@ meu-fansite/
 
 ## 📑 Menu (seções)
 
-**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa
+**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
 **Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
@@ -98,7 +98,9 @@ meu-fansite/
 - **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
 - **Eventos** — calendário da comunidade com botão **Lembrar** (salvo no navegador).
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
-- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania).
+- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
+- **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
+- **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
 - **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
 - **Home** — banner com a notícia mais recente, "Últimas notícias", "Meta de hoje" (com números reais) e atalhos para explorar o site.
 
@@ -158,6 +160,9 @@ O que isso muda no site:
 | **Confrontos** | exemplo | win rate real contra **cada inimigo** |
 | **Ranking** | exemplo | **top 50 real** de 5 regiões |
 | **Taxa de banimento** | não existia | % real + posição entre os mais banidos |
+| **Elos de verdade** | não existia | brasões oficiais do jogo + quantos jogadores há em cada elo |
+| **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
+| **Instalar o app** | não existia | botão que instala o site como app no celular e no computador |
 
 ### De onde sai cada arquivo
 
@@ -168,6 +173,7 @@ O que isso muda no site:
 | `data/hero-history.js` | `tools/update-game-data.py` | win rate semana a semana (usado nos gráficos) |
 | `data/hero-extra.js` | `tools/update-game-data.py` | etiquetas, dificuldade, cor e história de cada herói (usado nas páginas dos heróis) |
 | `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
+| `data/elos.js` | `tools/update-elos.py` | brasões de elo oficiais + quantos jogadores há em cada elo (usado na aba Estatísticas e no Ranking) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >

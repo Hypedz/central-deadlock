@@ -285,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initContents();
     initCompare();
     initStats();
+    initElos();
     initHome();
     initGlossario();
     initItens();
@@ -322,7 +323,7 @@ function registrarApp() {
 function abrirJanela(html) {
     const caixa = $('#contentModalBox');
     if (!caixa) return;
-    caixa.innerHTML = '<button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>' + html;
+    caixa.innerHTML = '<button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><div class="cm-body">' + html + '</div>';
     openOverlay($('#contentModal'));
 }
 
@@ -1198,6 +1199,31 @@ function openItem(id) {
     openOverlay($('#itemModal'));
 }
 
+/* ---------- elos de verdade (brasões oficiais do jogo) ---------- */
+function dadosElos() { return window.ELOS || null; }
+
+function initElos() {
+    const caixa = $('#elosBox');
+    if (!caixa) return;
+    const d = dadosElos();
+    if (!d || !d.faixas || !d.faixas.length) {
+        caixa.innerHTML = '<p class="muted-txt">Os elos reais entram aqui na próxima atualização (rode <b>atualizar-tudo.bat</b>).</p>';
+        return;
+    }
+    const nota = $('#elosNota');
+    if (nota) nota.innerHTML = `<i class="fa-solid fa-users"></i> ${d.total.toLocaleString('pt-BR')} jogadores classificados · atualizado em ${esc(d.updated)}`;
+    const maior = Math.max.apply(null, d.faixas.map(f => f.pct));
+    caixa.innerHTML = '<div class="elos-lista">' + d.faixas.map(f => `
+        <div class="elo-linha">
+            ${f.img ? `<img class="elo-brasao" src="${esc(f.img)}" alt="Brasão do elo ${esc(f.nome)}" loading="lazy">` : ''}
+            <div class="elo-info">
+                <div class="elo-topo"><b>${esc(f.nome)}</b><span>${String(f.pct).replace('.', ',')}%</span></div>
+                <div class="elo-barra"><i style="width:${Math.max(2, (f.pct / maior) * 100).toFixed(1)}%"></i></div>
+                <div class="elo-qtd">${f.jogadores.toLocaleString('pt-BR')} jogadores</div>
+            </div>
+        </div>`).join('') + '</div>';
+}
+
 /* ---------- ranking real ---------- */
 const REGIOES_RANK = [['SAmerica', 'América do Sul'], ['NAmerica', 'América do Norte'], ['Europe', 'Europa'], ['Asia', 'Ásia'], ['Oceania', 'Oceania']];
 let rankRegiao = 'SAmerica';
@@ -1231,6 +1257,19 @@ function initRanking() {
         </div>`).join('');
     const f = $('#rankFonte');
     if (f) f.innerHTML = `<i class="fa-solid fa-trophy"></i> Top ${linhas.length} jogadores da região · ranking real do jogo via deadlock-api.com · atualizado em ${esc(g.updated)}`;
+
+    // Os brasões de elo de verdade: quem está no ranking já chegou no elo mais alto.
+    const nota = $('#rankNota');
+    if (nota) {
+        const elos = dadosElos();
+        const eternus = elos ? (elos.todos || []).filter(e => e.tier === 11)[0] : null;
+        nota.innerHTML = eternus ? `
+            ${eternus.img ? `<img src="${esc(eternus.img)}" alt="Brasão do elo ${esc(eternus.nome)}">` : ''}
+            <div>
+                <b>Todo mundo aqui está no elo mais alto: ${esc(eternus.nome)}</b>
+                <span>O ranking mostra só o topo de cada região, então todos já chegaram no último elo do jogo. Para ver quantos jogadores estão em cada elo, abra a aba <b>Estatísticas</b>.</span>
+            </div>` : '';
+    }
 }
 
 /* ---------- histórico de win rate ---------- */

@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261016h">
+    <link rel="stylesheet" href="style.css?v=20261016i">
 </head>
 <body data-theme="dark">
 
@@ -204,6 +204,15 @@
                         <button type="button" class="btn btn-dark btn-sm" data-goto="herois">Ver todos os heróis <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                     <div id="statsHist"></div>
+                </div>
+
+                <div class="home-block">
+                    <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-solid fa-shield-halved"></i> Elos de verdade</h2>
+                        <span class="elos-nota" id="elosNota"></span>
+                    </div>
+                    <p class="page-sub elos-sub">Os brasões são os do próprio jogo. As barras mostram quantos jogadores de verdade estão em cada elo hoje.</p>
+                    <div id="elosBox"></div>
                 </div>
             </section>
 
@@ -463,6 +472,7 @@
                 <div class="roles-row" id="rankRegioes"></div>
                 <div class="ranking-table" id="rankTable"></div>
                 <p class="stat-fonte" id="rankFonte"></p>
+                <div class="rank-nota" id="rankNota"></div>
             </section>
 
             <!-- ============ EVENTOS ============ -->
@@ -612,11 +622,12 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261016h"></script>
-    <script src="data/game-data.js?v=20261016h"></script>
-    <script src="data/hero-history.js?v=20261016h"></script>
-    <script src="data/hero-stats.js?v=20261016h"></script>
-    <script src="data/steam-news.js?v=20261016h"></script>
-    <script src="script.js?v=20261016h"></script>
+    <script src="heroes-data.js?v=20261016i"></script>
+    <script src="data/game-data.js?v=20261016i"></script>
+    <script src="data/hero-history.js?v=20261016i"></script>
+    <script src="data/hero-stats.js?v=20261016i"></script>
+    <script src="data/steam-news.js?v=20261016i"></script>
+<script src="data/elos.js?v=20261016i"></script>
+    <script src="script.js?v=20261016i"></script>
 </body>
 </html>
