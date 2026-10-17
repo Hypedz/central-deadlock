@@ -1,0 +1,14 @@
+# Como o Git deve tratar cada tipo de arquivo.
+#
+# As imagens e os letreiros (assets/) são baixados prontos pelo script
+# tools/baixar-artes.py. Se o Git trocar as quebras de linha deles, o robô
+# do GitHub reenvia os mesmos arquivos todo dia sem necessidade.
+# Por isso aqui dizemos: "não mexa nos arquivos de assets".
+
+assets/** -text -diff
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.svg -text
