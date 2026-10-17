@@ -32,7 +32,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261017d"
+VERSAO_CSS = "20261017e"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -505,6 +505,15 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico):
                 pontos = " → ".join("{}: {}%".format(w, v) for w, v in pares[::max(1, len(pares) // 8)])
                 pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-chart-line"></i> Histórico de win rate</h2>')
                 pagina.append('            <div class="pg-skill"><p class="pg-hist-linha">{}</p></div>'.format(e(pontos)))
+
+        # ---------------- atalhos para o resto do site ----------------
+        pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-arrow-up-right-from-square"></i> Continuar no Central Deadlock</h2>')
+        pagina.append('            <div class="pg-atalhos">')
+        pagina.append('                <a class="pg-atalho" href="../index.html#guias"><i class="fa-solid fa-book"></i><b>Guia completo</b><span>Passo a passo de como jogar com ele</span></a>')
+        pagina.append('                <a class="pg-atalho" href="../index.html#builds"><i class="fa-solid fa-screwdriver-wrench"></i><b>Builds de todos os heróis</b><span>As mais usadas e o win rate de cada uma</span></a>')
+        pagina.append('                <a class="pg-atalho" href="../index.html#ranking"><i class="fa-solid fa-ranking-star"></i><b>Ranking dos melhores</b><span>Os melhores de cada região, direto do jogo</span></a>')
+        pagina.append('                <a class="pg-atalho" href="../index.html#itens"><i class="fa-solid fa-store"></i><b>Loja de itens</b><span>Preço e efeito de todos os itens</span></a>')
+        pagina.append('            </div>')
 
         pagina.append('        </main>')
 
