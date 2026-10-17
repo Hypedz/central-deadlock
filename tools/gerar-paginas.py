@@ -21,6 +21,7 @@ import html
 import json
 import os
 import re
+import struct
 import sys
 import unicodedata
 
@@ -69,6 +70,22 @@ def moeda(valor):
         return "{:,}".format(int(valor)).replace(",", ".")
     except Exception:
         return str(valor)
+
+
+def tamanho_da_arte(arquivo):
+    """Le o tamanho de verdade do PNG (para a imagem nao ficar achatada).
+    Se nao conseguir, devolve None e o navegador se vira."""
+    caminho = os.path.join(BASE, "assets", "heroes", arquivo)
+    try:
+        with open(caminho, "rb") as aberto:
+            cabeca = aberto.read(33)
+        if cabeca[:8] == b"\x89PNG\r\n\x1a\n":
+            largura, altura = struct.unpack(">II", cabeca[16:24])
+            if 0 < largura < 20000 and 0 < altura < 20000:
+                return largura, altura
+    except Exception:
+        pass
+    return None
 
 
 # --------------------------- moldura da página ---------------------------
@@ -167,8 +184,10 @@ def paginas_herois(herois, stats, jogo, hist):
 
         # ---------- bloco principal ----------
         tier = s.get("tier", h.get("tier", "?"))
+        medida = tamanho_da_arte(h["file"])
+        medida_txt = ' width="{}" height="{}"'.format(*medida) if medida else ''
         pagina.append(f"""        <article class="pg-hero">
-            <img class="pg-art" src="../assets/heroes/{e(h['file'])}" alt="{e(h['name'])}" width="300" height="380">
+            <img class="pg-art" src="../assets/heroes/{e(h['file'])}" alt="{e(h['name'])}"{medida_txt}>
             <div>
                 <h1 class="pg-title">{e(h['name'])}</h1>
                 <div class="pg-tags">
@@ -308,11 +327,23 @@ def paginas_noticias(noticias):
             {f'<div class="pg-resumo"><b><i class="fa-solid fa-language"></i> Resumo em português</b><p>{e(n.get("desc_pt"))}</p></div>' if n.get('desc_pt') else ''}
 """)
         if n.get("lines"):
-            pagina.append("            <h2 class=\"pg-sec\">Texto completo (original, em inglês)</h2>\n")
-            for linha in n["lines"][:12]:
-                pagina.append(f"            <p class=\"pg-en\">{e(linha)}</p>\n")
-        if n.get("desc"):
-            pagina.append(f"            <p class=\"pg-en\">{e(n.get('desc'))}</p>\n")
+            linhas = n["lines"] or []
+            linhas_pt = n.get("lines_pt") or []
+            tem_pt = any(x for x in linhas_pt)
+            # texto completo: em portugues quando existe traducao, senao o original
+            corpo = []
+            for i, linha in enumerate(linhas):
+                traducao = linhas_pt[i] if i < len(linhas_pt) else ""
+                corpo.append(traducao or linha)
+            rotulo = "Texto completo (traduzido para português)" if tem_pt else "Texto completo (original, em inglês)"
+            pagina.append(f'            <h2 class="pg-sec">{rotulo}</h2>\n')
+            for linha in corpo:
+                pagina.append(f'            <p class="pg-texto">{e(linha)}</p>\n')
+            # e o original em ingles fica embaixo, para conferir
+            if tem_pt:
+                pagina.append('            <h2 class="pg-sec">Texto original (em inglês)</h2>\n')
+                for linha in linhas:
+                    pagina.append(f'            <p class="pg-en">{e(linha)}</p>\n')
         pagina.append(f"""            <p class="stat-fonte"><i class="fa-solid fa-book-open"></i> Tradução automática para o português (Google). O texto original fica logo abaixo, para conferência.</p>
         </article>
 """)

@@ -36,6 +36,10 @@ jobs:
       - name: Buscar as notícias oficiais do Deadlock (e traduzir)
         run: python tools/update-news.py
 
+      - name: Buscar as artes dos heróis (imagens nítidas)
+        run: python tools/baixar-artes.py
+        continue-on-error: true
+
       - name: Buscar as estatísticas reais dos heróis
         run: python tools/update-stats.py
         continue-on-error: true

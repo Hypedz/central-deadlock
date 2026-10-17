@@ -35,9 +35,10 @@ meu-fansite/
 │   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
 │   └── atualizacoes.log     # Registro das execuções automáticas (fora do Git)
 ├── tools/
-│   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam
+│   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam (texto completo)
 │   ├── update-stats.py      # Baixa as estatísticas reais dos heróis
 │   ├── update-game-data.py  # Baixa itens, builds, contadores, ban e ranking
+│   ├── baixar-artes.py      # Baixa as artes dos heróis em boa qualidade
 │   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
 │   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
 │   ├── discord-post.py      # Posta no Discord
@@ -54,10 +55,12 @@ meu-fansite/
     │   ├── library_hero.jpg   # Capa usada no banner da Home
     │   ├── deadlock-cover.jpg # Capa vertical (reserva)
     │   └── deadlock-header.jpg # Banner horizontal (reserva)
-    └── heroes/                # 44 artes dos heróis (PNG)
+    └── heroes/                # 44 artes dos heróis (cartas 280x380)
 ```
 
 > ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
+>
+> 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`.
 
 ---
 

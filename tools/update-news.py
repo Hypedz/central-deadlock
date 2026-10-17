@@ -14,6 +14,7 @@ notícia duas vezes. Se a tradução falhar, o site mostra o texto original
 em inglês — nada quebra.
 """
 
+import concurrent.futures
 import datetime
 import hashlib
 import json
@@ -43,14 +44,16 @@ CACHE = os.path.join(PASTA, "traducao-cache.json")
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun",
          "jul", "ago", "set", "out", "nov", "dez"]
 
-# quanto texto guardar de cada notícia (para o site não ficar gigante)
-MAX_LINHAS = 40
-MAX_LINHA = 300
+# quanto texto guardar de cada notícia (para o site não ficar gigante).
+# O texto sai INTEIRO — sem cortar no meio da frase. Os limites abaixo são só
+# uma trava de segurança para casos absurdos.
+MAX_LINHAS = 80
+MAX_LINHA = 3000
 
 # quantas notícias (as mais novas) são traduzidas a cada rodada
 TRADUZIR_ATE = 25
 # quantas traduções ficam guardadas no cache
-CACHE_MAX = 800
+CACHE_MAX = 4000
 
 
 def limpar_html(texto):
@@ -89,7 +92,7 @@ def imagem_url(bruto):
 
 
 def em_linhas(texto):
-    """Transforma o texto em uma lista de linhas limpas."""
+    """Transforma o texto em uma lista de linhas limpas (sem cortar o texto)."""
     saida = []
     for linha in texto.split("\n"):
         linha = re.sub(r"[ \t]+", " ", linha).strip()
@@ -97,7 +100,7 @@ def em_linhas(texto):
         if not linha:
             continue
         if len(linha) > MAX_LINHA:
-            linha = linha[:MAX_LINHA].rstrip() + "..."
+            linha = linha[:MAX_LINHA].rstrip()
         saida.append(linha)
         if len(saida) >= MAX_LINHAS:
             break
@@ -161,6 +164,21 @@ def traduzir(texto, cache):
         return ""
 
 
+def traduzir_lista(textos, cache):
+    """Traduz vários textos de uma vez (em paralelo). Devolve a lista na mesma ordem."""
+    textos = list(textos or [])
+    if not textos:
+        return []
+    pendentes = []
+    for t in textos:
+        if t and hashlib.md5(t.encode("utf-8")).hexdigest() not in cache:
+            pendentes.append(t)
+    if pendentes:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            list(pool.map(lambda t: traduzir(t, cache), pendentes))
+    return [cache.get(hashlib.md5(t.encode("utf-8")).hexdigest(), "") if t else "" for t in textos]
+
+
 def main():
     #  --sem-traducao  =  gera o arquivo sem falar com o tradutor (mais rápido)
     sem_traducao = "--sem-traducao" in sys.argv
@@ -199,10 +217,12 @@ def main():
         titulo = (n.get("title") or "").strip() or "Atualizacao do Deadlock"
 
         # ---- traducao para portugues (nas mais novas) ----
-        titulo_pt, resumo_pt = "", ""
+        # traduz o titulo, o resumo (usado nos cards) e o TEXTO INTEIRO
+        titulo_pt, resumo_pt, linhas_pt = "", "", []
         if not sem_traducao and len(itens) < TRADUZIR_ATE:
             titulo_pt = traduzir(titulo, cache)
-            resumo_pt = traduzir(resumo[:200], cache)
+            resumo_pt = traduzir(resumo, cache)
+            linhas_pt = traduzir_lista(linhas, cache)
             if titulo_pt:
                 traduzidas += 1
 
@@ -219,6 +239,7 @@ def main():
             "desc": resumo,
             "desc_pt": resumo_pt,
             "lines": linhas,
+            "lines_pt": linhas_pt,
         })
 
     if not itens:

@@ -38,6 +38,7 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 %GIT% pull --ff-only --quiet >> "%LOG%" 2>&1
 
 %PY% "tools\update-news.py" >> "%LOG%" 2>&1
+%PY% "tools\baixar-artes.py" >> "%LOG%" 2>&1
 %PY% "tools\update-stats.py" >> "%LOG%" 2>&1
 %PY% "tools\update-game-data.py" >> "%LOG%" 2>&1
 %PY% "tools\traduzir-jogo.py" >> "%LOG%" 2>&1

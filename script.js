@@ -683,7 +683,8 @@ function buildSteamArticles() {
         imgSteam: n.image || '',         // imagem oficial publicada pela Valve
         date: n.date,
         desc: n.desc,
-        body: (n.lines || []).slice(0, 40),
+        body: (n.lines || []).slice(0, 80),
+        bodyPT: (n.lines_pt || []).slice(0, 80),   // texto completo traduzido
         url: n.url,
         patch: !!n.patch,
         steam: true
@@ -804,14 +805,24 @@ function openArticle(id) {
         ? `<div class="cm-patch">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`
         : `<div class="cm-text">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
 
-    // notícias do Steam: mostra o resumo em português e guarda o original
+    // ---- notícias do Steam: resumo + TEXTO INTEIRO (em português e no original) ----
     const temPT = !!a.descPT;
     const resumoPT = temPT
         ? `<div class="cm-pt"><span class="cm-pt-tag"><i class="fa-solid fa-language"></i> Resumo em português</span><p>${esc(a.descPT)}</p></div>`
         : '';
-    const original = temPT
+    const corpoPT = a.bodyPT || [];              // texto completo traduzido
+    const temCorpoPT = corpoPT.some(x => x);
+    const paragrafos = (lista) => `<div class="cm-text">${lista.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
+    // texto principal: em português quando a tradução existe (senão, o original)
+    const corpoSteam = temCorpoPT
+        ? `<div class="pform-sec" style="margin:24px 0 10px">Texto completo (traduzido para português)</div>
+           ${paragrafos(a.body.map((linha, i) => corpoPT[i] || linha))}`
+        : (a.body && a.body.length ? paragrafos(a.body) : '');
+    // e o original em inglês fica logo abaixo, para conferir
+    const original = (a.steam && (temCorpoPT || temPT))
         ? `<div class="pform-sec" style="margin:24px 0 10px">Texto original (em inglês)</div>
-           ${a.titlePT ? `<p class="cm-original-title">${esc(a.title)}</p>` : ''}`
+           ${a.titlePT ? `<p class="cm-original-title">${esc(a.title)}</p>` : ''}
+           ${paragrafos(a.body)}`
         : '';
     const linkSteam = a.url
         ? `<a class="cm-link" href="${esc(a.url)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
@@ -827,8 +838,8 @@ function openArticle(id) {
             <div class="cm-meta"><span class="tag acc">${esc(a.cat)}</span><span class="cm-date">${esc(a.date)}</span>${a.steam ? '<span class="news-src"><i class="fa-brands fa-steam"></i> Notícia oficial</span>' : ''}${a.titlePT ? '<span class="news-src"><i class="fa-solid fa-language"></i> Traduzido</span>' : ''}</div>
             <h2 class="cm-title">${esc(tituloPT(a))}</h2>
             ${resumoPT}
+            ${a.steam ? corpoSteam : corpo}
             ${original}
-            ${corpo}
             ${items}
             ${linkSteam}
             ${linkPagina}

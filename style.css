@@ -1226,8 +1226,9 @@ body.compact .cards-grid { gap: 14px; }
 .pg-brand img { width: 34px; height: 34px; }
 .pg-crumb { color: var(--text-soft); font-size: .84rem; }
 .pg-crumb a { color: var(--lime); }
-.pg-hero { display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: start; }
-.pg-art { width: 100%; border-radius: 14px; border: 1px solid var(--border); display: block; }
+.pg-hero { display: grid; grid-template-columns: 280px 1fr; gap: 26px; align-items: start; }
+/* a arte NUNCA é esticada: a altura vem junto com a largura (height: auto) */
+.pg-art { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border); display: block; }
 .pg-title { font-family: var(--font-ui); font-weight: 800; font-size: 2.1rem; line-height: 1.1; }
 .pg-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px; }
 .pg-desc { color: var(--text-soft); }
@@ -1245,7 +1246,7 @@ body.compact .cards-grid { gap: 14px; }
 .pg-news-body p { color: var(--text-soft); margin-bottom: 10px; }
 @media (max-width: 760px) {
     .pg-hero { grid-template-columns: 1fr; }
-    .pg-art { max-width: 240px; }
+    .pg-art { width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
 }
 
 /* ========================================
@@ -1359,6 +1360,7 @@ body.compact .cards-grid { gap: 14px; }
 .pg-resumo { background: var(--lime-dim); border-left: 3px solid var(--lime); border-radius: 0 10px 10px 0; padding: 14px 16px; margin: 14px 0; }
 .pg-resumo b { font-family: var(--font-ui); color: var(--lime); display: block; margin-bottom: 6px; }
 .pg-resumo p { color: var(--text-soft); }
+.pg-texto { color: var(--text-soft); margin-bottom: 12px; line-height: 1.7; }
 .pg-en { color: var(--text-faint); font-size: .88rem; margin-bottom: 10px; line-height: 1.65; }
 .pg-lista { list-style: none; margin-top: 10px; }
 .pg-lista li { display: flex; align-items: center; gap: 8px; padding: 5px 0; color: var(--text-soft); font-size: .88rem; }
