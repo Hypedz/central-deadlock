@@ -1,9 +1,9 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 17/10/2026 as 11:15 */
+   Ultima atualizacao: 17/10/2026 as 14:35 */
 window.STEAM_NEWS = {
- "updated": "17/10/2026 as 11:15",
- "count": 11,
+ "updated": "17/10/2026 as 14:35",
+ "count": 10,
  "items": [
   {
    "id": "s1846651706683085",
@@ -269,85 +269,6 @@ window.STEAM_NEWS = {
    ],
    "lines_pt": [
     "Regeneração Radiante: Cura ao lançar reduzida de 70 para 65 - Medalhão Restaurador: Resistência ao Espírito reduzida de 10% para 8% - Celeste: Cooldown do Dazzling Trick aumentado de 32s para 34s - Celeste: Dazzling Trick T2 barreira redimensionada de \"+80 e +0,7 escalonamento\" para \"+70 e +0,76\" - Celeste: Dazzling Trick T3 cooldown aumentado de -18s a -20s - Celeste: Dazzling Trick T3 reduzido de +1,5s Silence para +1,25s - Celeste: Radiant Daggers Spirit Amp por stack reduzido de +8% para +7% - Celeste: Radiant Daggers T3 Spirit Amp por stack aumentado de +3% para +4% - Celeste: Shining Wonder alcance de salto reduzido de 17,5m para 16,5m - Celeste: Shining Wonder dano reduzido de 165 a 140 - Celeste: Shining Wonder escalonamento de espírito reduzido de 0,9 para 0,6 - Celeste: Shining Wonder T2 agora também aumenta o escalonamento de espírito em +0,45"
-   ]
-  },
-  {
-   "id": "s1840944183775204",
-   "title": "Minor Update - 08-12-2026",
-   "title_pt": "Atualização secundária - 12/08/2026",
-   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1840944183775204",
-   "ts": 1786575464,
-   "date": "12 ago 2026",
-   "cat": "Patch Notes",
-   "patch": true,
-   "image": "",
-   "desc": "Apollo: Riposte melee resist reduction increased from -22% to -25% Apollo: Riposte T2 changed from \"-30% Melee Resist\" to \"-25% Melee Resist and +0.4s Stun Duration\" Apollo: Riposte T3 incre...",
-   "desc_pt": "Apollo: Redução de resistência corpo a corpo de Riposte aumentada de -22% para -25% Apollo: Riposte T2 alterado de \"-30% de Resistência Corpo a Corpo\" para \"-25% de Resistência Corpo a Corpo e +0,4s de Duração de Atordoamento\" Apollo: Riposte T3 aumenta...",
-   "lines": [
-    "Apollo: Riposte melee resist reduction increased from -22% to -25%",
-    "Apollo: Riposte T2 changed from \"-30% Melee Resist\" to \"-25% Melee Resist and +0.4s Stun Duration\"",
-    "Apollo: Riposte T3 increased from 60% Lifesteal for 7s to 75% Lifesteal for 13s",
-    "Apollo: Fixed Itani Lo Sahn being canceled with movement abilities",
-    "Billy: Base health regen reduced from 2.5 to 2.0",
-    "Billy: Rising Ram T3 changed from \"On Impact: Deal 7% max health as spirit damage\" to \"On hero hit: +10% Max HP for 16s\"",
-    "Billy: Chain Gang spirit scaling reduced from 1 to 0.7",
-    "Doorman: Doorway range reduced from 70m to 65m",
-    "Doorman: Walker will no longer consider Luggage Cart dragged enemies as valid targets to trigger the stomp on until soon after they are dropped off",
-    "Doorman: Similar to the Walker change above, the turrets in the healing area in base now also wait on considering valid targets",
-    "Drifter: Rend spirit scaling reduced from 1.7 to 1.4",
-    "Drifter: Stalker's Mark cooldown increased from 24s to 26s",
-    "Drifter: Stalker's Mark T2 reduced from -12s Cooldown to -10s",
-    "Holliday: Powder Keg now does half its damage immediately and half over 3s as a damage over time burn (same overall damage, multiple instances stack)",
-    "Ivy: Stone Form T3 stun duration reduced from +1s to +0.75s",
-    "Lash: Falloff range reduced from 20m->58m to 18m->54m",
-    "McGinnis: Bullet damage base and growth values reduced by 5%",
-    "McGinnis: Spirit Resist per boon reduced from +0.625% to +0.35%",
-    "McGinnis: Mini Turrets no longer shoots heroes on ziplines",
-    "McGinnis: Mini Turrets no longer have 80% decaying resist for the first 6s",
-    "McGinnis: Mini Turrets health increased from 90 + 7.8/boon to 100 + 9/boon",
-    "McGinnis: Medicinal Specter T1 changed from \"Provides +40% Spirit Resist\" to \"+1.5s Duration\"",
-    "McGinnis: Medicinal Specter T3 no longer increases duration by +1.5s",
-    "McGinnis: Medicinal Specter T3 now also increases spirit resistance by +40%",
-    "Paige: Plot Armor weapon damage scaling increased from 0.2 to 0.3",
-    "Seven: Lightning Ball T3 radius increased from +1.5m to +1.75m",
-    "Vindicta: Stake T1 reduced from +65 Damage to +45",
-    "Vyper: Petrifying Bola radius increased from 8m to 12m",
-    "Vyper: Petrifying Bola petrify duration increased from 2s to 2.2s",
-    "Wraith: Card Trick Heart heal spirit scaling reduced from 1 to 0.75",
-    "Wraith: Full Auto T3 spirit scaling reduced from +0.06 to +0.045"
-   ],
-   "lines_pt": [
-    "Apollo: Redução da resistência corpo a corpo de Riposte aumentada de -22% para -25%",
-    "Apollo: Riposte T2 alterado de \"-30% de resistência corpo a corpo\" para \"-25% de resistência corpo a corpo e +0,4s de duração de atordoamento\"",
-    "Apollo: Riposte T3 aumentou de 60% de Lifesteal por 7s para 75% de Lifesteal por 13s",
-    "Apollo: Corrigido Itani Lo Sahn sendo cancelado com habilidades de movimento",
-    "Billy: Regeneração base de saúde reduzida de 2,5 para 2,0",
-    "Billy: Rising Ram T3 alterado de \"No impacto: causa 7% da saúde máxima como dano espiritual\" para \"Ao atingir o herói: +10% de HP máximo por 16s\"",
-    "Billy: Escala de espírito da Chain Gang reduzida de 1 para 0,7",
-    "Porteiro: Alcance da porta reduzido de 70m para 65m",
-    "Porteiro: Walker não considerará mais os inimigos arrastados pelo carrinho de bagagem como alvos válidos para acionar a pisada até logo após serem deixados",
-    "Porteiro: Semelhante à mudança do Walker acima, as torres na área de cura da base agora também aguardam a consideração de alvos válidos",
-    "Drifter: Dimensionamento do espírito dilacerado reduzido de 1,7 para 1,4",
-    "Drifter: Tempo de recarga da Marca do Stalker aumentado de 24s para 26s",
-    "Drifter: Mark T2 do Stalker reduzido de -12s Cooldown para -10s",
-    "Holliday: Powder Keg agora causa metade do dano imediatamente e metade ao longo de 3s como queima de dano ao longo do tempo (mesmo dano geral, acumulação de múltiplas instâncias)",
-    "Ivy: Duração do atordoamento Stone Form T3 reduzida de +1s para +0,75s",
-    "Chicote: Alcance de queda reduzido de 20m->58m para 18m->54m",
-    "McGinnis: Base de dano de bala e valores de crescimento reduzidos em 5%",
-    "McGinnis: Resistência Espiritual por benefício reduzida de +0,625% para +0,35%",
-    "McGinnis: Mini Turrets não atira mais em heróis em tirolesas",
-    "McGinnis: Mini Torretas não têm mais resistência ao decaimento de 80% nos primeiros 6s",
-    "McGinnis: A saúde das Mini Torretas aumentou de 90 + 7,8/benefício para 100 + 9/benefício",
-    "McGinnis: Espectro Medicinal T1 alterado de “Fornece +40% de Resistência Espiritual” para “+1,5s de Duração”",
-    "McGinnis: Medicinal Spectre T3 não aumenta mais a duração em +1,5s",
-    "McGinnis: Medicinal Spectre T3 agora também aumenta a resistência espiritual em +40%",
-    "Paige: O escalonamento do dano da arma Plot Armor aumentou de 0,2 para 0,3",
-    "Sete: Raio da Bola Relâmpago T3 aumentado de +1,5m para +1,75m",
-    "Vindicta: Estaca T1 reduzida de +65 de dano para +45",
-    "Vyper: Raio da Bola Petrificante aumentado de 8m para 12m",
-    "Vyper: Duração da petrificação da Bola Petrificante aumentada de 2s para 2,2s",
-    "Wraith: Card Trick Heart cura o escalonamento do espírito reduzido de 1 para 0,75",
-    "Wraith: Escala de espírito Full Auto T3 reduzida de +0,06 para +0,045"
    ]
   }
  ]
