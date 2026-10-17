@@ -376,15 +376,15 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico):
             for item_id in b.get("i") or []:
                 item = itens.get(str(item_id))
                 if item:
-                    nomes_itens.append('{}<b>{}</b> ({})'.format("🏆 " if i == 0 else "", e(item["n"]), moeda(item["c"])))
+                    nomes_itens.append('<b>{}</b> ({})'.format(e(item["n"]), moeda(item["c"])))
             if not nomes_itens:
                 continue
             bloco.append(
                 '            <div class="pg-skill">\n'
-                '                <div class="pg-skill-info"><b>{}</b> <span class="tag acc">{}% de vitória</span></div>\n'
+                '                <div class="pg-skill-info"><b>{}{}</b> <span class="tag acc">{}% de vitória</span></div>\n'
                 '                <p>{} partidas registradas com esta build.</p>\n'
                 '                <p class="pg-build-itens">{}</p>\n'
-                '            </div>'.format(e(b.get("n")), e(b.get("win")), moeda(b.get("m", 0)), " · ".join(nomes_itens)))
+                '            </div>'.format("🏆 " if i == 0 else "", e(b.get("n")), e(b.get("win")), moeda(b.get("m", 0)), " · ".join(nomes_itens)))
         if bloco:
             pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-screwdriver-wrench"></i> Builds mais usadas</h2>')
             pagina.append('            <div class="pg-skills">')
