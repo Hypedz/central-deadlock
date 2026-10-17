@@ -224,8 +224,8 @@ function teamBadge(name, cls = '') {
     return `<span class="team-badge ${cls}" style="--c1:${t.c[0]};--c2:${t.c[1]}" title="${esc(name)}"><span class="tb-in"><b>${esc(t.i)}</b></span></span>`;
 }
 
-/* Builds sugeridas por função */
-const BUILDS = [
+/* Builds sugeridas por função (exemplo escrito à mão) */
+const BUILD_EXEMPLO = [
     {
         id: 'bd1', cat: 'Build', title: 'Tanque — linha de frente', img: 'Abrams.png', date: '15 out 2026',
         desc: 'Itens para aguentar pancada e abrir as lutas.',
@@ -257,6 +257,13 @@ const BUILDS = [
         body: ['Reduza a recarga para usar as habilidades de controle mais vezes.', 'Guarde a habilidade principal para o momento decisivo da luta.']
     }
 ];
+
+/* As builds mostradas na aba Builds vêm do arquivo gerado data/builds.js: são as
+   builds mais usadas de cada herói, com a ordem real de compra e o win rate das
+   partidas. A lista BUILD_EXEMPLO acima só entra se esse arquivo não existir. */
+const BUILDS = (window.BUILDS_REAIS && window.BUILDS_REAIS.lista && window.BUILDS_REAIS.lista.length)
+    ? window.BUILDS_REAIS.lista
+    : BUILD_EXEMPLO;
 
 /* ================= início ================= */
 document.addEventListener('DOMContentLoaded', () => {
@@ -727,7 +734,9 @@ function indiceBusca() {
     }));
     BUILDS.forEach(a => itens.push({
         tipo: 'Build', nome: tituloPT(a), sub: a.desc || '', icone: 'fa-cubes',
-        chave: [tituloPT(a), a.title, a.desc, (a.items || []).map(x => x[0]).join(' ')].join(' '),
+        chave: [tituloPT(a), a.title, a.desc,
+            (a.items || []).map(x => x[0]).join(' '),
+            (a.builds || []).map(b => b.nome + ' ' + (b.itens || []).map(i => i.n).join(' ')).join(' ')].join(' '),
         abrir: () => openArticle(a.id)
     }));
 
@@ -1289,7 +1298,8 @@ const STEAM_ARTICLES = buildSteamArticles();
    cartões e deixamos filtrar por nome, papel ou tier — são 43 guias. */
 let guiaPapel = 'Todos';
 
-function guiaCardHTML(a) {
+/* Cartão usado pelos Guias e pelas Builds (mesma cara, muda só a etiqueta). */
+function cartaoHeroiHTML(a, rotulo) {
     const titulo = a.heroPage
         ? `<a href="${esc(a.heroPage)}">${esc(a.title)}</a>`
         : esc(a.title);
@@ -1298,9 +1308,11 @@ function guiaCardHTML(a) {
         <div class="guide-head"><img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy"><span>${esc(a.cat)}</span>${tier}</div>
         <h3 class="news-title">${titulo}</h3>
         <p class="news-desc">${esc(a.desc)}</p>
-        <span class="news-more">Ler guia <i class="fa-solid fa-arrow-right"></i></span>
+        <span class="news-more">${rotulo} <i class="fa-solid fa-arrow-right"></i></span>
     </article>`;
 }
+
+function guiaCardHTML(a) { return cartaoHeroiHTML(a, 'Ler guia'); }
 
 function guiasFiltrados() {
     const campo = $('#guiasBusca');
@@ -1347,6 +1359,58 @@ function initGuias() {
     pintarGuias();
 }
 
+/* ================= builds (as mais usadas de cada herói) =================
+   A lista vem do data/builds.js (gerado sozinho com os dados das partidas).
+   Aqui só montamos os cartões e deixamos filtrar por nome, papel ou tier. */
+let buildPapel = 'Todos';
+
+function buildCardHTML(a) { return cartaoHeroiHTML(a, 'Ver build'); }
+
+function buildsFiltrados() {
+    const campo = $('#buildsBusca');
+    const termo = semAcento(campo ? campo.value.trim() : '');
+    return BUILDS.filter(a => {
+        if (buildPapel !== 'Todos' && a.role !== buildPapel) return false;
+        if (!termo) return true;
+        return semAcento(a.title).indexOf(termo) >= 0
+            || semAcento(a.role).indexOf(termo) >= 0
+            || semAcento(a.tier).indexOf(termo) >= 0;
+    });
+}
+
+function pintarBuilds() {
+    const grade = $('#buildsGrid');
+    if (!grade) return;
+    const lista = buildsFiltrados();
+    grade.innerHTML = lista.length
+        ? lista.map(a => buildCardHTML(a)).join('')
+        : '<p class="items-count">Nenhuma build encontrada com esse filtro. Tente o nome do herói.</p>';
+    const contador = $('#buildsCount');
+    if (contador) {
+        contador.textContent = (lista.length === BUILDS.length)
+            ? `${BUILDS.length} heróis com as builds mais usadas nas partidas`
+            : `${lista.length} de ${BUILDS.length} heróis`;
+    }
+}
+
+function initBuilds() {
+    const campo = $('#buildsBusca');
+    const caixa = $('#buildsPapeis');
+    if (caixa) {
+        const papeis = ['Todos'].concat([...new Set(BUILDS.map(a => a.role).filter(Boolean))]);
+        caixa.innerHTML = papeis.map(p => `<button type="button" class="pill ${p === 'Todos' ? 'on' : ''}" data-buildpapel="${esc(p)}">${esc(p)}</button>`).join('');
+        caixa.addEventListener('click', (ev) => {
+            const b = ev.target.closest('[data-buildpapel]');
+            if (!b) return;
+            buildPapel = b.dataset.buildpapel;
+            $$('[data-buildpapel]', caixa).forEach(x => x.classList.toggle('on', x === b));
+            pintarBuilds();
+        });
+    }
+    if (campo) campo.addEventListener('input', pintarBuilds);
+    pintarBuilds();
+}
+
 /* ================= conteúdos clicáveis ================= */
 function initContents() {
     const cardHTML = (a, type) => {
@@ -1385,6 +1449,7 @@ function initContents() {
     const listaNoticias = STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS;
     $('#newsGrid').innerHTML = listaNoticias.map(a => cardHTML(a, 'news')).join('');
     initGuias();                       // guias: um cartão para cada herói + filtro
+    initBuilds();                      // builds: as mais usadas de cada herói + filtro
 
     // aviso de "atualizado em" quando as notícias vêm da Steam
     const sub = $('#newsSub');
@@ -1411,7 +1476,7 @@ function initContents() {
             }).join('');
         }
     }
-    $('#buildsGrid').innerHTML = BUILDS.map(a => cardHTML(a, 'build')).join('');
+    // os cartões de build agora são montados pelo initBuilds() (dados reais)
     $('#matchesGrid').innerHTML = MATCHES.map(m => `
         <article class="match-card" data-match="${m.id}">
             <div class="match-teams">
@@ -1446,6 +1511,19 @@ function openArticle(id) {
     const a = findArticle(id); if (!a) return;
     const items = a.items ? `<div class="pform-sec" style="margin-top:18px">Itens recomendados</div>`
         + a.items.map(([nm, cost]) => `<div class="item-row"><span>${esc(nm)}</span><span class="cost">${money(cost)}</span></div>`).join('') : '';
+
+    // ---- builds reais (aba Builds): ordem de compra + win rate de cada build ----
+    const buildsHTML = a.builds ? `
+        <p class="sec-note" style="margin-top:18px">As builds mais usadas por quem joga de ${esc(String(a.title).split(' — ')[0])}, com o win rate real de cada uma. Clique em um item para ver os detalhes.</p>
+        ${a.builds.map((b, i) => `<div class="build-card">
+            <div class="build-head">
+                <b>${i === 0 ? '🏆 ' : ''}${esc(b.nome)}</b>
+                <span class="build-wr">${String(b.win).replace('.', ',')}% de vitória</span>
+            </div>
+            <small>${money(b.m)} partidas registradas com esta build</small>
+            <div class="build-itens">${(b.itens || []).map(it => `<button type="button" class="build-item" data-item="${esc(it.id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<em>${esc(it.n)}</em></button>`).join('')}</div>
+        </div>`).join('')}
+        <p class="stat-fonte"><i class="fa-solid fa-screwdriver-wrench"></i> Builds publicadas pela comunidade dentro do próprio jogo. Fonte: deadlock-api.com</p>` : '';
     const corpo = a.patch
         ? `<div class="cm-patch">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`
         : `<div class="cm-text">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
@@ -1490,6 +1568,7 @@ function openArticle(id) {
             ${a.steam ? corpoSteam : corpo}
             ${original}
             ${items}
+            ${buildsHTML}
             ${linkSteam}
             ${linkPagina}
             ${linkHeroi}
