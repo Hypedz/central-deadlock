@@ -136,10 +136,13 @@ def corpo_do_heroi(h, s, analise, ids, minimos, total_herois, partidas_base):
         )
 
     # 2) o papel dele na partida
-    linha = "{nome} é {arco} e joga como {papel}.".format(nome=nome, arco=arco, papel=papel)
+    if str(arco).lower() == str(papel).lower():
+        linha = "{nome} joga como {papel}.".format(nome=nome, papel=papel)
+    else:
+        linha = "{nome} é {arco} e joga como {papel}.".format(nome=nome, arco=arco, papel=papel)
     if h.get("desc"):
         linha += " " + str(h["desc"]).strip()
-    if PAPEL_TXT.get(papel):
+    elif PAPEL_TXT.get(papel):
         linha += " " + PAPEL_TXT[papel]
     corpo.append(linha)
 
