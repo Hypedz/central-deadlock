@@ -1237,6 +1237,7 @@ function buildSteamArticles() {
         imgHero: steamHeroImg(n.title + ' ' + (n.lines || []).slice(0, 6).join(' '), i),
         imgSteam: n.image || '',         // imagem oficial publicada pela Valve
         date: n.date,
+        ts: Number(n.ts) || 0,           // data de publicação em segundos (data real)
         desc: n.desc,
         body: (n.lines || []).slice(0, 80),
         bodyPT: (n.lines_pt || []).slice(0, 80),   // texto completo traduzido
@@ -2292,38 +2293,129 @@ function setMapArea(id) {
         </div>`;
 }
 
-/* ================= eventos ================= */
-const EVENTS = [
-    { id: 'ev1', d: '25', m: 'out', title: 'Torneio Central Deadlock BR', desc: 'Competição aberta para a comunidade, com premiação simbólica.', time: '19:00' },
-    { id: 'ev2', d: '01', m: 'nov', title: 'Noite de duplas (Duo Queue)', desc: 'Junte um amigo e participe das partidas em grupo.', time: '21:00' },
-    { id: 'ev3', d: '09', m: 'nov', title: 'Patch Watch — análise ao vivo', desc: 'Acompanhe as mudanças do novo patch com a gente.', time: '18:30' },
-    { id: 'ev4', d: '17', m: 'nov', title: 'Campeonato interno do Discord', desc: 'Times formados no nosso servidor disputam o título.', time: '15:00' },
-    { id: 'ev5', d: '30', m: 'nov', title: 'Entrega de prêmios da temporada', desc: 'Divulgação dos vencedores e das conquistas da comunidade.', time: '20:00' }
-];
+/* ================= eventos (datas reais) =================
+   Nada de evento inventado. A lista é montada na hora com:
+     - os próximos torneios de verdade (data/esports.js, da Liquipedia);
+     - as datas reais das últimas atualizações do jogo (data/steam-news.js).
+   O botão "Lembrar" continua guardando tudo no próprio navegador. */
+
+const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+let eventosAtuais = [];
+
+function hojeZerado() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function quantoFalta(data) {
+    if (!data || isNaN(data.getTime())) return '';
+    const dias = Math.round((data - hojeZerado()) / 86400000);
+    if (dias < 0) return 'já aconteceu';
+    if (dias === 0) return 'é hoje';
+    if (dias === 1) return 'é amanhã';
+    return 'faltam ' + dias + ' dias';
+}
+
+function eventosReais() {
+    const lista = [];
+    const esp = window.ESPORTS || {};
+
+    // 1) próximos torneios reais (vêm da Liquipedia)
+    (esp.proximos || []).forEach((t, i) => {
+        const quando = t.iso ? new Date(t.iso + 'T00:00:00') : null;
+        lista.push({
+            id: 'esp-' + (t.iso || i) + '-' + i,
+            quando: quando,
+            tipo: 'Torneio',
+            icone: 'fa-trophy',
+            titulo: t.nome,
+            desc: (t.premio ? t.premio + ' de premiação' : 'Torneio de Deadlock')
+                + (t.local ? ' · ' + t.local : '') + (t.times ? ' · ' + t.times + ' times' : ''),
+            lembrar: true,
+            abrir: () => { showSection('esports'); setTimeout(() => abrirEsporte('proximos', i), 150); }
+        });
+    });
+
+    // 2) as últimas atualizações do jogo (datas reais do Steam)
+    (typeof STEAM_ARTICLES !== 'undefined' ? STEAM_ARTICLES : [])
+        .filter(a => a.patch).slice(0, 4).forEach(a => {
+            lista.push({
+                id: 'patch-' + a.id,
+                quando: a.ts ? new Date(a.ts * 1000) : null,
+                tipo: 'Atualização',
+                icone: 'fa-file-pen',
+                titulo: tituloPT(a),
+                desc: 'Atualização publicada pela Valve no jogo',
+                lembrar: false,
+                abrir: () => openArticle(a.id)
+            });
+        });
+
+    const hoje = hojeZerado();
+    const validos = lista.filter(e => e.quando && !isNaN(e.quando.getTime()));
+    const futuros = validos.filter(e => e.quando >= hoje).sort((a, b) => a.quando - b.quando);
+    const passados = validos.filter(e => e.quando < hoje).sort((a, b) => b.quando - a.quando);
+    return futuros.concat(passados);
+}
+
+function cartaoEventoHTML(ev) {
+    const lembrado = store.get('cdl_events', []).includes(ev.id);
+    const quando = quantoFalta(ev.quando);
+    const futuro = quando && quando !== 'já aconteceu';
+    const data = String(ev.quando.getDate()).padStart(2, '0');
+    return `<article class="event-item ${futuro ? 'futuro' : 'passado'}" data-evento="${esc(ev.id)}" tabindex="0" role="button" title="Clique para abrir">
+        <div class="event-date"><b>${data}</b><span>${MESES_CURTOS[ev.quando.getMonth()]}</span></div>
+        <div class="event-body">
+            <h3><i class="fa-solid ${ev.icone}"></i> ${esc(ev.titulo)}</h3>
+            <p>${esc(ev.desc)} · ${esc(ev.tipo)}${quando ? ' · <b>' + esc(quando) + '</b>' : ''}</p>
+        </div>
+        ${ev.lembrar
+            ? `<button class="btn btn-dark event-remind ${lembrado ? 'on' : ''}" data-remind="${esc(ev.id)}">${lembrado ? '<i class="fa-solid fa-check"></i> Lembrando' : 'Lembrar'}</button>`
+            : '<span class="event-ver">Ler <i class="fa-solid fa-arrow-right"></i></span>'}
+    </article>`;
+}
+
+function abrirEvento(id) {
+    const ev = eventosAtuais.filter(x => x.id === id)[0];
+    if (ev && ev.abrir) ev.abrir();
+}
 
 function initEvents() {
+    const caixa = $('#eventList');
+    if (!caixa) return;
     renderEvents();
-    $('#eventList').addEventListener('click', (e) => {
-        const b = e.target.closest('[data-remind]'); if (!b) return;
-        const id = b.dataset.remind;
-        let list = store.get('cdl_events', []);
-        list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
-        store.set('cdl_events', list);
-        renderEvents();
-        showToast(list.includes(id) ? 'Vamos te lembrar deste evento!' : 'Lembrete removido.');
+    caixa.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-remind]');
+        if (b) {
+            e.stopPropagation();
+            const id = b.dataset.remind;
+            let list = store.get('cdl_events', []);
+            list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+            store.set('cdl_events', list);
+            renderEvents();
+            showToast(list.includes(id) ? 'Vamos te lembrar deste evento!' : 'Lembrete removido.');
+            return;
+        }
+        const card = e.target.closest('[data-evento]');
+        if (card) abrirEvento(card.dataset.evento);
+    });
+    caixa.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const card = e.target.closest('[data-evento]');
+        if (!card) return;
+        e.preventDefault();
+        abrirEvento(card.dataset.evento);
     });
 }
 
 function renderEvents() {
-    const reminded = store.get('cdl_events', []);
-    $('#eventList').innerHTML = EVENTS.map(ev => {
-        const on = reminded.includes(ev.id);
-        return `<div class="event-item">
-            <div class="event-date"><b>${esc(ev.d)}</b><span>${esc(ev.m)}</span></div>
-            <div class="event-body"><h3>${esc(ev.title)}</h3><p>${esc(ev.desc)} · ${esc(ev.time)}</p></div>
-            <button class="btn btn-dark event-remind ${on ? 'on' : ''}" data-remind="${ev.id}">${on ? '<i class="fa-solid fa-check"></i> Lembrando' : 'Lembrar'}</button>
-        </div>`;
-    }).join('');
+    const caixa = $('#eventList');
+    if (!caixa) return;
+    eventosAtuais = eventosReais();
+    caixa.innerHTML = eventosAtuais.length
+        ? eventosAtuais.map(cartaoEventoHTML).join('')
+        : '<p class="items-count">Nenhuma data real por aqui agora. Assim que sair um torneio ou uma atualização nova, ela aparece nesta lista.</p>';
 }
 
 /* ================= quiz ================= */

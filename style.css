@@ -1261,6 +1261,14 @@ body.compact .cards-grid { gap: 14px; }
 .event-remind { white-space: nowrap; }
 .event-remind.on { background: var(--lime); color: #0c0c0e; border-color: var(--lime); }
 
+/* eventos: a lista é montada com datas reais (torneios + atualizações do jogo) */
+.event-item { cursor: pointer; }
+.event-item:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
+.event-item.passado { opacity: .85; }
+.event-item .event-body h3 i { color: var(--lime); margin-right: 6px; }
+.event-item .event-body p b { color: var(--lime); }
+.event-ver { font-family: var(--font-ui); font-weight: 700; font-size: 0.8rem; color: var(--lime); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
 /* ===== QUIZ ===== */
 .quiz-wrap { padding: 26px; max-width: 760px; }
 .quiz-progress { height: 6px; background: var(--card-2); border-radius: 99px; overflow: hidden; margin-bottom: 20px; }

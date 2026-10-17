@@ -174,11 +174,13 @@ def linhas_da_secao(html_secao):
 
 def conferir(celulas, bruto):
     """Uma linha da tabela tem: tier, [logo], nome, data, premio, local, P#, campeao, vice."""
+    chave = chave_de_data(celulas[3])
     return {
         "tier": tier_curto(celulas[0]),
         "nome": celulas[2].strip(),
         "data": data_pt(celulas[3]),
-        "ordem": chave_de_data(celulas[3]),
+        "ordem": chave,
+        "iso": "{}-{}-{}".format(chave[:4], chave[4:6], chave[6:]),
         "premio": celulas[4].strip(),
         "local": celulas[5].strip(),
         "times": celulas[6].strip(),
