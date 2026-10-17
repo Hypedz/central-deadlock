@@ -39,10 +39,14 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 
 %PY% "tools\update-news.py" >> "%LOG%" 2>&1
 %PY% "tools\update-stats.py" >> "%LOG%" 2>&1
+%PY% "tools\update-game-data.py" >> "%LOG%" 2>&1
+%PY% "tools\traduzir-jogo.py" >> "%LOG%" 2>&1
+%PY% "tools\gerar-paginas.py" >> "%LOG%" 2>&1
 %PY% "tools\discord-post.py" >> "%LOG%" 2>&1
 
 rem --- avisa o GitHub do que ja foi postado aqui (evita postar de novo la) ---
 %GIT% add data/ >> "%LOG%" 2>&1
+%GIT% add heroi/ noticia/ sitemap.xml heroes-data.js >> "%LOG%" 2>&1
 %GIT% commit -m "Registro de postagens atualizado (pelo PC)" --quiet >> "%LOG%" 2>&1
 %GIT% push --quiet >> "%LOG%" 2>&1
 

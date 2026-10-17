@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20261016c">
 </head>
 <body data-theme="dark">
 
@@ -103,7 +103,6 @@
                 <a href="#home" class="nav-item active" data-section="home"><i class="fa-solid fa-house"></i> Home</a>
                 <a href="#herois" class="nav-item" data-section="herois"><i class="fa-solid fa-masks-theater"></i> Heróis</a>
                 <a href="#comparar" class="nav-item" data-section="comparar"><i class="fa-solid fa-right-left"></i> Comparar</a>
-                <a href="#tierlist" class="nav-item" data-section="tierlist"><i class="fa-solid fa-layer-group"></i> Tier List</a>
                 <a href="#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
                 <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
                 <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
@@ -186,16 +185,6 @@
             </section>
 
             <!-- ============ TIER LIST ============ -->
-            <section id="tierlist" class="section">
-                <div class="section-top">
-                    <div>
-                        <h1 class="page-title">Tier List</h1>
-                        <p class="page-sub">Classificação de exemplo dos heróis. Clique em um estandarte para ver os detalhes.</p>
-                    </div>
-                </div>
-                <div class="tier-list" id="tierRows"></div>
-            </section>
-
             <!-- ============ ESTATÍSTICAS ============ -->
             <section id="estatisticas" class="section">
                 <div class="section-top">
@@ -206,6 +195,14 @@
                 </div>
                 <div class="roles-row" id="statsOrdens"></div>
                 <div id="statsBox"></div>
+
+                <div class="home-block">
+                    <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-solid fa-chart-line"></i> Histórico de win rate</h2>
+                        <button type="button" class="btn btn-dark btn-sm" data-goto="herois">Ver todos os heróis <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div id="statsHist"></div>
+                </div>
             </section>
 
             <!-- ============ HOME ============ -->
@@ -217,7 +214,7 @@
                     </div>
                 </div>
 
-                <div class="hero-banner">
+                <div class="hero-banner" id="homeBanner">
                     <div class="hero-banner-content">
                         <span class="hero-cat">DESTAQUE</span>
                         <h2 class="hero-banner-title">O meta de Deadlock mudou com o novo patch</h2>
@@ -226,7 +223,28 @@
                     </div>
                 </div>
 
-                <div class="cards-grid" id="homeGrid"></div>
+                <div class="home-block">
+                    <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-regular fa-newspaper"></i> Últimas notícias</h2>
+                        <button type="button" class="btn btn-dark btn-sm" data-goto="noticias">Ver todas <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="cards-grid" id="homeNews"></div>
+                </div>
+
+                <div class="home-block">
+                    <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-solid fa-chart-simple"></i> Meta de hoje</h2>
+                        <button type="button" class="btn btn-dark btn-sm" data-goto="estatisticas">Ver estatísticas <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="mini-stats" id="homeStats"></div>
+                </div>
+
+                <div class="home-block">
+                    <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-solid fa-fire"></i> Explorar</h2>
+                    </div>
+                    <div class="cards-grid" id="homeGrid"></div>
+                </div>
             </section>
 
             <!-- ============ NOTÍCIAS ============ -->
@@ -267,19 +285,15 @@
                 <div class="section-top">
                     <div>
                         <h1 class="page-title">Itens do Jogo</h1>
-                        <p class="page-sub">Os itens que mudam o rumo das partidas.</p>
+                        <p class="page-sub">Todos os itens da loja de Deadlock, com preço e efeito — direto do jogo. Clique em um item para ver os detalhes.</p>
                     </div>
                 </div>
-                <div class="items-grid">
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-shoe-prints"></i></div><div><h3>Botas de Corrida</h3><span>Vitalidade</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-gun"></i></div><div><h3>Carregador Básico</h3><span>Armas</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-crosshairs"></i></div><div><h3>Impulso de Headshot</h3><span>Armas</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-wand-sparkles"></i></div><div><h3>Tiro Místico</h3><span>Espírito</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-bolt"></i></div><div><h3>Recarga Rápida</h3><span>Espírito</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-heart-pulse"></i></div><div><h3>Rodadas Monstro</h3><span>Vitalidade</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-shield-halved"></i></div><div><h3>Pele Blindada</h3><span>Vitalidade</span></div></div>
-                    <div class="item-card"><div class="item-ico"><i class="fa-solid fa-hand-fist"></i></div><div><h3>Combate Próximo</h3><span>Armas</span></div></div>
+                <div class="items-tools">
+                    <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="itemsSearch" placeholder="Buscar item pelo nome..."></div>
+                    <div class="roles-row" id="itemsTipos"></div>
                 </div>
+                <p class="items-count" id="itemsCount"></p>
+                <div class="items-grid" id="itemsGrid"></div>
             </section>
 
             <!-- ============ PATCH NOTES ============ -->
@@ -314,16 +328,74 @@
                         <p class="page-sub">Os principais termos de Deadlock.</p>
                     </div>
                 </div>
-                <div class="glossary-list">
-                    <div class="glossary-item"><h3>Souls (Almas)</h3><p>A moeda do jogo, usada para comprar itens e evoluir habilidades.</p></div>
-                    <div class="glossary-item"><h3>Zipline (Tirolesa)</h3><p>Linhas de transporte que levam os heróis rapidamente pelas lanes.</p></div>
-                    <div class="glossary-item"><h3>Guardian</h3><p>Torre menor que protege cada lane. Precisa ser destruída para avançar.</p></div>
-                    <div class="glossary-item"><h3>Walker</h3><p>Estrutura maior e mais resistente, localizada após os Guardians.</p></div>
-                    <div class="glossary-item"><h3>Patron</h3><p>O objetivo final de cada time: destruir o Patron inimigo para vencer.</p></div>
-                    <div class="glossary-item"><h3>Midboss</h3><p>Chefe no centro do mapa que concede um bônus poderoso ao time.</p></div>
-                    <div class="glossary-item"><h3>Gank</h3><p>Emboscada surpresa contra um inimigo, geralmente em superioridade numérica.</p></div>
-                    <div class="glossary-item"><h3>Farm</h3><p>Ação de coletar almas (Souls) para se fortalecer durante a partida.</p></div>
+                <div class="glossary-tools">
+                    <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="glossSearch" placeholder="Buscar termo... (ex.: deny, alma, gank)"></div>
                 </div>
+                <div class="glossary-list" id="glossList">
+
+                    <h2 class="glossary-group">🎯 Mapa e objetivos</h2>
+                    <div class="glossary-item"><h3>Souls (Almas)</h3><p>A moeda do jogo, usada para comprar itens e evoluir habilidades. Você ganha almas matando tropas, heróis e objetivos.</p></div>
+                    <div class="glossary-item"><h3>Lane (Rota)</h3><p>Cada uma das 4 faixas do mapa onde os times se enfrentam no começo da partida (2 no meio, 1 em cada lateral).</p></div>
+                    <div class="glossary-item"><h3>Zipline (Tirolesa)</h3><p>Linhas de transporte que levam os heróis rapidamente pelas rotas. Ficam mais rápidas conforme você avança na lane.</p></div>
+                    <div class="glossary-item"><h3>Guardian</h3><p>Torre menor que protege cada lane. Precisa ser destruída para o time avançar.</p></div>
+                    <div class="glossary-item"><h3>Walker</h3><p>Estrutura maior e mais resistente, localizada depois dos Guardians. Ela anda pelo mapa e ataca quem passa perto.</p></div>
+                    <div class="glossary-item"><h3>Patron</h3><p>O objetivo final de cada time: destruir o Patron inimigo para vencer a partida.</p></div>
+                    <div class="glossary-item"><h3>Midboss</h3><p>Chefe no centro do mapa. Quem o mata recebe o <b>Rejuvenescedor</b>, um bônus poderoso para todo o time.</p></div>
+                    <div class="glossary-item"><h3>Rejuvenescedor</h3><p>Recompensa do Midboss: cura o time, dá vantagem nas estruturas e acelera o respawn dos aliados.</p></div>
+                    <div class="glossary-item"><h3>Soul Urn (Urna de Almas)</h3><p>Objetivo que aparece no mapa e deve ser levado até a base inimiga para render almas ao time.</p></div>
+                    <div class="glossary-item"><h3>Runa de Poder</h3><p>Runas que nascem pelo mapa e dão bônus aleatórios (dano, velocidade, recarga e outros).</p></div>
+                    <div class="glossary-item"><h3>Selva (campos neutros)</h3><p>Áreas com inimigos neutros. Farmar neles dá almas e <b>buffs</b> extras para o time.</p></div>
+                    <div class="glossary-item"><h3>Buff das Pontes</h3><p>Melhorias que aparecem nas pontes do mapa e valem para o time inteiro, como mais dano ou resistência.</p></div>
+                    <div class="glossary-item"><h3>Objective (Objetivo)</h3><p>Qualquer alvo que dá vantagem ao time: torres, Midboss, Urna de Almas, buffs.</p></div>
+
+                    <h2 class="glossary-group">⚔️ Combate</h2>
+                    <div class="glossary-item"><h3>Last Hit (Último Golpe)</h3><p>Dar o golpe final em uma tropa ou herói para garantir as almas. Treinar isso é o básico para ganhar dinheiro.</p></div>
+                    <div class="glossary-item"><h3>Deny (Negar)</h3><p>Matar a <b>sua própria</b> tropa antes do inimigo, roubando as almas dele. Também existe deny de almas de herói.</p></div>
+                    <div class="glossary-item"><h3>Trooper (Tropa)</h3><p>Os "soldados" que andam pelas rotas. Matá-los (ou negá-los) é a principal fonte de almas no começo.</p></div>
+                    <div class="glossary-item"><h3>Wave (Onda)</h3><p>O grupo de tropas que avança pela lane. "Puxar a wave" é controlar onde ela se encontra.</p></div>
+                    <div class="glossary-item"><h3>Gank</h3><p>Emboscada surpresa contra um inimigo, geralmente em superioridade numérica.</p></div>
+                    <div class="glossary-item"><h3>Roam (Rodar)</h3><p>Sair da sua lane para ajudar outra rota, buscando abates.</p></div>
+                    <div class="glossary-item"><h3>Push (Empurrar)</h3><p>Avançar a onda de tropas e atacar as estruturas inimigas.</p></div>
+                    <div class="glossary-item"><h3>Split Push</h3><p>Empurrar uma lane sozinho enquanto o time pressiona outra, dividindo a atenção do inimigo.</p></div>
+                    <div class="glossary-item"><h3>CC (Controle de Grupo)</h3><p>Efeitos que tiram o controle do inimigo: atordoamento, silêncio, lentidão, levitação.</p></div>
+                    <div class="glossary-item"><h3>Stun (Atordoamento)</h3><p>Deixa o alvo parado e sem poder agir por alguns instantes.</p></div>
+                    <div class="glossary-item"><h3>Silence (Silêncio)</h3><p>Impede o alvo de usar habilidades, mas ele ainda pode andar e atirar.</p></div>
+                    <div class="glossary-item"><h3>Slow (Lentidão)</h3><p>Reduz a velocidade de movimento do alvo.</p></div>
+                    <div class="glossary-item"><h3>Ultimate (Ult)</h3><p>A habilidade mais forte do herói, liberada no nível 6. Costuma ter a maior recarga.</p></div>
+                    <div class="glossary-item"><h3>Cooldown (Recarga)</h3><p>O tempo de espera para usar a habilidade de novo.</p></div>
+                    <div class="glossary-item"><h3>Respawn (Ressurgir)</h3><p>O tempo que você fica morto antes de voltar à base — cresce conforme a partida avança.</p></div>
+                    <div class="glossary-item"><h3>Bounty (Recompensa)</h3><p>Almas extras que você ganha ao matar um herói que está em sequência de abates.</p></div>
+                    <div class="glossary-item"><h3>DPS</h3><p>"Dano por segundo": o quanto de dano um herói consegue causar continuamente.</p></div>
+
+                    <h2 class="glossary-group">🛒 Itens e economia</h2>
+                    <div class="glossary-item"><h3>Item Passivo</h3><p>Funciona sozinho, sem você apertar nada (ex.: mais vida, mais dano).</p></div>
+                    <div class="glossary-item"><h3>Item Ativo</h3><p>Precisa ser ativado com uma tecla para funcionar (ex.: escudo, teleporte, limpeza de efeitos).</p></div>
+                    <div class="glossary-item"><h3>Imbuir (Imbue)</h3><p>Recurso que permite "colar" o efeito de um item em uma habilidade específica do seu herói.</p></div>
+                    <div class="glossary-item"><h3>Flex Slot (Espaço flexível)</h3><p>Espaços da mochila que aceitam <b>qualquer</b> tipo de item (arma, vitalidade ou espírito).</p></div>
+                    <div class="glossary-item"><h3>Tier do item</h3><p>A "categoria" do item na loja: do Tier 1 (mais barato) ao Tier 4 (mais caro e forte).</p></div>
+                    <div class="glossary-item"><h3>Farm</h3><p>Ação de coletar almas (Souls) para se fortalecer durante a partida.</p></div>
+                    <div class="glossary-item"><h3>Build</h3><p>A ordem de itens e habilidades que você compra em uma partida. "Seguir uma build" é usar a de um jogador melhor.</p></div>
+                    <div class="glossary-item"><h3>Counter (Contra-item)</h3><p>Item comprado para anular um inimigo específico (ex.: cortar cura, reduzir dano espiritual).</p></div>
+
+                    <h2 class="glossary-group">🏆 Competitivo e comunidade</h2>
+                    <div class="glossary-item"><h3>Meta</h3><p>O jeito mais forte de jogar no momento: os heróis, itens e estratégias que estão ganhando mais.</p></div>
+                    <div class="glossary-item"><h3>Buff / Nerf</h3><p><b>Buff</b> = deixaram mais forte. <b>Nerf</b> = deixaram mais fraco. Aparecem nas notas de atualização.</p></div>
+                    <div class="glossary-item"><h3>Carry</h3><p>Herói que começa fraco e fica muito forte no fim, "carregando" o time para a vitória.</p></div>
+                    <div class="glossary-item"><h3>Suporte</h3><p>Herói focado em ajudar o time: cura, escudo, controle e visão.</p></div>
+                    <div class="glossary-item"><h3>Tanque</h3><p>Herói resistente que entra na frente para aguentar o dano.</p></div>
+                    <div class="glossary-item"><h3>Assassino</h3><p>Herói de dano explosivo, focado em matar alvos isolados rapidamente.</p></div>
+                    <div class="glossary-item"><h3>Controle</h3><p>Herói com muito CC, que domina a luta em vez de só causar dano.</p></div>
+                    <div class="glossary-item"><h3>KDA</h3><p>Média de (abates + assistências) dividida por mortes. Quanto maior, melhor foi sua partida.</p></div>
+                    <div class="glossary-item"><h3>Pick Rate</h3><p>A porcentagem de partidas em que aquele herói foi escolhido.</p></div>
+                    <div class="glossary-item"><h3>Win Rate</h3><p>A porcentagem de partidas que aquele herói venceu.</p></div>
+                    <div class="glossary-item"><h3>Banimento (Ban)</h3><p>Quando um herói é proibido de ser escolhido na partida. Taxa de banimento alta = herói temido.</p></div>
+                    <div class="glossary-item"><h3>Tier List</h3><p>Uma "nota" (S, A, B, C, D) que resume a força de cada herói no meta. No site, ela é calculada com dados reais.</p></div>
+                    <div class="glossary-item"><h3>MMR</h3><p>Uma pontuação que estima o nível do jogador. Quanto maior, mais forte são os adversários.</p></div>
+                    <div class="glossary-item"><h3>Rank (Insígnia)</h3><p>A divisão do competitivo (como Bronze, Prata, Ouro...) mostrada no seu perfil.</p></div>
+                    <div class="glossary-item"><h3>Smurf</h3><p>Jogador muito forte usando uma conta nova para enfrentar gente iniciante.</p></div>
+                    <div class="glossary-item"><h3>Tilt</h3><p>Quando o jogador perde a paciência e passa a jogar mal por raiva. Respire e continue. 🙂</p></div>
+                </div>
+                <p class="glossary-empty" id="glossEmpty" hidden>Nenhum termo encontrado. Tente outra palavra. 🔎</p>
             </section>
 
             <!-- ============ MAPA ============ -->
@@ -356,17 +428,12 @@
                 <div class="section-top">
                     <div>
                         <h1 class="page-title">Ranking</h1>
-                        <p class="page-sub">Os melhores jogadores da comunidade.</p>
+                        <p class="page-sub">Os melhores jogadores de Deadlock no mundo, por região — dados reais da deadlock-api.com. Clique em um jogador para ver o perfil dele no site de estatísticas.</p>
                     </div>
                 </div>
-                <div class="ranking-table">
-                    <div class="ranking-head"><span>#</span><span>Jogador</span><span>Partidas</span><span>Winrate</span></div>
-                    <div class="ranking-row"><span class="rank-pos">1</span><span class="rank-name">FakerBR</span><span>312</span><span class="rank-wr">68%</span></div>
-                    <div class="ranking-row"><span class="rank-pos">2</span><span class="rank-name">Vuit</span><span>287</span><span class="rank-wr">64%</span></div>
-                    <div class="ranking-row"><span class="rank-pos">3</span><span class="rank-name">KelvinKing</span><span>265</span><span class="rank-wr">61%</span></div>
-                    <div class="ranking-row"><span class="rank-pos">4</span><span class="rank-name">HazeMain</span><span>241</span><span class="rank-wr">59%</span></div>
-                    <div class="ranking-row"><span class="rank-pos">5</span><span class="rank-name">SevenStorm</span><span>230</span><span class="rank-wr">57%</span></div>
-                </div>
+                <div class="roles-row" id="rankRegioes"></div>
+                <div class="ranking-table" id="rankTable"></div>
+                <p class="stat-fonte" id="rankFonte"></p>
             </section>
 
             <!-- ============ EVENTOS ============ -->
@@ -466,6 +533,11 @@
         <div class="hero-modal" id="heroModalBox"></div>
     </div>
 
+    <!-- ===== MODAL: DETALHE DO ITEM ===== -->
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal im-modal" id="itemModalBox"></div>
+    </div>
+
     <!-- ===== MODAL: CONTEÚDO (notícias / guias / partidas) ===== -->
     <div class="modal-overlay" id="contentModal">
         <div class="modal content-modal" id="contentModalBox"></div>
@@ -508,9 +580,14 @@
         <i class="fa-solid fa-arrow-up"></i>
     </button>
 
-    <script src="heroes-data.js"></script>
-    <script src="data/hero-stats.js"></script>
-    <script src="data/steam-news.js"></script>
-    <script src="script.js"></script>
+    <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
+         mostrar uma versão velha do site. Ao publicar uma mudança grande,
+         troque a data aqui (ex.: v=20261101a). -->
+    <script src="heroes-data.js?v=20261016c"></script>
+    <script src="data/game-data.js?v=20261016c"></script>
+    <script src="data/hero-history.js?v=20261016c"></script>
+    <script src="data/hero-stats.js?v=20261016c"></script>
+    <script src="data/steam-news.js?v=20261016c"></script>
+    <script src="script.js?v=20261016c"></script>
 </body>
 </html>

@@ -72,11 +72,26 @@ const BANNERS = {
     custom: ['Personalizado', ['#b6f24a', '#2f7a1a']]
 };
 const PATTERNS = [['none', 'Nenhum'], ['grid', 'Grade'], ['dots', 'Pontos'], ['diag', 'Listras']];
-const SHAPES = [['squircle', 'Arredondado'], ['circle', 'Círculo'], ['hex', 'Hexágono'], ['octagon', 'Octógono'], ['diamond', 'Losango'], ['shield', 'Escudo'], ['star', 'Estrela']];
-const FRAMES = [['none', 'Sem moldura'], ['gold', 'Dourada'], ['neon', 'Neon'], ['solid', 'Cor de destaque'], ['double', 'Dupla']];
+const SHAPES = [['squircle', 'Arredondado'], ['circle', 'Círculo'], ['sharp', 'Quadrado'], ['hex', 'Hexágono'], ['hexflat', 'Hexágono deitado'], ['octagon', 'Octógono'], ['diamond', 'Losango'], ['pentagon', 'Pentágono'], ['triangle', 'Triângulo'], ['shield', 'Escudo'], ['star', 'Estrela'], ['flower', 'Flor']];
+const FRAMES = [['none', 'Sem moldura'], ['solid', 'Cor de destaque'], ['neon', 'Neon'], ['gold', 'Dourada'], ['silver', 'Prata'], ['fire', 'Fogo'], ['ice', 'Gelo'], ['blood', 'Sangue'], ['rainbow', 'Arco-íris'], ['double', 'Dupla']];
+/* cores das molduras (nome -> degradê + brilho) */
+const FRAME_STYLE = {
+    solid: { bg: 'var(--lime)' },
+    neon: { bg: 'var(--lime)', glow: 'drop-shadow(0 0 10px var(--lime))' },
+    gold: { bg: 'linear-gradient(135deg,#f6d36b,#a8741a)' },
+    silver: { bg: 'linear-gradient(135deg,#eef2f7,#6b7280)' },
+    fire: { bg: 'linear-gradient(135deg,#ffc247,#ff3b1f)', glow: 'drop-shadow(0 0 10px rgba(255,106,31,.9))' },
+    ice: { bg: 'linear-gradient(135deg,#bdf3ff,#3b82f6)', glow: 'drop-shadow(0 0 10px rgba(56,189,248,.9))' },
+    blood: { bg: 'linear-gradient(135deg,#ff5b5b,#7f1d1d)', glow: 'drop-shadow(0 0 10px rgba(239,68,68,.9))' },
+    rainbow: { bg: 'linear-gradient(135deg,#f87171,#fbbf24,#34d399,#22d3ee,#8b5cf6)', glow: 'drop-shadow(0 0 12px rgba(255,255,255,.4))' }
+};
 const ACCENTS = [['auto', 'Padrão (verde)'], ['#ff3b5c', 'Vermelho'], ['#8b5cf6', 'Roxo'], ['#22d3ee', 'Ciano'], ['#34d399', 'Verde'], ['#fbbf24', 'Âmbar'], ['#ec4899', 'Rosa'], ['#3b82f6', 'Azul']];
 const REGIONS = ['Brasil', 'Sudeste', 'Sul', 'Nordeste', 'Centro-Oeste', 'Norte', 'América do Norte', 'Europa', 'Ásia', 'Oceania', 'Outro'];
 const TITLES = ['Jogador', 'Casual', 'Competitivo', 'Suporte', 'Tanque', 'Carry', 'Streamer', 'Criador de Conteúdo', 'Mestre', 'Lenda'];
+/* cores prontas para o avatar de letras (quando não tem foto) */
+const AV_COLORS = [['#b6f24a', '#2f7a1a'], ['#22d3ee', '#0e7490'], ['#8b5cf6', '#4c1d95'], ['#f472b6', '#9d174d'],
+    ['#fbbf24', '#b45309'], ['#ef4444', '#7f1d1d'], ['#38bdf8', '#1e3a8a'], ['#34d399', '#065f46'],
+    ['#f8fafc', '#475569'], ['#111827', '#64748b']];
 const POLY = {
     hex: [[0, -1], [1, -0.5], [1, 0.5], [0, 1], [-1, 0.5], [-1, -0.5]],
     diamond: [[0, -1], [1, 0], [0, 1], [-1, 0]],
@@ -84,6 +99,10 @@ const POLY = {
 };
 POLY.octagon = Array.from({ length: 8 }, (_, i) => { const a = Math.PI / 8 + i * Math.PI / 4; return [Math.sin(a), -Math.cos(a)]; });
 POLY.star = Array.from({ length: 10 }, (_, i) => { const a = i * Math.PI / 5, r = i % 2 ? 0.5 : 1; return [r * Math.sin(a), -r * Math.cos(a)]; });
+POLY.pentagon = Array.from({ length: 5 }, (_, i) => { const a = i * 2 * Math.PI / 5; return [Math.sin(a), -Math.cos(a)]; });
+POLY.triangle = [[0, -1], [1, 0.92], [-1, 0.92]];
+POLY.hexflat = [[-1, 0], [-0.5, -1], [0.5, -1], [1, 0], [0.5, 1], [-0.5, 1]];
+POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17; const r = 0.87 + 0.13 * Math.cos(6 * a); return [r * Math.sin(a), -r * Math.cos(a)]; });
 
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
@@ -91,7 +110,7 @@ const PROFILE_DEF = {
     mains: [], links: { discord: '', twitch: '', youtube: '' },
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
     accent: 'auto',
-    av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50 },
+    av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50, c1: '', c2: '' },
     theme: 'dark', lang: 'pt-BR', compact: false
 };
 let profile = (() => {
@@ -206,7 +225,7 @@ const MATCHES = [
 
 /* Logos dos times: badges originais (feitos por nós, não são logos oficiais) */
 const TEAMS = {
-    'FURIA': { i: 'FUR', c: ['#1a1a1f', '#c8a24a'] },
+    'FURIA': { i: 'FUR', c: ['#c8a24a', '#1a1a1f'] },
     'LOUD': { i: 'LOUD', c: ['#0de05b', '#04381a'] },
     'paiN': { i: 'paiN', c: ['#ef2b43', '#3b0a10'] },
     'INTZ': { i: 'INTZ', c: ['#1d4ed8', '#0b1220'] },
@@ -215,7 +234,7 @@ const TEAMS = {
 };
 function teamBadge(name, cls = '') {
     const t = TEAMS[name] || { i: String(name).slice(0, 3).toUpperCase(), c: ['#6b7280', '#111827'] };
-    return `<span class="team-badge ${cls}" style="background:linear-gradient(135deg,${t.c[0]},${t.c[1]})">${esc(t.i)}</span>`;
+    return `<span class="team-badge ${cls}" style="--c1:${t.c[0]};--c2:${t.c[1]}" title="${esc(name)}"><span class="tb-in"><b>${esc(t.i)}</b></span></span>`;
 }
 
 /* Builds sugeridas por função */
@@ -259,8 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initHeroes();
     initContents();
     initCompare();
-    initTierList();
     initStats();
+    initHome();
+    initGlossario();
+    initItens();
+    initRanking();
+    renderHistorico();
     initMap();
     initEvents();
     initQuiz();
@@ -500,6 +523,15 @@ function renderHeroModal() {
     const preset = h.role === 'Tanque' ? 'Tanque' : (h.role === 'Suporte' || h.role === 'Controle') ? (h.role === 'Controle' ? 'Controle' : 'Suporte') : h.role === 'Carry' ? 'Carry' : 'Assassino';
     const pick = BUILD_PRESETS[preset] || BUILD_PRESETS.Assassino;
 
+    // ---- dados reais do jogo para este herói ----
+    const g = dadosJogo();
+    const apiId = (g && g.ids) ? g.ids[h.name] : null;
+    const chave = apiId == null ? null : String(apiId);
+    const buildsReais = (g && g.builds && chave) ? g.builds[chave] : null;
+    const contReais = (g && g.contadores && chave) ? g.contadores[chave] : null;
+    const banRate = (g && g.ban && chave) ? g.ban[chave] : null;
+    const banPos = (g && g.banPos && chave) ? g.banPos[chave] : null;
+
     const bar = (label, val, max, unit = '', txt = null) =>
         `<div class="statline">${label}: <b>${txt != null ? txt : val + unit}</b></div><div class="bar"><i style="width:${Math.max(4, Math.min(100, val / max * 100))}%"></i></div>`;
 
@@ -520,33 +552,70 @@ function renderHeroModal() {
            ${bar('Win rate', +h.win, 70, '%')}
            ${bar('Pick rate', +h.pick, 20, '%', pickTxt(h.pick))}
            ${h.real ? bar('KDA', +h.kda, 5, '') : ''}
+           ${banRate != null ? `<div class="statline">Taxa de banimento: <b>${banRate}%</b> <span class="txt-faint">${banPos ? '(' + banPos + 'º mais banido do jogo)' : ''}</span></div>` : ''}
            ${h.real
                 ? `<p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> ${money(h.partidas)} partidas analisadas · ${h.posicao}º melhor win rate do jogo. Fonte: deadlock-api.com</p>`
-                : ''}`;
+                : ''}
+           ${h.real && serieHistorico(h.name) ? `<h2 class="pform-sec" style="margin-top:22px">Histórico de win rate</h2>${sparklineHTML(h.name)}` : ''}`;
 
     const tabHab = h.soon
         ? '<p style="color:var(--text-soft)">Habilidades disponíveis após o lançamento.</p>'
-        : `<p style="color:var(--text-soft);font-size:13px;margin-bottom:6px">Nomes oficiais em inglês, conforme a deadlock.wiki. Recargas sujeitas a mudanças.</p>`
-          + h.skills.map(s => `<div class="skill"><div class="k">${esc(s.key)}</div><div style="flex:1">
+        : `<p class="sec-note">Nomes traduzidos para o português — o nome original em inglês aparece em cinza embaixo. Recargas sujeitas a mudanças.</p>`
+          + h.skills.map(s => {
+              const temEn = s.name_en && s.name_en !== s.name;
+              return `<div class="skill"><div class="k">${esc(s.key)}</div><div style="flex:1">
                <div class="sname"><b>${esc(s.name)}</b>
+                 ${temEn ? `<span class="s-en">${esc(s.name_en)}</span>` : ''}
                  ${s.key === '★' ? '<span class="tag acc">Suprema</span>' : ''}
                  ${s.passive ? '<span class="tag">Passiva</span>' : ''}
                  ${s.cd != null ? `<span class="tag cy">Recarga ${s.cd}s</span>` : ''}
                </div>
-               <div class="sdesc">${esc(s.desc)}</div></div></div>`).join('');
+               <div class="sdesc">${esc(s.desc)}</div></div></div>`;
+          }).join('');
 
+    const buildItemHTML = id => {
+        const it = itemDe(id);
+        if (!it) return '';
+        return `<button type="button" class="build-item" data-item="${esc(id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">
+            ${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+            <em>${esc(it.n)}</em></button>`;
+    };
     const tabBuild = h.soon
         ? '<p style="color:var(--text-soft)">Sugestões de build após o lançamento.</p>'
-        : `<p style="color:var(--text-soft);font-size:13px;margin-bottom:12px">Sugestão de exemplo para ${esc(h.name)}.</p>`
-          + pick.map(([nm, cost]) => `<div class="item-row"><span>${esc(nm)}</span><span class="cost">${money(cost)}</span></div>`).join('');
+        : (buildsReais && buildsReais.length)
+            ? `<p class="sec-note">As ${buildsReais.length} builds mais usadas por quem joga de ${esc(h.name)}, com o win rate real de cada uma. Clique em um item para ver os detalhes.</p>`
+              + buildsReais.map((b, i) => `<div class="build-card">
+                  <div class="build-head">
+                      <b>${i === 0 ? '🏆 ' : ''}${esc(b.n)}</b>
+                      <span class="build-wr">${b.win}% de vitória</span>
+                  </div>
+                  <small>${money(b.m)} partidas registradas com esta build</small>
+                  <div class="build-itens">${b.i.map(buildItemHTML).join('')}</div>
+              </div>`).join('')
+              + `<p class="stat-fonte"><i class="fa-solid fa-screwdriver-wrench"></i> Builds publicadas pela comunidade dentro do próprio jogo. Fonte: deadlock-api.com</p>`
+            : `<p class="sec-note">Ainda não temos builds reais deste herói. Sugestão de exemplo:</p>`
+              + pick.map(([nm, cost]) => `<div class="item-row"><span>${esc(nm)}</span><span class="cost">${money(cost)}</span></div>`).join('');
 
+    const contadorHTML = ([inimigoId, win, partidas], ruim) => {
+        const outro = heroiPorApiId(inimigoId);
+        if (!outro) return '';
+        return `<a class="hp-rel contador" href="#" data-hero-link="${esc(outro.name)}" title="${money(partidas)} partidas contra ${esc(outro.name)}">
+            <img src="assets/heroes/${esc(outro.file)}" alt="" onerror="this.remove()">
+            <span>${esc(outro.name)}</span><span class="tag ${ruim ? 'vio' : 'cy'}">${win}%</span></a>`;
+    };
     const tabMatch = h.soon
         ? '<p style="color:var(--text-soft)">Confrontos disponíveis após o lançamento.</p>'
-        : `<div class="matchup">
-             <div><h2 class="pform-sec">Vai bem contra</h2>${strong.map(miniHero).join('')}</div>
-             <div><h2 class="pform-sec">Sofre contra</h2>${weak.map(miniHero).join('')}</div>
-           </div>
-           <p style="color:var(--text-faint);font-size:12.5px;margin-top:12px">Confrontos de exemplo, sem base em dados reais.</p>`;
+        : (contReais && (contReais.bons.length || contReais.ruins.length))
+            ? `<div class="matchup">
+                 <div><h2 class="pform-sec">Vai bem contra</h2>${contReais.bons.map(c => contadorHTML(c, false)).join('') || '<p class="muted-txt">Sem dados suficientes.</p>'}</div>
+                 <div><h2 class="pform-sec">Sofre contra</h2>${contReais.ruins.map(c => contadorHTML(c, true)).join('') || '<p class="muted-txt">Sem dados suficientes.</p>'}</div>
+               </div>
+               <p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> Win rate real de ${esc(h.name)} contra cada inimigo, com no mínimo 400 partidas. Fonte: deadlock-api.com</p>`
+            : `<div class="matchup">
+                 <div><h2 class="pform-sec">Vai bem contra</h2>${strong.map(miniHero).join('')}</div>
+                 <div><h2 class="pform-sec">Sofre contra</h2>${weak.map(miniHero).join('')}</div>
+               </div>
+               <p style="color:var(--text-faint);font-size:12.5px;margin-top:12px">Ainda não temos confrontos reais deste herói.</p>`;
 
     const body = { visao: tabVisao, hab: tabHab, build: tabBuild, match: tabMatch }[heroTab];
 
@@ -563,6 +632,7 @@ function renderHeroModal() {
                 <button class="btn ${favs.includes(h.name) ? 'btn-lime' : 'btn-dark'} btn-block" data-favtoggle="${esc(h.name)}">
                     ${favs.includes(h.name) ? '★ Favorito' : '☆ Favoritar'}
                 </button>
+                ${h.soon ? '' : `<a class="btn btn-dark btn-block" href="heroi/${esc(slugJS(h.name))}.html" style="margin-top:8px"><i class="fa-solid fa-up-right-from-square"></i> Página completa</a>`}
                 ${rel.length ? `<div class="hp-parecidos"><small>PARECIDOS</small>${rel.map(miniHero).join('')}</div>` : ''}
             </aside>
             <section>
@@ -631,6 +701,23 @@ function cardImg(a, cls = '') {
 /* título do card: em português quando a tradução existir */
 function tituloPT(a) { return a.titlePT || a.title; }
 
+/* card de notícia (usado na Home e na aba Notícias)
+   O título é um link de verdade para a página da notícia — assim o Google
+   encontra o conteúdo. Clicando, o site abre a janela bonita no lugar. */
+function newsCardHTML(a) {
+    const pt = !!a.titlePT;
+    return `<article class="news-card" data-article="${a.id}">
+        ${cardImg(a)}
+        <div class="news-body">
+            <span class="news-cat">${esc(a.cat)}${pt ? ' <span class="pt-tag" title="Traduzido automaticamente do inglês"><i class="fa-solid fa-language"></i> PT</span>' : ''}</span>
+            <h3 class="news-title"><a href="noticia/${esc(a.id)}.html">${esc(tituloPT(a))}</a></h3>
+            <p class="news-desc">${esc(a.descPT || a.desc)}</p>
+            <span class="news-date">${esc(a.date)}</span>
+            <span class="news-more">Ler matéria <i class="fa-solid fa-arrow-right"></i></span>
+        </div>
+    </article>`;
+}
+
 const STEAM_ARTICLES = buildSteamArticles();
 
 /* ================= conteúdos clicáveis ================= */
@@ -645,17 +732,7 @@ function initContents() {
                 <span class="news-more">${label} <i class="fa-solid fa-arrow-right"></i></span>
             </article>`;
         }
-        const pt = !!a.titlePT;
-        return `<article class="news-card" data-article="${a.id}">
-            ${cardImg(a)}
-            <div class="news-body">
-                <span class="news-cat">${esc(a.cat)}${pt ? ' <span class="pt-tag" title="Traduzido automaticamente do inglês"><i class="fa-solid fa-language"></i> PT</span>' : ''}</span>
-                <h3 class="news-title">${esc(tituloPT(a))}</h3>
-                <p class="news-desc">${esc(a.descPT || a.desc)}</p>
-                <span class="news-date">${esc(a.date)}</span>
-                <span class="news-more">Ler matéria <i class="fa-solid fa-arrow-right"></i></span>
-            </div>
-        </article>`;
+        return newsCardHTML(a);
     };
 
     $('#homeGrid').innerHTML = FEATURED.map(a => cardHTML(a, 'news')).join('');
@@ -704,7 +781,14 @@ function initContents() {
 
     document.addEventListener('click', (e) => {
         const art = e.target.closest('[data-article]');
-        if (art) { openArticle(art.dataset.article); return; }
+        if (art) {
+            // se a pessoa segurou Ctrl/Shift (ou clicou com o meio do mouse),
+            // deixa o navegador abrir a página de verdade em outra aba
+            if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+            e.preventDefault();
+            openArticle(art.dataset.article);
+            return;
+        }
         const mat = e.target.closest('[data-match]');
         if (mat) { openMatch(mat.dataset.match); }
     });
@@ -732,6 +816,10 @@ function openArticle(id) {
     const linkSteam = a.url
         ? `<a class="cm-link" href="${esc(a.url)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
         : '';
+    // link de verdade para a página da notícia (bom para o Google e para quem quer compartilhar)
+    const linkPagina = a.steam
+        ? `<a class="cm-link" href="noticia/${esc(a.id)}.html"><i class="fa-solid fa-newspaper"></i> Abrir a página desta notícia</a>`
+        : '';
     $('#contentModalBox').innerHTML = `
         <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
         ${cardImg(a, 'cm-img')}
@@ -743,6 +831,7 @@ function openArticle(id) {
             ${corpo}
             ${items}
             ${linkSteam}
+            ${linkPagina}
         </div>`;
     openOverlay($('#contentModal'));
 }
@@ -817,16 +906,350 @@ function renderCompare() {
     }).join('');
 }
 
-/* ================= tier list ================= */
-function initTierList() {
-    const tiers = ['S', 'A', 'B', 'C', 'D'];
-    $('#tierRows').innerHTML = tiers.map(t => {
-        const list = PLAYABLE.filter(h => h.tier === t);
-        const inner = list.length
-            ? list.map(h => heroCard(h, 92)).join('')
-            : '<span style="color:var(--text-faint);font-size:13px">Nenhum herói neste tier.</span>';
-        return `<div class="tier-row"><div class="tier-badge tier-${t}">${t}</div><div class="tier-heroes">${inner}</div></div>`;
+/* ================= dados reais do jogo (itens, builds, contadores, ranking) =================
+   Tudo isto vem do arquivo data/game-data.js, gerado por tools/update-game-data.py,
+   e do data/hero-history.js (win rate semana a semana). Nada aqui é inventado. */
+function dadosJogo() { return window.GAME_DATA || null; }
+function dadosHist() { return window.HERO_HISTORY || null; }
+
+function apiIdDe(nome) {
+    const g = dadosJogo();
+    return (g && g.ids && g.ids[nome]) || null;
+}
+function heroiPorApiId(id) {
+    const g = dadosJogo();
+    if (!g || !g.ids) return null;
+    const nome = Object.keys(g.ids).find(n => String(g.ids[n]) === String(id));
+    return nome ? heroByName(nome) : null;
+}
+/* transforma "Lady Geist" em "lady-geist" (igual ao nome do arquivo em /heroi) */
+function slugJS(texto) {
+    return String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+function itemDe(id) {
+    const g = dadosJogo();
+    return (g && g.itens && g.itens[String(id)]) || null;
+}
+function itemImg(item, cls = '') {
+    if (!item || !item.i) return `<i class="fa-solid fa-gem ${cls}"></i>`;
+    return `<img class="${cls}" src="${esc(item.i)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<i class=\\'fa-solid fa-gem\\'></i>'">`;
+}
+const ITEM_TIPO_NOME = { weapon: 'Arma', vitality: 'Vitalidade', spirit: 'Espírito' };
+const ITEM_TIPO_EMOJI = { weapon: '🔫', vitality: '💚', spirit: '🔮' };
+
+/* ---------- itens da loja ---------- */
+const ITEM_TIPOS = [['todos', 'Todos'], ['weapon', 'Armas'], ['vitality', 'Vitalidade'], ['spirit', 'Espírito']];
+let itemTipo = 'todos', itemBusca = '';
+
+function initItens() {
+    const grid = $('#itemsGrid');
+    if (!grid) return;
+    const g = dadosJogo();
+    if (!g || !g.itens || !Object.keys(g.itens).length) {
+        grid.innerHTML = '<p class="muted-txt">Os itens reais do jogo entram aqui na próxima atualização. Dê dois cliques em <b>atualizar-tudo.bat</b> (ou espere o robô do GitHub).</p>';
+        return;
+    }
+    const tipos = $('#itemsTipos');
+    if (tipos) {
+        tipos.innerHTML = ITEM_TIPOS.map(([k, l]) => {
+            const qtd = k === 'todos' ? Object.keys(g.itens).length : Object.values(g.itens).filter(i => i.s === k).length;
+            return `<button type="button" class="pill ${itemTipo === k ? 'on' : ''}" data-itemtipo="${k}">${l} <small>${qtd}</small></button>`;
+        }).join('');
+        $$('[data-itemtipo]', tipos).forEach(b => b.addEventListener('click', () => { itemTipo = b.dataset.itemtipo; initItens(); }));
+    }
+    const busca = $('#itemsSearch');
+    if (busca && !busca.dataset.pronto) {
+        busca.dataset.pronto = '1';
+        busca.addEventListener('input', () => { itemBusca = busca.value; renderItens(); });
+    }
+    if (!initItens.ligado) {
+        initItens.ligado = true;
+        document.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-item]');
+            if (el) openItem(el.dataset.item);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const el = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-item]');
+            if (el) openItem(el.dataset.item);
+        });
+    }
+    renderItens();
+}
+
+function renderItens() {
+    const g = dadosJogo(), grid = $('#itemsGrid');
+    if (!g || !grid || !g.itens) return;
+    const q = (itemBusca || '').trim().toLowerCase();
+    let lista = Object.entries(g.itens);
+    if (itemTipo !== 'todos') lista = lista.filter(([, i]) => i.s === itemTipo);
+    if (q) lista = lista.filter(([, i]) => (i.n + ' ' + (i.en || '') + ' ' + (i.d || '')).toLowerCase().includes(q));
+    lista.sort((a, b) => (a[1].t - b[1].t) || (a[1].c - b[1].c) || a[1].n.localeCompare(b[1].n, 'pt'));
+    grid.innerHTML = lista.length
+        ? lista.map(([id, i]) => itemCardHTML(id, i)).join('')
+        : '<p class="muted-txt">Nenhum item encontrado. Tente outro nome.</p>';
+    const cont = $('#itemsCount');
+    if (cont) cont.innerHTML = `Mostrando <b>${lista.length}</b> de <b>${Object.keys(g.itens).length}</b> itens da loja · preço e efeito direto do jogo`;
+}
+
+function itemCardHTML(id, item) {
+    return `<article class="item-card" data-item="${esc(id)}" tabindex="0" title="Ver detalhes de ${esc(item.n)}">
+        <div class="item-ico">${itemImg(item)}</div>
+        <div class="item-body">
+            <div class="item-top"><h3>${esc(item.n)}</h3><span class="item-cost">${item.c ? money(item.c) : 'grátis'}</span></div>
+            <span class="item-tipo ${item.s}">${ITEM_TIPO_EMOJI[item.s] || ''} ${ITEM_TIPO_NOME[item.s] || ''} · Tier ${item.t}${item.a ? ' · Ativo' : ''}</span>
+            ${item.win != null ? `<span class="item-wr"><i class="fa-solid fa-chart-line"></i> <b>${item.win}%</b> de vitória quando comprado</span>` : ''}
+        </div>
+    </article>`;
+}
+
+function openItem(id) {
+    const item = itemDe(id);
+    const caixa = $('#itemModalBox');
+    if (!item || !caixa) return;
+    caixa.innerHTML = `
+        <button class="modal-close" data-close="itemModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="im">
+            <div class="im-top">
+                <div class="im-ico">${itemImg(item)}</div>
+                <div>
+                    <h1>${esc(item.n)}</h1>
+                    <p class="im-en">${esc(item.en || '')}</p>
+                    <div class="hp-tags" style="justify-content:flex-start">
+                        <span class="tag">${ITEM_TIPO_NOME[item.s] || ''}</span>
+                        <span class="tag cy">Tier ${item.t}</span>
+                        ${item.a ? '<span class="tag acc">Item ativo</span>' : ''}
+                        <span class="tag warn">${item.c ? money(item.c) + ' almas' : 'grátis'}</span>
+                    </div>
+                </div>
+            </div>
+            ${item.d ? `<p class="im-desc">${esc(item.d)}</p>` : '<p class="muted-txt">Este item não tem descrição de efeito na loja do jogo.</p>'}
+            ${item.win != null ? `<div class="im-stats">
+                <div class="pg-stat"><b>${item.win}%</b><small>win rate</small></div>
+                <div class="pg-stat"><b>${item.x ? money(item.x) : '—'}</b><small>compras registradas</small></div>
+            </div>` : ''}
+            <p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> Números reais de partidas, via deadlock-api.com</p>
+        </div>`;
+    openOverlay($('#itemModal'));
+}
+
+/* ---------- ranking real ---------- */
+const REGIOES_RANK = [['SAmerica', 'América do Sul'], ['NAmerica', 'América do Norte'], ['Europe', 'Europa'], ['Asia', 'Ásia'], ['Oceania', 'Oceania']];
+let rankRegiao = 'SAmerica';
+
+function initRanking() {
+    const tab = $('#rankTable');
+    if (!tab) return;
+    const g = dadosJogo();
+    if (!g || !g.ranking || !Object.keys(g.ranking).length) {
+        tab.innerHTML = '<p class="muted-txt">O ranking real entra aqui na próxima atualização (rode <b>atualizar-tudo.bat</b>).</p>';
+        return;
+    }
+    if (!g.ranking[rankRegiao]) rankRegiao = Object.keys(g.ranking)[0];
+    const reg = $('#rankRegioes');
+    if (reg) {
+        reg.innerHTML = REGIOES_RANK.filter(([k]) => g.ranking[k]).map(([k, l]) =>
+            `<button type="button" class="pill ${rankRegiao === k ? 'on' : ''}" data-rankreg="${k}">${l}</button>`).join('');
+        $$('[data-rankreg]', reg).forEach(b => b.addEventListener('click', () => { rankRegiao = b.dataset.rankreg; initRanking(); }));
+    }
+    const linhas = (g.ranking[rankRegiao] || []).slice(0, 50);
+    const comHerois = linhas.filter(p => (p.h || []).length).length > linhas.length / 2;
+    const cls = comHerois ? ' com-herois' : '';
+    tab.innerHTML = `<div class="ranking-head${cls}"><span>#</span><span>Jogador</span>${comHerois ? '<span>Heróis mais jogados</span>' : ''}</div>` +
+        linhas.map(p => `<div class="ranking-row${cls}">
+            <span class="rank-pos">${p.r}</span>
+            <span class="rank-name">${esc(p.n)}</span>
+            ${comHerois ? `<span class="rank-heroes">${(p.h || []).map(id => {
+                const h = heroiPorApiId(id);
+                return h ? `<img src="assets/heroes/${esc(h.file)}" alt="${esc(h.name)}" title="${esc(h.name)}" loading="lazy" onerror="this.remove()">` : '';
+            }).join('') || '<em>—</em>'}</span>` : ''}
+        </div>`).join('');
+    const f = $('#rankFonte');
+    if (f) f.innerHTML = `<i class="fa-solid fa-trophy"></i> Top ${linhas.length} jogadores da região · ranking real do jogo via deadlock-api.com · atualizado em ${esc(g.updated)}`;
+}
+
+/* ---------- histórico de win rate ---------- */
+function serieHistorico(nome) {
+    const hist = dadosHist();
+    if (!hist || !hist.herois || !hist.herois[nome]) return null;
+    return hist.herois[nome];
+}
+
+/* gráfico pequeno (dentro da ficha do herói) */
+function sparklineHTML(nome) {
+    const serie = serieHistorico(nome);
+    const hist = dadosHist();
+    if (!serie || !hist || serie.length < 3) return '';
+    const passo = Math.max(1, Math.ceil(serie.length / 20));
+    const pontos = serie.map((v, i) => (v == null || i % passo) ? null : [i, v]).filter(Boolean);
+    if (pontos.length < 3) return '';
+    const vals = pontos.map(p => p[1]);
+    const min = Math.min(...vals) - 1, max = Math.max(...vals) + 1;
+    const W = 100, H = 34;
+    const px = i => (W * pontos.findIndex(p => p[0] === i)) / (pontos.length - 1);
+    const py = v => H - ((v - min) / Math.max(0.001, max - min)) * H;
+    const coords = pontos.map(([i, v]) => `${px(i).toFixed(2)},${py(v).toFixed(2)}`);
+    const linha = 'M' + coords.join(' L');
+    return `<div class="hist">
+        <svg viewBox="0 0 ${W} ${H}" class="hist-svg" preserveAspectRatio="none">
+            <path d="${linha} L ${W} ${H} L 0 ${H} Z" class="hist-area"></path>
+            <path d="${linha}" class="hist-linha" vector-effect="non-scaling-stroke"></path>
+        </svg>
+        <div class="hist-labels">
+            <span>${esc(hist.semanas[pontos[0][0]] || '')} → ${esc(hist.semanas[pontos[pontos.length - 1][0]] || '')}</span>
+            <span>mín ${Math.min(...vals)}% · máx ${Math.max(...vals)}%</span>
+        </div>
+    </div>`;
+}
+
+/* gráfico grande da aba Estatísticas (6 melhores heróis) */
+function renderHistorico() {
+    const caixa = $('#statsHist');
+    if (!caixa) return;
+    const hist = dadosHist();
+    if (!hist || !hist.herois || !hist.semanas || hist.semanas.length < 4) {
+        caixa.innerHTML = '<p class="muted-txt">O histórico aparece na próxima atualização.</p>';
+        return;
+    }
+    const ultimo = serie => { const v = serie.slice().reverse().find(x => x != null); return v == null ? -1 : v; };
+    const nomes = Object.keys(hist.herois).filter(n => { const h = heroByName(n); return h && !h.soon; });
+    nomes.sort((a, b) => ultimo(hist.herois[b]) - ultimo(hist.herois[a]));
+    const escolhidos = nomes.slice(0, 6);
+    const CORES = ['#b6f24a', '#22d3ee', '#f472b6', '#fbbf24', '#8b5cf6', '#34d399'];
+    const n = hist.semanas.length;
+    const W = 1000, H = 300, PAD = 10;
+    const todos = escolhidos.flatMap(nm => hist.herois[nm].filter(v => v != null));
+    if (!todos.length) { caixa.innerHTML = ''; return; }
+    const min = Math.floor(Math.min(...todos) - 1), max = Math.ceil(Math.max(...todos) + 1);
+    const px = i => (PAD + (W - 2 * PAD) * (n <= 1 ? 0 : i / (n - 1))).toFixed(1);
+    const py = v => (H - PAD - (H - 2 * PAD) * ((v - min) / Math.max(0.001, max - min))).toFixed(1);
+    let grade = '';
+    for (let g5 = 0; g5 <= 4; g5++) {
+        const val = min + (max - min) * g5 / 4;
+        const y = py(val);
+        grade += `<line x1="${PAD}" y1="${y}" x2="${W - PAD}" y2="${y}" class="hist-grade"></line>
+                  <text x="${PAD + 4}" y="${+y - 4}" class="hist-grade-txt">${val.toFixed(1)}%</text>`;
+    }
+    const linhas = escolhidos.map((nm, k) => {
+        const coords = hist.herois[nm].map((v, i) => v == null ? null : `${px(i)},${py(v)}`).filter(Boolean);
+        return `<polyline points="${coords.join(' ')}" fill="none" stroke="${CORES[k]}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
     }).join('');
+    const legenda = escolhidos.map((nm, k) => {
+        const h = heroByName(nm);
+        const u = ultimo(hist.herois[nm]);
+        return `<button type="button" class="hist-leg" data-hero="${esc(nm)}"><i style="background:${CORES[k]}"></i>
+            <img src="assets/heroes/${esc(h.file)}" alt="" onerror="this.remove()"> ${esc(nm)} <b>${u}%</b></button>`;
+    }).join('');
+    caixa.innerHTML = `
+        <div class="hist-box">
+            <svg viewBox="0 0 ${W} ${H}" class="hist-grande" preserveAspectRatio="none">
+                ${grade}${linhas}
+            </svg>
+            <div class="hist-rodape">
+                <span>${esc(hist.semanas[0])}</span>
+                <span>${esc(hist.semanas[Math.floor(n / 2)])}</span>
+                <span>${esc(hist.semanas[n - 1])}</span>
+            </div>
+        </div>
+        <div class="hist-legenda">${legenda}</div>
+        <p class="stat-fonte"><i class="fa-solid fa-chart-line"></i> Win rate semana a semana (${n} semanas de partidas reais). Clique em um herói para abrir a ficha. Fonte: deadlock-api.com</p>`;
+    $$('[data-hero]', caixa).forEach(b => b.addEventListener('click', () => openHero(b.dataset.hero)));
+}
+
+/* ================= home ================= */
+function initHome() {
+    // ---- banner com a notícia mais nova ----
+    const banner = $('#homeBanner');
+    if (banner && STEAM_ARTICLES.length) {
+        const a = STEAM_ARTICLES[0];
+        const img = a.imgSteam || ('assets/heroes/' + a.imgHero);
+        banner.style.background = `linear-gradient(90deg,rgba(8,9,11,.95),rgba(8,9,11,.45)), url('${img}') center/cover no-repeat`;
+        banner.innerHTML = `<div class="hero-banner-content">
+            <span class="hero-cat">${a.patch ? 'PATCH NOVO' : 'ÚLTIMA NOTÍCIA'} · ${esc(a.date)}</span>
+            <h2 class="hero-banner-title">${esc(tituloPT(a))}</h2>
+            <p class="hero-banner-desc">${esc(a.descPT || a.desc)}</p>
+            <div class="hero-banner-acts">
+                <button type="button" class="btn btn-lime" data-article="${esc(a.id)}">Ler agora <i class="fa-solid fa-arrow-right"></i></button>
+                <button type="button" class="btn btn-dark" data-goto="noticias">Ver todas as notícias</button>
+            </div>
+        </div>`;
+    }
+
+    // ---- últimas notícias ----
+    const hn = $('#homeNews');
+    if (hn) {
+        const lista = STEAM_ARTICLES.length ? STEAM_ARTICLES : (NEWS.length ? NEWS : FEATURED);
+        hn.innerHTML = lista.slice(0, 3).map(newsCardHTML).join('');
+    }
+
+    // ---- mini painel do meta ----
+    const hs = $('#homeStats');
+    if (!hs) return;
+    if (!temStatsReais) {
+        hs.innerHTML = '<p class="muted-txt">As estatísticas reais entram aqui. Dê dois cliques em <b>atualizar-tudo.bat</b> (ou espere o robô do GitHub).</p>';
+        return;
+    }
+    const comDados = PLAYABLE.filter(h => h.real);
+    const porWin = [...comDados].sort((a, b) => (+b.win) - (+a.win));
+    const porPick = [...comDados].sort((a, b) => (+b.pick) - (+a.pick));
+    hs.innerHTML = `
+        <div class="mini-stat">
+            <h3><i class="fa-solid fa-crown"></i> Melhores do momento</h3>
+            ${porWin.slice(0, 3).map((h, i) => miniStatRow(h, i + 1)).join('')}
+        </div>
+        <div class="mini-stat">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Estão sofrendo</h3>
+            ${porWin.slice(-3).reverse().map((h, i) => miniStatRow(h, i + 1, true)).join('')}
+        </div>
+        <div class="mini-stat">
+            <h3><i class="fa-solid fa-fire"></i> Mais escolhidos</h3>
+            ${porPick.slice(0, 3).map((h, i) => miniStatRow(h, i + 1)).join('')}
+        </div>
+        <div class="mini-stat destaque">
+            <h3><i class="fa-solid fa-database"></i> Base de dados</h3>
+            <p class="mini-big">${money(STATS_INFO.partidas || 0)}</p>
+            <p class="mini-sub">partidas analisadas · atualizado em ${esc(STATS_INFO.updated || '')}</p>
+            <button type="button" class="btn btn-dark btn-sm" data-goto="estatisticas">Ver tabela completa <i class="fa-solid fa-arrow-right"></i></button>
+        </div>`;
+}
+
+function miniStatRow(h, pos, ruim) {
+    return `<div class="mini-row" data-hero="${esc(h.name)}" title="Ver ${esc(h.name)}">
+        <span class="mini-pos">${pos}</span>
+        <img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="this.remove()">
+        <b>${esc(h.name)}</b>
+        <span class="mini-win ${ruim ? 'ruim' : ''}">${h.win}%</span>
+    </div>`;
+}
+
+/* ================= glossário (busca) ================= */
+function initGlossario() {
+    const busca = $('#glossSearch');
+    const lista = $('#glossList');
+    if (!busca || !lista) return;
+    const vazio = $('#glossEmpty');
+    busca.addEventListener('input', () => {
+        const q = busca.value.trim().toLowerCase();
+        let achou = 0;
+        $$('.glossary-item', lista).forEach(it => {
+            const ok = !q || it.textContent.toLowerCase().includes(q);
+            it.style.display = ok ? '' : 'none';
+            if (ok) achou++;
+        });
+        // esconde os títulos de grupo que ficaram sem nenhum item
+        let grupo = null, visiveis = 0;
+        [...lista.children].forEach(el => {
+            if (el.classList.contains('glossary-group')) {
+                if (grupo) grupo.style.display = visiveis ? '' : 'none';
+                grupo = el; visiveis = 0;
+            } else if (el.classList.contains('glossary-item') && el.style.display !== 'none') {
+                visiveis++;
+            }
+        });
+        if (grupo) grupo.style.display = visiveis ? '' : 'none';
+        if (vazio) vazio.hidden = achou > 0;
+    });
 }
 
 /* ================= estatísticas (números reais) ================= */
@@ -874,11 +1297,20 @@ function renderStats() {
     const lista = PLAYABLE.filter(h => h.real).sort(STATS_ORDENS[statsOrdem][1]);
     const num = (v) => (v == null ? '-' : v);
 
+    // quem o jogo mais bane (dados de data/game-data.js)
+    let maisBanido = null, maisBanidoPct = null;
+    const gd = dadosJogo();
+    if (gd && gd.banPos && gd.ban) {
+        const idTop = Object.keys(gd.banPos).find(k => gd.banPos[k] === 1);
+        if (idTop) { maisBanido = heroiPorApiId(idTop); maisBanidoPct = gd.ban[idTop]; }
+    }
+
     const cards = `<div class="stats-cards">
         <div class="card stat-card"><i class="fa-solid fa-database"></i><b>${money(STATS_INFO.partidas || 0)}</b><small>partidas analisadas</small></div>
         <div class="card stat-card ok"><i class="fa-solid fa-crown"></i><b>${esc(num(info.melhor))}</b><small>melhor win rate · ${num(info.melhor_win)}%</small></div>
         <div class="card stat-card"><i class="fa-solid fa-fire"></i><b>${esc(num(info.mais_jogado))}</b><small>mais escolhido · ${num(info.mais_jogado_pick)}%</small></div>
         <div class="card stat-card bad"><i class="fa-solid fa-triangle-exclamation"></i><b>${esc(num(info.pior))}</b><small>menor win rate · ${num(info.pior_win)}%</small></div>
+        ${maisBanido ? `<div class="card stat-card bad"><i class="fa-solid fa-ban"></i><b>${esc(maisBanido.name)}</b><small>mais banido · ${maisBanidoPct}%</small></div>` : ''}
     </div>`;
 
     const linhas = lista.map((h, i) => {
@@ -1038,6 +1470,30 @@ const QUIZ = [
             { t: 'Místico cheio de habilidades', w: { arch: 'Místico' } },
             { t: 'Híbrido / tanto faz', w: { arch: '—' } }
         ]
+    },
+    {
+        q: 'O time está perdendo feio. O que você faz?', o: [
+            { t: 'Chamo todo mundo para uma luta decidida', w: { role: 'Controle' } },
+            { t: 'Vou farmar em paz e volto forte para virar', w: { role: 'Carry' } },
+            { t: 'Fico colado nos aliados para ninguém morrer', w: { role: 'Suporte' } },
+            { t: 'Entro na frente para abrir espaço para o time', w: { role: 'Tanque' } }
+        ]
+    },
+    {
+        q: 'Qual parte do mapa te atrai mais?', o: [
+            { t: 'As rotas laterais, no duelo 1 contra 1', w: { arch: 'Assassino', diff: 3 } },
+            { t: 'O meio, no meio da confusão', w: { role: 'Controle' } },
+            { t: 'A selva, farmando tranquilo', w: { role: 'Carry', diff: 1 } },
+            { t: 'Onde o time precisar de mim', w: { role: 'Suporte' } }
+        ]
+    },
+    {
+        q: 'Que tipo de item você gosta de comprar?', o: [
+            { t: 'Vida e resistência, para aguentar tudo', w: { role: 'Tanque' } },
+            { t: 'Dano puro, para matar o mais rápido possível', w: { arch: 'Assassino' } },
+            { t: 'Poder espiritual, para habilidades devastadoras', w: { arch: 'Místico' } },
+            { t: 'Utilidade para o time (escudo, cura, controle)', w: { role: 'Suporte' } }
+        ]
     }
 ];
 let quizState = { i: 0, ans: [] };
@@ -1127,6 +1583,7 @@ function bannerStyle(p) {
 
 function shapeCss(shape) {
     if (shape === 'circle') return 'border-radius:50%;';
+    if (shape === 'sharp') return 'border-radius:4px;';
     if (POLY[shape]) return 'clip-path:polygon(' + POLY[shape].map(([x, y]) => `${+(50 + 50 * x).toFixed(2)}% ${+(50 + 50 * y).toFixed(2)}%`).join(',') + ');';
     return 'border-radius:22px;';
 }
@@ -1141,7 +1598,8 @@ function avatarInner(p) {
 function avatarBox(size, p) {
     const shape = shapeCss(p.av.shape);
     const hasImg = !!p.av.img;
-    const [c1, c2] = bannerColors(p);
+    const coresPadrao = bannerColors(p);
+    const [c1, c2] = (p.av.c1 && p.av.c2) ? [p.av.c1, p.av.c2] : coresPadrao;
     const zoom = p.av.zoom || 1, px = p.av.px ?? 50, py = p.av.py ?? 50;
     const inner = hasImg
         ? `<img src="${p.av.img}" alt="" style="object-position:${px}% ${py}%;transform:scale(${zoom})">`
@@ -1153,9 +1611,9 @@ function avatarBox(size, p) {
     if (frame === 'double') {
         return `<div class="pav-wrap" style="${shape}background:var(--lime);padding:3px"><div class="pav-wrap" style="${shape}background:var(--card);padding:3px">${core}</div></div>`;
     }
-    const ring = frame === 'gold' ? 'linear-gradient(135deg,#f6d36b,#a8741a)' : 'var(--lime)';
-    const glow = frame === 'neon' ? ';filter:drop-shadow(0 0 10px var(--lime))' : '';
-    return `<div class="pav-wrap" style="${shape}background:${ring};padding:4px${glow}">${core}</div>`;
+    const f = FRAME_STYLE[frame] || { bg: 'var(--lime)' };
+    const glow = f.glow ? `;filter:${f.glow}` : '';
+    return `<div class="pav-wrap" style="${shape}background:${f.bg};padding:4px${glow}">${core}</div>`;
 }
 
 /* abas do editor de perfil */
@@ -1229,7 +1687,7 @@ function renderProfileView() {
             <section class="card pv-sec">
                 <h2>Heróis principais</h2>
                 ${mains.length
-                    ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 97)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>`
+                    ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 132)}<small>${i === 0 ? '★ Principal' : (i + 1) + 'º herói'}</small></div>`).join('')}</div>`
                     : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
             </section>
         </div>
@@ -1393,7 +1851,29 @@ function renderForm() {
             <div class="pform-sec">Forma</div>
             <div class="picker-row">${shPills}</div>
             <div class="pform-sec">Moldura</div>
-            <div class="picker-row">${frPills}</div>`;
+            <div class="picker-row">${frPills}</div>
+
+            <div class="pform-sec">Avatar pronto (arte dos heróis)</div>
+            <p class="field-note">Sem foto aí? Clique em um herói para usar a arte dele como seu avatar.</p>
+            <div class="av-presets">
+                ${HEROES.filter(h => !h.soon).map(h => {
+                    const src = 'assets/heroes/' + h.file;
+                    return `<button type="button" class="av-preset ${p.av.img === src ? 'on' : ''}" data-avp="${esc(h.file)}" title="${esc(h.name)}"><img src="${esc(src)}" alt="${esc(h.name)}" loading="lazy"></button>`;
+                }).join('')}
+            </div>
+            <div class="picker-row" style="margin-top:10px">
+                <button type="button" class="btn btn-dark btn-sm" data-act="avatar-random-hero"><i class="fa-solid fa-shuffle"></i> Sortear herói</button>
+                <button type="button" class="btn btn-dark btn-sm" data-act="avatar-clear-color"><i class="fa-solid fa-rotate-left"></i> Cores padrão</button>
+            </div>
+
+            <div class="pform-sec">Cor do avatar (quando não tem foto)</div>
+            <div class="picker-row av-colors">
+                ${AV_COLORS.map(([a, b]) => `<button type="button" class="pill sw ${(p.av.c1 === a && p.av.c2 === b) ? 'on' : ''}" data-avc="${a}|${b}" style="background:linear-gradient(135deg,${a},${b})" title="Usar estas cores"></button>`).join('')}
+            </div>
+            <div class="grid2" style="margin-top:10px">
+                <label class="field">Cor 1<input type="color" data-avcc="c1" value="${p.av.c1 || '#b6f24a'}" style="padding:2px;height:40px"></label>
+                <label class="field">Cor 2<input type="color" data-avcc="c2" value="${p.av.c2 || '#2f7a1a'}" style="padding:2px;height:40px"></label>
+            </div>`;
     } else if (pTab === 'card') {
         html = `
             <div class="pform-sec">Cor do banner</div>
@@ -1468,7 +1948,9 @@ function initProfile() {
             return;
         }
         const adj = e.target.dataset.adj;
-        if (adj) { profile.av[adj] = parseFloat(e.target.value); touch('avatar'); commitLight(); }
+        if (adj) { profile.av[adj] = parseFloat(e.target.value); touch('avatar'); commitLight(); return; }
+        const avcc = e.target.dataset.avcc;
+        if (avcc) { profile.av[avcc] = e.target.value; touch('avatar'); commitLight(); }
     });
 
     form.addEventListener('change', (e) => {
@@ -1483,6 +1965,14 @@ function initProfile() {
         const pat = e.target.closest('[data-pat]'); if (pat) { profile.pattern = pat.dataset.pat; touch('pattern'); commit(); return; }
         const sh = e.target.closest('[data-sh]'); if (sh) { profile.av.shape = sh.dataset.sh; touch('shape'); commit(); return; }
         const fr = e.target.closest('[data-fr]'); if (fr) { profile.av.frame = fr.dataset.fr; touch('frame'); commit(); return; }
+        const avp = e.target.closest('[data-avp]'); if (avp) { profile.av.img = 'assets/heroes/' + avp.dataset.avp; profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50; touch('avatar'); commit(); showToast('Avatar trocado!'); return; }
+        const avc = e.target.closest('[data-avc]');
+        if (avc) {
+            const v = avc.dataset.avc;
+            if (!v) { profile.av.c1 = ''; profile.av.c2 = ''; }
+            else { const [a, b] = v.split('|'); profile.av.c1 = a; profile.av.c2 = b; }
+            touch('avatar'); commit(); return;
+        }
         const ac = e.target.closest('[data-ac]'); if (ac) { profile.accent = ac.dataset.ac; touch('accent'); commit(); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
         const act = e.target.closest('[data-act]');
@@ -1491,6 +1981,8 @@ function initProfile() {
             if (a === 'banner-remove') { profile.bannerImg = ''; commit(); showToast('Imagem do banner removida.'); }
             else if (a === 'avatar-remove') { profile.av.img = ''; profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50; avAdjustOpen = false; touch('avatar'); commit(); showToast('Foto removida.'); }
             else if (a === 'avatar-adjust') { avAdjustOpen = !avAdjustOpen; renderForm(); }
+            else if (a === 'avatar-random-hero') { const h = PLAYABLE[Math.floor(Math.random() * PLAYABLE.length)]; profile.av.img = 'assets/heroes/' + h.file; profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50; touch('avatar'); commit(); showToast('Avatar sorteado: ' + h.name); }
+            else if (a === 'avatar-clear-color') { profile.av.c1 = ''; profile.av.c2 = ''; touch('avatar'); commit(); showToast('Cores do avatar restauradas.'); }
             else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
             else if (a === 'reset') resetProfile();
             else if (a === 'export') exportData();

@@ -14,24 +14,32 @@ meu-fansite/
 ├── script.js
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
 ├── sw.js                    # Guarda o site no navegador (abre mais rápido)
-├── sitemap.xml              # Mapa do site para o Google
+├── sitemap.xml              # Mapa do site para o Google — GERADO sozinho
 ├── robots.txt               # Regras para os buscadores
-├── atualizar-noticias.bat   # 2 cliques = notícias + estatísticas
+├── atualizar-noticias.bat   # 2 cliques = notícias + estatísticas + páginas
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
 ├── atualizar-tudo.bat       # 2 cliques = notícias + estatísticas + Discord
 ├── README.md
+├── heroi/                   # 1 página por herói (ajuda o Google) — GERADO sozinho
+├── noticia/                 # 1 página por notícia — GERADO sozinho
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
 │   └── noticias.yml         # Notícias + estatísticas + Discord, todo dia
 ├── data/
 │   ├── steam-news.js        # Notícias do Steam (traduzidas) — GERADO sozinho
 │   ├── hero-stats.js        # Win rate / pick / KDA reais — GERADO sozinho
-│   ├── traducao-cache.json  # Memória das traduções — GERADO sozinho
+│   ├── game-data.js         # Itens, builds, contadores, ranking — GERADO sozinho
+│   ├── hero-history.js      # Win rate semana a semana — GERADO sozinho
+│   ├── traducao-cache.json  # Memória das traduções das notícias — GERADO sozinho
+│   ├── traducao-jogo.json   # Memória das traduções do jogo — GERADO sozinho
 │   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
 │   └── atualizacoes.log     # Registro das execuções automáticas (fora do Git)
 ├── tools/
 │   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam
 │   ├── update-stats.py      # Baixa as estatísticas reais dos heróis
+│   ├── update-game-data.py  # Baixa itens, builds, contadores, ban e ranking
+│   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
+│   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
@@ -68,17 +76,20 @@ meu-fansite/
 
 ## 📑 Menu (seções)
 
-**Deadlock:** Home · Heróis · Comparar · Tier List · Notícias · Guias · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa
+**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa
 **Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
 
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
-- **Tier List** — heróis agrupados por tier (S a D) em estandartes; clique para abrir a ficha.
-- **Builds** — sugestão de itens por função (Tanque, Suporte, Carry, Assassino, Controle); clique para ver a lista.
+- **Builds** — **as builds que a comunidade mais usa no jogo**, com o **win rate real** de cada uma e os itens da build (clique em um item para ver o preço e o efeito).
+- **Itens do Jogo** — **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo.
 - **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
 - **Eventos** — calendário da comunidade com botão **Lembrar** (salvo no navegador).
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
+- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania).
+- **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
+- **Home** — banner com a notícia mais recente, "Últimas notícias", "Meta de hoje" (com números reais) e atalhos para explorar o site.
 
 ### Logos dos times (Esports)
 
@@ -92,14 +103,17 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 - **Busca** por nome, **filtro por função** (Tanque, Suporte, Carry, Controle, Assassino) e **ordenação** (A→Z, Z→A, tier, win rate, favoritos)
 - **Estrela ★** em cada estandarte para favoritar (aparece na aba **Favoritos** e no perfil)
 - **Clique em qualquer herói** para abrir a ficha completa, com abas:
-  - **Visão geral** — papel, arquétipo, dificuldade, tier, atributos e estatísticas
-  - **Habilidades** — as 4 habilidades com descrição e recarga
-  - **Build** — sugestão de itens
-  - **Confrontos** — contra quem vai bem e contra quem sofre
+  - **Visão geral** — papel, arquétipo, dificuldade, tier, atributos, win rate, pick rate, KDA, **taxa de banimento** e o **histórico de win rate** (gráfico semana a semana)
+  - **Habilidades** — as 4 habilidades com descrição e recarga; o nome aparece **em português** e o original em inglês fica logo abaixo, em cinza
+  - **Build** — **as 3 builds mais usadas** por quem joga de verdade com aquele herói, com o win rate de cada uma e os itens (clique para ver o item)
+  - **Confrontos** — **contra quem o herói realmente ganha e contra quem perde**, com a porcentagem e o número de partidas. Cada inimigo é clicável
+- No fim da ficha tem o botão **Página completa**, que abre a página própria do herói (boa para compartilhar no grupo e para o Google achar)
 - **The Doorman** aparece normalmente; só **Nurse Harrow** está marcada como **"Em breve"** (ela ainda está em pré-lançamento no jogo — a própria API oficial diz isso)
 - **Violet** foi lançada em **16/10/2026** e já está completa, com as 4 habilidades reais (Tinta Viva, Estado de Fluxo, Natureza Morta e Paisagem Abstrata) e os atributos reais (710 de vida, 6,9 m/s)
 
 > Os textos/atributos dos heróis ficam em **`heroes-data.js`** — é só editar o texto entre aspas que a ficha atualiza.
+>
+> Para adicionar um herói novo, escreva o nome das habilidades **em inglês** (como está na deadlock.wiki) e rode `python tools/traduzir-jogo.py`: ele traduz sozinho e guarda o original no campo `name_en`.
 
 ---
 
@@ -107,19 +121,35 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 
 A aba **Estatísticas** mostra **win rate, pick rate e KDA reais**, calculados sobre **milhões de partidas** — nada de número inventado.
 
-De onde vêm os dados? Do projeto público e gratuito **[deadlock-api.com](https://deadlock-api.com)**, que lê as próprias partidas do jogo. O script `tools/update-stats.py` baixa tudo e grava em `data/hero-stats.js`.
+De onde vêm os dados? Do projeto público e gratuito **[deadlock-api.com](https://deadlock-api.com)**, que lê as próprias partidas do jogo. Os scripts baixam tudo e gravam os arquivos da pasta `data/`.
 
 O que isso muda no site:
 
 | Onde | Antes | Agora |
 |---|---|---|
-| Aba **Estatísticas** | não existia | tabela completa, com barras e 4 destaques |
+| Aba **Estatísticas** | não existia | tabela completa, com barras e 5 destaques |
 | **Win rate / pick rate** dos heróis | exemplo | **números reais** |
-| **Tier List** (S a D) | exemplo | **calculada** pelos dados reais |
+| **Tier** (S a D) | exemplo | **calculada** pelos dados reais |
 | Ordenar heróis por "Melhor tier" / "Maior win rate" | exemplo | real |
-| Ficha do herói | "Estatísticas (exemplo)" | "Estatísticas reais" + nº de partidas e posição |
+| Ficha do herói | "Estatísticas (exemplo)" | "Estatísticas reais" + nº de partidas, posição e banimento |
+| **Histórico de win rate** | não existia | gráfico com **58 semanas** de partidas reais |
+| **Itens da loja** | lista de exemplo | **173 itens reais**, com preço, efeito e win rate |
+| **Builds** | sugestão genérica | **as builds mais usadas**, com win rate de cada uma |
+| **Confrontos** | exemplo | win rate real contra **cada inimigo** |
+| **Ranking** | exemplo | **top 50 real** de 5 regiões |
+| **Taxa de banimento** | não existia | % real + posição entre os mais banidos |
+
+### De onde sai cada arquivo
+
+| Arquivo | Script | O que tem dentro |
+|---|---|---|
+| `data/hero-stats.js` | `tools/update-stats.py` | win rate, pick rate, KDA e tier de cada herói |
+| `data/game-data.js` | `tools/update-game-data.py` | itens da loja, builds, contadores, banimento e ranking |
+| `data/hero-history.js` | `tools/update-game-data.py` | win rate semana a semana (usado nos gráficos) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
+>
+> ⚠️ Os nomes das builds vêm de jogadores. Se algum nome for ofensivo, o script troca por "Build da comunidade" sozinho.
 
 ---
 
@@ -141,8 +171,12 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 
 ## 🔎 Aparecer no Google
 
-- **`sitemap.xml`** — a lista de páginas para os buscadores
+- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **56 endereços** hoje)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
+- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), com habilidades, números reais, builds e confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+- **`noticia/<id>.html`** — **uma página para cada notícia**, com o resumo em português e o texto original
+
+Essas páginas são geradas pelo `tools/gerar-paginas.py` (o robô do GitHub roda sozinho, todo dia). Os cards de notícia do site apontam para elas com links de verdade — quem clica abre a janela bonita aqui; os buscadores leem o texto completo.
 
 Para o Google achar o site mais rápido: entre no **[Google Search Console](https://search.google.com/search-console)**, adicione a propriedade `https://hypedz.github.io/central-deadlock/` e envie o `sitemap.xml`. Não é obrigatório — o Google acha sozinho com o tempo.
 
@@ -379,7 +413,7 @@ Ele fica no repositório [Hypedz/central-deadlock](https://github.com/Hypedz/cen
 | Robô (`.github/workflows/`) | Quando roda | O que faz |
 |---|---|---|
 | **`publicar-site.yml`** | A cada envio na branch `main` | Coloca o site no ar (ligou o GitHub Pages sozinho na primeira vez) |
-| **`noticias.yml`** | Todo dia às 09:00 (Brasília) | Busca as notícias no Steam, posta no Discord e republica o site |
+| **`noticias.yml`** | Todo dia às 09:00 (Brasília) | Busca as notícias no Steam, traduz, atualiza as estatísticas/itens/builds/ranking, gera as páginas, posta no Discord e republica o site |
 
 ### Para atualizar o site depois de mexer nos arquivos
 

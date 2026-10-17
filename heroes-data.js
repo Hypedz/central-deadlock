@@ -14,6 +14,9 @@ const ROLES = ["Tanque","Suporte","Carry","Controle","Assassino"];
 const DIFF_LABEL = ["","Fácil","Médio","Difícil"];
 const HEROES_SOON = ["Nurse Harrow"];
 
+// Habilidades traduzidas automaticamente para portugues pelo script
+// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
+// Ultima traducao: 16/10/2026 as 21:33
 const HEROES_DATA = [
   {
     "name": "Abrams",
@@ -31,31 +34,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Siphon Life",
+        "name": "Sifão de Vida",
         "desc": "Drena a vida de inimigos próximos ao longo do tempo, causando dano espiritual e curando Abrams com parte dele.",
         "cd": 42,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Siphon Life"
       },
       {
         "key": "2",
-        "name": "Shoulder Charge",
+        "name": "Investida de Ombro",
         "desc": "Avança puxando os inimigos atingidos e atordoa quem for empurrado contra uma parede.",
         "cd": 33,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Shoulder Charge"
       },
       {
         "key": "3",
-        "name": "Infernal Resilience",
+        "name": "Resiliência Infernal",
         "desc": "Dá atributos defensivos extras; ao sofrer dano, ganha regeneração temporária de vida.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Infernal Resilience"
       },
       {
         "key": "★",
-        "name": "Seismic Impact",
+        "name": "Impacto Sísmico",
         "desc": "Salta para o alto e cai, causando dano espiritual e atordoando inimigos na área.",
         "cd": 215,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Seismic Impact"
       }
     ]
   },
@@ -75,31 +82,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Disengaging Sigil",
+        "name": "Sigilo de Recuo",
         "desc": "Cria um sigilo que explode à frente de Apollo, ferindo e retardando inimigos, enquanto ele salta para trás.",
         "cd": 12,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Disengaging Sigil"
       },
       {
         "key": "2",
         "name": "Riposte",
         "desc": "Prepara-se para aparar o próximo ataque; ao aparar, fica invulnerável por pouco tempo e avança sobre um herói inimigo, atordoando-o e reduzindo sua resistência a corpo a corpo.",
         "cd": 22,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Riposte"
       },
       {
         "key": "3",
-        "name": "Flawless Advance",
+        "name": "Avanço Impecável",
         "desc": "Faz uma sequência de estocadas perfurantes; segurar a tecla aumenta o dano, e soltar na janela perfeita causa o dano máximo.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flawless Advance"
       },
       {
         "key": "★",
         "name": "Itani Lo Sahn",
         "desc": "Canaliza um corte de longo alcance que retarda os atingidos, impede suas ações e os cura; quando acaba, eles sofrem dano pesado, maior em inimigos com metade da vida.",
         "cd": 145,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Itani Lo Sahn"
       }
     ]
   },
@@ -122,28 +133,32 @@ const HEROES_DATA = [
         "name": "Threadsap",
         "desc": "Lança um fio que segue sua mira e explode ao longo do caminho, causando dano espiritual e roubando Espírito do inimigo.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Threadsap"
       },
       {
         "key": "2",
-        "name": "Granny Long Legs",
+        "name": "Vovó Pernas-Longas",
         "desc": "Estica as pernas do banco, dando velocidade, saltos maiores e resistência a debuffs e a corpo a corpo, com um chute e um golpe no chão.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Granny Long Legs"
       },
       {
         "key": "3",
-        "name": "Baba's Brew",
+        "name": "Cerveja do Baba",
         "desc": "Joga um bule de chá que cria uma área alternando entre barreira, Silêncio ou queimadura que causa dano espiritual contínuo.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Baba's Brew"
       },
       {
         "key": "★",
-        "name": "Feed The Birds",
+        "name": "Alimente os Pássaros",
         "desc": "Cobre os alvos de pão, acumulando lentidão; então pombos os bombardeiam com dano espiritual e transformam cada alvo em pombo.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Feed The Birds"
       }
     ]
   },
@@ -163,31 +178,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Exploding Uppercut",
+        "name": "Uppercut Explosivo",
         "desc": "Lança inimigos próximos com repulsão e causa dano espiritual e redução de cadência de tiro na área da queda.",
         "cd": 22,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Exploding Uppercut"
       },
       {
         "key": "2",
-        "name": "Sticky Bomb",
+        "name": "Bomba pegajosa",
         "desc": "Gruda uma bomba em um alvo próximo que explode após um instante, causando dano espiritual na área.",
         "cd": 18,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Sticky Bomb"
       },
       {
         "key": "3",
-        "name": "Grapple Arm",
+        "name": "Braço Gancho",
         "desc": "Dispara uma mão mecânica que puxa em direção a Bebop o primeiro alvo atingido.",
         "cd": 23,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Grapple Arm"
       },
       {
         "key": "★",
-        "name": "Hyper Beam",
+        "name": "Hiper Feixe",
         "desc": "Canaliza um raio longo que causa dano espiritual contínuo e retarda quem ele toca.",
         "cd": 120,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Hyper Beam"
       }
     ]
   },
@@ -210,28 +229,32 @@ const HEROES_DATA = [
         "name": "Bashdown",
         "desc": "Bate o taco no chão, puxando inimigos para baixo com dano corpo a corpo e uma onda espiritual que os joga para cima.",
         "cd": 35,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Bashdown"
       },
       {
         "key": "2",
-        "name": "Rising Ram",
+        "name": "Carneiro Ascendente",
         "desc": "Investe de cabeça num inimigo, lançando-o ao ar junto com ele; o tempo de recarga cai pela metade no impacto.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rising Ram"
       },
       {
         "key": "3",
-        "name": "Blasted",
+        "name": "Explosão",
         "desc": "Golpes corpo a corpo restauram munição e deixam a vítima Arrebentada; com a habilidade ativa, seus tiros causam mais dano a ela.",
         "cd": 27,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Blasted"
       },
       {
         "key": "★",
-        "name": "Chain Gang",
+        "name": "Gangue Acorrentada",
         "desc": "Acorrenta inimigos próximos, retarda quem puxa a corrente e depois os puxa até Billy, causando dano espiritual.",
         "cd": 175,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Chain Gang"
       }
     ]
   },
@@ -251,31 +274,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Gloom Bombs",
+        "name": "Bombas Sombrias",
         "desc": "Lança um conjunto de bombas que explodem após um instante com dano espiritual; inimigos atingidos por várias bombas sofrem dano reduzido.",
         "cd": 14,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Gloom Bombs"
       },
       {
         "key": "2",
-        "name": "Leaping Slash",
+        "name": "Salto Cortante",
         "desc": "Avança e corta todos ao redor em círculo com dano corpo a corpo, curando um pouco se acertar um herói.",
         "cd": 13,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Leaping Slash"
       },
       {
         "key": "3",
         "name": "Ava",
         "desc": "Vira sombra e possui seu gato, ganhando velocidade que aumenta com o tempo e sumindo do minimapa; sofrer dano de herói zera o bônus.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Ava"
       },
       {
         "key": "★",
-        "name": "Return to Shadows",
+        "name": "Voltar às Sombras",
         "desc": "Fica intangível nas sombras, ganhando velocidade e causando dano espiritual, e volta depois de um tempo causando dano espiritual de novo.",
         "cd": 115,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Return to Shadows"
       }
     ]
   },
@@ -295,31 +322,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Light Eater",
+        "name": "Devoradora de Luz",
         "desc": "Atinge inimigos num cone com luz, fazendo-os sofrer dano espiritual dos ataques dela e dando-lhe roubo de vida espiritual.",
         "cd": 20,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Light Eater"
       },
       {
         "key": "2",
-        "name": "Dazzling Trick",
+        "name": "Truque Deslumbrante",
         "desc": "Cria uma barreira protetora que, ao ser destruída, silencia inimigos próximos e causa dano baseado na barreira.",
         "cd": 38,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Dazzling Trick"
       },
       {
         "key": "3",
-        "name": "Radiant Daggers",
+        "name": "Adagas Radiantes",
         "desc": "Invoca um raio de luz que explode após um instante, causando dano espiritual na área e acumulando bônus de dano espiritual ao acertar heróis.",
         "cd": 33,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Radiant Daggers"
       },
       {
         "key": "★",
-        "name": "Shining Wonder",
+        "name": "Maravilha Brilhante",
         "desc": "Lança uma esfera de luz que causa dano espiritual e retarda inimigos, depois quica entre alvos próximos priorizando heróis.",
         "cd": 160,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Shining Wonder"
       }
     ]
   },
@@ -342,28 +373,32 @@ const HEROES_DATA = [
         "name": "Strix Salvo",
         "desc": "Dispara uma linha de mísseis espirituais que se fincam no chão e explodem após um tempo ou ao detectar um inimigo, marcando-o; um tiro carregado num alvo marcado consome a marca para dano extra e lentidão.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Strix Salvo"
       },
       {
         "key": "2",
-        "name": "Chimera Mk1",
+        "name": "Quimera Mk1",
         "desc": "Segure o pulo para voar acumulando calor; no calor máximo, Danny mergulha e explode, ferindo e lançando inimigos, ou se atordoa se não acertar ninguém.",
         "cd": 21,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Chimera Mk1"
       },
       {
         "key": "3",
-        "name": "Jettison Fuel",
+        "name": "Combustível de Ejeção",
         "desc": "Borrifa combustível que causa dano contínuo e reduz resistência a balas, depois dispara uma rajada espiritual que empurra Danny para trás.",
         "cd": 22,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Jettison Fuel"
       },
       {
         "key": "★",
-        "name": "Close The Deal",
+        "name": "Feche o Negócio",
         "desc": "Agarra um inimigo, o ergue e o arremessa; ambos caem sofrendo dano contínuo e o impacto causa dano extra, maior contra inimigos abaixo de 50% de vida.",
         "cd": 135,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Close The Deal"
       }
     ]
   },
@@ -383,31 +418,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Rend",
+        "name": "Dilacerar",
         "desc": "Ataca em cone à frente com dano espiritual e dano corpo a corpo extra a curta distância.",
         "cd": 16,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rend"
       },
       {
         "key": "2",
-        "name": "Stalker's Mark",
+        "name": "Marca do Perseguidor",
         "desc": "Envia uma marca que faz o primeiro alvo atingido sangrar; reativar enquanto ele sangra teleporta Drifter para trás dele.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Stalker's Mark"
       },
       {
         "key": "3",
-        "name": "Bloodscent",
+        "name": "Cheiro de Sangue",
         "desc": "Heróis isolados deixam rastro e seus batimentos são ouvidos de longe; Drifter causa dano ampliado neles e matar um por perto dá dano de arma permanente.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Bloodscent"
       },
       {
         "key": "★",
-        "name": "Eternal Night",
+        "name": "Noite Eterna",
         "desc": "Escurece heróis inimigos próximos, limitando a visão deles e revelando-os brevemente enquanto os trata como isolados, e dá velocidade de corrida extra.",
         "cd": 145,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Eternal Night"
       }
     ]
   },
@@ -427,31 +466,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Kinetic Pulse",
+        "name": "Pulso Cinético",
         "desc": "Envia um pulso pelo chão que causa dano espiritual e joga inimigos para o ar.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Kinetic Pulse"
       },
       {
         "key": "2",
-        "name": "Quantum Entanglement",
+        "name": "Emaranhamento Quântico",
         "desc": "Teleporta Dynamo a um local alvo, deixando-o intangível por pouco tempo; a versão alternativa leva aliados próximos junto.",
         "cd": 20,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Quantum Entanglement"
       },
       {
         "key": "3",
-        "name": "Rejuvenating Aurora",
+        "name": "Aurora rejuvenescedora",
         "desc": "Canaliza uma cura ao longo do tempo para Dynamo e aliados próximos, e ele ainda pode dar dash e atacar corpo a corpo durante o canal.",
         "cd": 48,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rejuvenating Aurora"
       },
       {
         "key": "★",
-        "name": "Singularity",
+        "name": "Singularidade",
         "desc": "Cria uma singularidade nas mãos que causa dano espiritual contínuo, atordoa e puxa inimigos próximos.",
         "cd": 250,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Singularity"
       }
     ]
   },
@@ -471,31 +514,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Jar of Dead",
+        "name": "Jarro de Mortos",
         "desc": "Mortes próximas são coletadas num pote, que é lançado para invocar Cabeças-Mortas que causam dano espiritual repetido.",
         "cd": 13,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Jar of Dead"
       },
       {
         "key": "2",
-        "name": "Grasping Hands",
+        "name": "Mãos Agarradoras",
         "desc": "Faz surgir uma linha de mãos agarradoras que invoca um Ghoul e imobiliza inimigos que passam, causando dano espiritual.",
         "cd": 34,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Grasping Hands"
       },
       {
         "key": "3",
-        "name": "Essence Theft",
+        "name": "Roubo de Essência",
         "desc": "A arma rouba aos poucos o dano de arma e a resistência espiritual dos inimigos, até um máximo por alvo.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Essence Theft"
       },
       {
         "key": "★",
-        "name": "Borrowed Decree",
+        "name": "Decreto Emprestado",
         "desc": "Habilidades invocam Ghouls que seguem para a base inimiga, e uma lápide ativa invoca Ghouls ao longo do tempo.",
         "cd": 140,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Borrowed Decree"
       }
     ]
   },
@@ -515,31 +562,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Charged Shot",
+        "name": "Tiro carregado",
         "desc": "Segura uma flecha carregada e a dispara num tiro perfurante.",
         "cd": 17,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Charged Shot"
       },
       {
         "key": "2",
-        "name": "Rain of Arrows",
+        "name": "Chuva de Flechas",
         "desc": "Lança-se ao ar e plana, aumentando o dano de arma e o multitiro enquanto estiver no ar.",
         "cd": 35,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rain of Arrows"
       },
       {
         "key": "3",
-        "name": "Spirit Snare",
+        "name": "Armadilha Espiritual",
         "desc": "Coloca uma armadilha que, armada, amaldiçoa e retarda inimigos no raio e os interrompe, silencia e desarma.",
         "cd": 34,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Spirit Snare"
       },
       {
         "key": "★",
-        "name": "Guided Owl",
+        "name": "Coruja Guiada",
         "desc": "Após um breve preparo, lança uma coruja espiritual que ele controla e que explode no impacto, ferindo e atordoando inimigos.",
         "cd": 120,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Guided Owl"
       }
     ]
   },
@@ -559,31 +610,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Sleep Dagger",
+        "name": "Adaga do Sono",
         "desc": "Lança uma adaga que fere e faz o alvo dormir; alvos dormindo acordam pouco depois de sofrer dano.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Sleep Dagger"
       },
       {
         "key": "2",
-        "name": "Smoke Bomb",
+        "name": "Bomba de fumaça",
         "desc": "Some de vista, ficando invisível e ganhando velocidade de corrida; atacar quebra a invisibilidade e inimigos muito próximos ainda a veem.",
         "cd": 33,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Smoke Bomb"
       },
       {
         "key": "3",
-        "name": "Fixation",
+        "name": "Fixação",
         "desc": "Cada tiro acertado num alvo acumula um bônus de dano de bala contra ele, com bônus maior em tiros na cabeça.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Fixation"
       },
       {
         "key": "★",
-        "name": "Bullet Dance",
+        "name": "Dança das Balas",
         "desc": "Entra numa rajada que atira em inimigos próximos com precisão perfeita e dano de bala adicional.",
         "cd": 165,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Bullet Dance"
       }
     ]
   },
@@ -603,31 +658,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Powder Keg",
+        "name": "Barril de pólvora",
         "desc": "Lança um barril que explode após um tempo, causando dano espiritual, incendiando e jogando inimigos para o alto.",
         "cd": 28,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Powder Keg"
       },
       {
         "key": "2",
-        "name": "Bounce Pad",
+        "name": "Trampolim",
         "desc": "Solta uma plataforma que lança heróis ao ar e causa dano espiritual a inimigos próximos quando ela pousa.",
         "cd": 41,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Bounce Pad"
       },
       {
         "key": "3",
-        "name": "Crackshot",
+        "name": "Tiro Certeiro",
         "desc": "Tiros na cabeça causam dano de arma extra e aplicam uma lentidão que se dissipa, só quando o efeito não está em recarga.",
         "cd": 20,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Crackshot"
       },
       {
         "key": "★",
-        "name": "Spirit Lasso",
+        "name": "Laço Espiritual",
         "desc": "Lança um laço que causa dano espiritual, puxa o alvo até ela e o atordoa.",
         "cd": 130,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Spirit Lasso"
       }
     ]
   },
@@ -650,28 +709,32 @@ const HEROES_DATA = [
         "name": "Napalm",
         "desc": "Cospe uma mistura incendiária que causa dano espiritual, retarda alvos e os cobre de napalm.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Napalm"
       },
       {
         "key": "2",
-        "name": "Flame Dash",
+        "name": "Traço Flamejante",
         "desc": "Avança com resistência a lentidão deixando um rastro de fogo que causa dano espiritual contínuo.",
         "cd": 38,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flame Dash"
       },
       {
         "key": "3",
-        "name": "Afterburn",
+        "name": "Pós-queimadura",
         "desc": "Acertos de arma acumulam uma queimadura que causa dano espiritual contínuo.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Afterburn"
       },
       {
         "key": "★",
-        "name": "Concussive Combustion",
+        "name": "Combustão Concussiva",
         "desc": "Após um breve atraso, detona causando dano espiritual e atordoando inimigos próximos.",
         "cd": 140,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Concussive Combustion"
       }
     ]
   },
@@ -691,31 +754,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Entangling Thorns",
+        "name": "Espinhos Enredados",
         "desc": "Cria um canteiro de espinhos que fere e retarda inimigos dentro do raio.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Entangling Thorns"
       },
       {
         "key": "2",
-        "name": "Kudzu Connection",
+        "name": "Ligação Kudzu",
         "desc": "Liga Ivy a um aliado próximo para compartilhar bônus e replicar curas.",
         "cd": 37,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Kudzu Connection"
       },
       {
         "key": "3",
-        "name": "Stone Form",
+        "name": "Forma de Pedra",
         "desc": "Vira pedra e bate no chão, ferindo e atordoando inimigos próximos enquanto se cura.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Stone Form"
       },
       {
         "key": "★",
-        "name": "Air Drop",
+        "name": "Queda Aérea",
         "desc": "Ergue um aliado no ar e o derruba para explodir entre inimigos, ou o leva voando para longe do perigo.",
         "cd": 100,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Air Drop"
       }
     ]
   },
@@ -735,31 +802,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Frost Grenade",
+        "name": "Granada de Gelo",
         "desc": "Lança uma granada que explode em gelo, curando aliados e causando dano espiritual e lentidão a inimigos.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Frost Grenade"
       },
       {
         "key": "2",
-        "name": "Ice Path",
+        "name": "Caminho de Gelo",
         "desc": "Cria uma trilha de gelo flutuante que dá velocidade a Kelvin e aliados, e resistência a lentidão a Kelvin.",
         "cd": 50,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Ice Path"
       },
       {
         "key": "3",
-        "name": "Arctic Beam",
+        "name": "Feixe Ártico",
         "desc": "Dispara um raio congelante que fere e reduz progressivamente a velocidade de movimento e a cadência de tiro quanto mais tempo fica no alvo.",
         "cd": 28,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Arctic Beam"
       },
       {
         "key": "★",
-        "name": "Frozen Shelter",
+        "name": "Abrigo Congelado",
         "desc": "Cria uma cúpula de gelo impenetrável em torno de Kelvin ou de um herói alvo, curando aliados dentro e retardando inimigos.",
         "cd": 185,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Frozen Shelter"
       }
     ]
   },
@@ -779,31 +850,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Essence Bomb",
+        "name": "Bomba de Essência",
         "desc": "Gasta parte da própria vida para disparar uma bomba que explode após um breve tempo de armação.",
         "cd": 14,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Essence Bomb"
       },
       {
         "key": "2",
-        "name": "Life Drain",
+        "name": "Dreno de Vida",
         "desc": "Prende um inimigo para drenar sua vida ao longo do tempo e curar Geist; também pode transferir vida a um herói aliado.",
         "cd": 34,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Life Drain"
       },
       {
         "key": "3",
-        "name": "Malice",
+        "name": "Malícia",
         "desc": "Gasta parte da vida para lançar estilhaços de sangue que acumulam lentidão e dano recebido nos inimigos.",
         "cd": 6,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Malice"
       },
       {
         "key": "★",
-        "name": "Soul Exchange",
+        "name": "Troca de Almas",
         "desc": "Troca o nível de vida com um inimigo alvo, respeitando limites mínimos de vida.",
         "cd": 220,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Soul Exchange"
       }
     ]
   },
@@ -823,31 +898,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Ground Strike",
+        "name": "Golpe no Solo",
         "desc": "Pisoteia o chão ferindo inimigos num cone à frente e mergulha em direção ao chão se usado no ar.",
         "cd": 21,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Ground Strike"
       },
       {
         "key": "2",
-        "name": "Grapple",
+        "name": "Gancho",
         "desc": "Puxa Lash pelo ar até um alvo e restaura seus pulos aéreos e dashes.",
         "cd": 35,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Grapple"
       },
       {
         "key": "3",
-        "name": "Flog",
+        "name": "Chicotear",
         "desc": "Chicoteia inimigos à frente e se cura com parte do dano causado.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flog"
       },
       {
         "key": "★",
-        "name": "Death Slam",
+        "name": "Golpe Mortal",
         "desc": "Prende chicotes em inimigos durante um canal e então os ergue, atordoa e esmaga no chão.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Death Slam"
       }
     ]
   },
@@ -867,31 +946,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Mini Turret",
+        "name": "Minitorre",
         "desc": "Instala uma torreta de curta duração que atira em inimigos e causa dano espiritual contínuo.",
         "cd": 18,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Mini Turret"
       },
       {
         "key": "2",
-        "name": "Medicinal Specter",
+        "name": "Espectro Medicinal",
         "desc": "Invoca um espírito que cura e restaura stamina de aliados próximos.",
         "cd": 48,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Medicinal Specter"
       },
       {
         "key": "3",
-        "name": "Spectral Wall",
+        "name": "Parede Espectral",
         "desc": "Cria uma parede no terreno que fere e retarda inimigos próximos, e pode ser detonada antes do tempo.",
         "cd": 50,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Spectral Wall"
       },
       {
         "key": "★",
-        "name": "Heavy Barrage",
+        "name": "Barragem Pesada",
         "desc": "Dispara foguetes teleguiados numa área alvo por um tempo, retardando McGinnis enquanto dura.",
         "cd": 165,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Heavy Barrage"
       }
     ]
   },
@@ -911,31 +994,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Rake",
+        "name": "Ancinho",
         "desc": "Corta com o guarda-chuva com dano espiritual que escala com a vida perdida do alvo, curando-a a cada abate.",
         "cd": 16,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rake"
       },
       {
         "key": "2",
-        "name": "Sanguine Retreat",
+        "name": "Retiro Sanguíneo",
         "desc": "Vira morcegos por um instante, ficando intangível enquanto voa até um local escolhido, com uma breve janela de reativação.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Sanguine Retreat"
       },
       {
         "key": "3",
-        "name": "Love Bites",
+        "name": "Mordidas de Amor",
         "desc": "Adiciona dano espiritual aos tiros e acumula uma explosão de dano espiritual extra quando causa dano a inimigos com habilidades.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Love Bites"
       },
       {
         "key": "★",
         "name": "Nox Nostra",
         "desc": "Solta uma nuvem de morcegos teleguiados que causam dano espiritual e Silêncio, com mais morcegos conforme ativa Love Bites em heróis.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Nox Nostra"
       }
     ]
   },
@@ -955,31 +1042,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Fire Scarabs",
+        "name": "Escaravelhos de Fogo",
         "desc": "Infesta um inimigo com escaravelhos que roubam sua vida e reduzem o dano que ele causa.",
         "cd": 35,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Fire Scarabs"
       },
       {
         "key": "2",
-        "name": "Dust Devil",
+        "name": "Redemoinho de Poeira",
         "desc": "Vira um redemoinho que avança ferindo, retardando e erguendo inimigos, e depois dá evasão de balas.",
         "cd": 36,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Dust Devil"
       },
       {
         "key": "3",
-        "name": "Djinn's Mark",
+        "name": "Marca do Djinn",
         "desc": "Tiros aplicam marcas que causam dano espiritual e revelam o alvo ao expirar ou serem consumidas. Ativa, consome todas as marcas de uma vez.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Djinn's Mark"
       },
       {
         "key": "★",
-        "name": "Traveler",
+        "name": "Viajante",
         "desc": "Teleporta Mirage a um local do minimapa após uma breve espera, interrompida se ele sofrer dano.",
         "cd": 140,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Traveler"
       }
     ]
   },
@@ -999,31 +1090,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Scorn",
+        "name": "Desprezo",
         "desc": "Fere inimigos próximos e cura a dupla com base no dano causado, mais contra heróis inimigos.",
         "cd": 13,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Scorn"
       },
       {
         "key": "2",
-        "name": "Burrow",
+        "name": "Escavar",
         "desc": "Viaja sob a terra em velocidade maior com armadura espiritual e de bala, e depois irrompe ferindo, retardando e lançando inimigos ao ar.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Burrow"
       },
       {
         "key": "3",
-        "name": "Sand Blast",
+        "name": "Explosão de Areia",
         "desc": "Dispara um jato de areia que desarma e fere inimigos à frente da dupla.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Sand Blast"
       },
       {
         "key": "★",
         "name": "Combo",
         "desc": "Segura um alvo no lugar, atordoando e ferindo; ganha vida máxima permanente se ele morrer durante ou logo após o canal.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Combo"
       }
     ]
   },
@@ -1058,31 +1153,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Conjure Dragon",
+        "name": "Conjurar Dragão",
         "desc": "Invoca um dragão no local alvo que voa para a frente causando dano espiritual e deixando um rastro em chamas.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Conjure Dragon"
       },
       {
         "key": "2",
-        "name": "Defend and Fight!",
+        "name": "Defenda e Lute!",
         "desc": "Dá a um aliado uma barreira que também aumenta o dano de arma dele enquanto durar.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Defend and Fight!"
       },
       {
         "key": "3",
-        "name": "Captivating Read",
+        "name": "Leitura Cativante",
         "desc": "Marca uma área com magia retardada que retarda inimigos e depois detona causando dano espiritual e imobilizando quem está dentro.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Captivating Read"
       },
       {
         "key": "★",
-        "name": "Rallying Charge",
+        "name": "Carga de Reunião",
         "desc": "Envia cavaleiros espectrais pela cidade, curando aliados e ferindo inimigos, com ambos os efeitos crescendo com a distância.",
         "cd": 190,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rallying Charge"
       }
     ]
   },
@@ -1102,31 +1201,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Pulse Grenade",
+        "name": "Granada de Pulso",
         "desc": "Lança uma granada que pulsa ao pousar, causando dano espiritual, retardando inimigos e acumulando um amplificador de dano em cada vítima.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Pulse Grenade"
       },
       {
         "key": "2",
-        "name": "Time Wall",
+        "name": "Muralha do Tempo",
         "desc": "Cria uma parede que congela projéteis inimigos, aumenta a velocidade e o dano das balas aliadas e retarda brevemente inimigos que a cruzam.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Time Wall"
       },
       {
         "key": "3",
-        "name": "Kinetic Carbine",
+        "name": "Carabina Cinética",
         "desc": "Carrega um único tiro poderoso que causa dano espiritual e aplica Parada no Tempo, com dano escalando do dano de arma.",
         "cd": 28,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Kinetic Carbine"
       },
       {
         "key": "★",
-        "name": "Paradoxical Swap",
+        "name": "Troca Paradoxal",
         "desc": "Dispara um projétil que troca a posição de Paradox com um herói inimigo, causando dano de troca e dando uma barreira.",
         "cd": 110,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Paradoxical Swap"
       }
     ]
   },
@@ -1146,31 +1249,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Barrage",
+        "name": "Barragem",
         "desc": "Canaliza para disparar projéteis espirituais que retardam inimigos ao redor do impacto, com acertos em heróis acumulando um amplificador de dano.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Barrage"
       },
       {
         "key": "2",
-        "name": "Flying Cloak",
+        "name": "Capa Voadora",
         "desc": "Envia uma capa senciente que fere inimigos pelo caminho, e Pocket pode se teleportar até onde ela está.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flying Cloak"
       },
       {
         "key": "3",
-        "name": "Enchanter's Satchel",
+        "name": "Bolsa do Encantador",
         "desc": "Pocket se esconde na mala e causa dano espiritual a inimigos próximos quando termina; qualquer ação o encerra antes.",
         "cd": 17,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Enchanter's Satchel"
       },
       {
         "key": "★",
-        "name": "Affliction",
+        "name": "Aflição",
         "desc": "Causa dano contínuo a inimigos próximos e impede toda cura enquanto ativo.",
         "cd": 170,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Affliction"
       }
     ]
   },
@@ -1190,31 +1297,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Scrap Grenade",
+        "name": "Granada de Sucata",
         "desc": "Lança uma granada de sucata que detona várias vezes, causando dano de bala e retardando inimigos.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Scrap Grenade"
       },
       {
         "key": "2",
-        "name": "Rat Swarm",
+        "name": "Enxame de Ratos",
         "desc": "Invoca ratos que grudam nos inimigos, causando dano espiritual contínuo e reduzindo a resistência a balas a cada mordida.",
         "cd": 24,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rat Swarm"
       },
       {
         "key": "3",
-        "name": "Royal Pestments",
+        "name": "Pragas Reais",
         "desc": "Veste armadura para ganhar uma barreira baseada na vida máxima, podendo rebater balas de volta aos atacantes.",
         "cd": 22,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Royal Pestments"
       },
       {
         "key": "★",
-        "name": "Rule, Ratannia!",
+        "name": "Comande, Ratânia!",
         "desc": "Finca um estandarte que dá velocidade, imunidade a lentidão e redução de dano a aliados próximos, e depois uma pancada fere, lança ao ar e retarda inimigos na área.",
         "cd": 160,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rule, Ratannia!"
       }
     ]
   },
@@ -1234,31 +1345,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Pillow Toss",
+        "name": "Arremesso de Travesseiro",
         "desc": "Lança um travesseiro que causa dano espiritual e grande repulsão; acertos reduzem a recarga das suas outras habilidades.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Pillow Toss"
       },
       {
         "key": "2",
-        "name": "Tag Along",
+        "name": "Vem Junto",
         "desc": "Pula até um aliado e tira uma soneca ao lado dele, dando a ambos uma cura imediata baseada na vida perdida, seguida de regeneração.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Tag Along"
       },
       {
         "key": "3",
-        "name": "Lil Helpers",
+        "name": "Ajudantes do Lil",
         "desc": "Envia ajudantes para coletar caixas, fazer Sacrifícios do Pecador ou seguir heróis ou tropas para dar bônus ou cura.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Lil Helpers"
       },
       {
         "key": "★",
-        "name": "Naptime",
+        "name": "Hora do Cochilo",
         "desc": "Canaliza um olhar através de paredes e pisos que retarda inimigos e depois os faz dormir; ao acordarem, sofrem dano espiritual.",
         "cd": 200,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Naptime"
       }
     ]
   },
@@ -1278,31 +1393,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Lightning Ball",
+        "name": "Bola Relâmpago",
         "desc": "Dispara uma bola de raio em linha reta que fere inimigos no raio, retardando quem atinge e parando no terreno.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Lightning Ball"
       },
       {
         "key": "2",
-        "name": "Static Charge",
+        "name": "Carga Estática",
         "desc": "Marca um herói inimigo e, após um breve atraso, atordoa e fere inimigos na área.",
         "cd": 42,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Static Charge"
       },
       {
         "key": "3",
-        "name": "Power Surge",
+        "name": "Surto de Energia",
         "desc": "Cada rajada de arma de Seven adiciona dano de choque ao alvo, que pode saltar para inimigos próximos.",
         "cd": 50,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Power Surge"
       },
       {
         "key": "★",
-        "name": "Storm Cloud",
+        "name": "Nuvem de Tempestade",
         "desc": "Canaliza uma nuvem de tempestade em expansão que fere inimigos no raio, exceto os fora da linha de visão.",
         "cd": 180,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Storm Cloud"
       }
     ]
   },
@@ -1322,31 +1441,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Serrated Knives",
+        "name": "Facas serrilhadas",
         "desc": "Lança uma faca que faz o inimigo sangrar; cada acerto extra acumula e renova o sangramento.",
         "cd": 16,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Serrated Knives"
       },
       {
         "key": "2",
-        "name": "Slice and Dice",
+        "name": "Cortar e Picar",
         "desc": "Avança ferindo inimigos pelo caminho e reduzindo a resistência espiritual deles.",
         "cd": 16,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Slice and Dice"
       },
       {
         "key": "3",
-        "name": "Bloodletting",
+        "name": "Sangramento",
         "desc": "Recebe só parte do dano imediatamente e adia o resto ao longo do tempo; pode ser ativada para limpar parte do dano adiado.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Bloodletting"
       },
       {
         "key": "★",
-        "name": "Killing Blow",
+        "name": "Golpe Fatal",
         "desc": "Salta contra o primeiro herói inimigo e o executa se estiver abaixo do limite de vida; senão, o fere.",
         "cd": 145,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Killing Blow"
       }
     ]
   },
@@ -1366,31 +1489,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Slam Fire",
+        "name": "Tiro de Impacto",
         "desc": "Recarrega a arma na hora e dá cadência de tiro e dano extras conforme a vida do alvo por alguns tiros, com precisão reduzida.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Slam Fire"
       },
       {
         "key": "2",
-        "name": "Boot Kick",
+        "name": "Chute de Partida",
         "desc": "Avança chutando o primeiro inimigo atingido com dano corpo a corpo e o marca; atirar no marcado causa dano espiritual.",
         "cd": 21,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Boot Kick"
       },
       {
         "key": "3",
-        "name": "Entangling Bola",
+        "name": "Bola Enredadora",
         "desc": "Lança uma bola que causa dano espiritual, retarda o alvo e impede habilidades de movimento e uso de stamina.",
         "cd": 23,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Entangling Bola"
       },
       {
         "key": "★",
-        "name": "Lycan Curse",
+        "name": "Maldição Lycan",
         "desc": "Transforma Silver por 15 segundos, dando vida máxima e cadência de tiro contra heróis inimigos e trocando habilidades e arma por versões de lobisomem.",
         "cd": 60,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Lycan Curse"
       }
     ]
   },
@@ -1410,31 +1537,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Vexing Bolt",
+        "name": "Virote Perturbador",
         "desc": "Dispara um raio mágico que causa mais dano quanto mais longe vai; com o Assistente em campo, ele também dispara um raio mais fraco.",
         "cd": 24,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Vexing Bolt"
       },
       {
         "key": "2",
-        "name": "Spectral Assistant",
+        "name": "Assistente Espectral",
         "desc": "Invoca um Assistente num local alvo que ataca sempre que você atira; a habilidade 2 troca sua posição com a do Assistente.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Spectral Assistant"
       },
       {
         "key": "3",
-        "name": "Rabbit Hex",
+        "name": "Feitiço do Coelho",
         "desc": "Enfeitiça uma área e transforma todos os inimigos dentro em Coelhos por um tempo limitado.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rabbit Hex"
       },
       {
         "key": "★",
-        "name": "Audience Participation",
+        "name": "Participação do Público",
         "desc": "Copia a suprema de um herói inimigo por um tempo; reativar usa a suprema copiada.",
         "cd": 85,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Audience Participation"
       }
     ]
   },
@@ -1454,31 +1585,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Setup Bishop",
+        "name": "Posicionar Bispo",
         "desc": "Coloca um bispo que, ao ser movido, retarda e fere inimigos pelo caminho, e suas casas diagonais causam dano extra ao serem pisadas; reativar recolhe todos os bispos.",
         "cd": 12,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Setup Bishop"
       },
       {
         "key": "2",
-        "name": "Kingside Knight",
+        "name": "Cavalo da Ala do Rei",
         "desc": "Transforma um aliado em cavalo, dando stamina extra e barreira; em si mesmo, Solomon vira o rei, com barreira maior e sem stamina.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Kingside Knight"
       },
       {
         "key": "3",
-        "name": "Rook Battery",
+        "name": "Bateria de Torre",
         "desc": "Lança um par de torres que ferem e imobilizam inimigos, refletindo nas paredes; reativar as separa em direções perpendiculares.",
         "cd": 33,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Rook Battery"
       },
       {
         "key": "★",
-        "name": "Develop Queen",
+        "name": "Desenvolver a Rainha",
         "desc": "Invoca uma rainha que cai ferindo a área e depois solta linhas de casas que ferem e atordoam; mover faz ela saltar e reativar a recolhe antes.",
         "cd": 210,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Develop Queen"
       }
     ]
   },
@@ -1498,31 +1633,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Call Bell",
+        "name": "Tocar a Campainha",
         "desc": "Lança um sino que causa dano espiritual no impacto e explode depois, causando mais dano, retardando inimigos próximos e reduzindo sua precisão.",
         "cd": 18,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Call Bell"
       },
       {
         "key": "2",
-        "name": "Doorway",
+        "name": "Entrada",
         "desc": "Coloca duas portas ligadas que levam jogadores e a maioria dos projéteis de uma para a outra até fecharem.",
         "cd": 45,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Doorway"
       },
       {
         "key": "3",
-        "name": "Luggage Cart",
+        "name": "Carrinho de bagagem",
         "desc": "Envia um carrinho que causa dano espiritual e puxa heróis inimigos pelo caminho.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Luggage Cart"
       },
       {
         "key": "★",
-        "name": "Hotel Guest",
+        "name": "Hóspede do Hotel",
         "desc": "Manda o corpo de um inimigo para uma estadia no Hotel Baroness e o devolve na saída; não sair a tempo causa dano espiritual extra.",
         "cd": 140,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Hotel Guest"
       }
     ]
   },
@@ -1542,31 +1681,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Consecrating Grenade",
+        "name": "Granada Consagrada",
         "desc": "Dispara uma granada quicante que explode, fere e incendeia inimigos, causando dano puro e reduzindo a cura.",
         "cd": 25,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Consecrating Grenade"
       },
       {
         "key": "2",
-        "name": "Gutshot",
+        "name": "Tiro no Estômago",
         "desc": "Dispara um tiro de espingarda que fere e empurra inimigos; os perto de uma parede ficam atordoados e sofrem dano extra.",
         "cd": 23,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Gutshot"
       },
       {
         "key": "3",
-        "name": "Hex-Lined Snap Trap",
+        "name": "Armadilha Hexagonal",
         "desc": "Chuta uma armadilha que se arma após um instante e fecha no primeiro herói inimigo que tocar, causando dano espiritual, imobilizando e revelando.",
         "cd": 28,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Hex-Lined Snap Trap"
       },
       {
         "key": "★",
         "name": "Ira Domini",
         "desc": "Carrega a besta com três estacas de dano pesado, sendo a última abençoada para causar dano puro extra e executar inimigos com pouca vida.",
         "cd": 160,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Ira Domini"
       }
     ]
   },
@@ -1586,31 +1729,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Pain Battery",
+        "name": "Bateria de Dor",
         "desc": "Sofrer dano o carrega; quando cheio, ativá-lo dispara raios de choque que causam dano espiritual uma vez em cada alvo.",
         "cd": 2,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Pain Battery"
       },
       {
         "key": "2",
-        "name": "Jumpstart",
+        "name": "Partida Rápida",
         "desc": "Eletrocuta Victor com dano espiritual e depois dá regeneração de vida e velocidade extras que se dissipam com o tempo.",
         "cd": 30,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Jumpstart"
       },
       {
         "key": "3",
-        "name": "Aura of Suffering",
+        "name": "Aura de Sofrimento",
         "desc": "Canalizada para liberar dor que fere inimigos próximos e o próprio Victor ao longo do tempo, com dano crescente quanto mais tempo canalizar.",
         "cd": 2,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Aura of Suffering"
       },
       {
         "key": "★",
-        "name": "Shocking Reanimation",
+        "name": "Reanimação Chocante",
         "desc": "Passiva: após sofrer dano letal, Victor libera uma onda retardadora e revive após um breve canal, causando dano espiritual e atordoando inimigos próximos.",
         "cd": 240,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Shocking Reanimation"
       }
     ]
   },
@@ -1630,31 +1777,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Stake",
+        "name": "Estaca",
         "desc": "Lança uma estaca que prende inimigos ao local onde ela cai, limitando o movimento ao comprimento da corrente.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Stake"
       },
       {
         "key": "2",
-        "name": "Flight",
+        "name": "Voo",
         "desc": "Salta e voa, dando à arma dano espiritual bônus e maior alcance de itens enquanto está no ar.",
         "cd": 42,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flight"
       },
       {
         "key": "3",
-        "name": "Crow Familiar",
+        "name": "Corvo Familiar",
         "desc": "Envia um corvo que causa dano de impacto, reduz a resistência a balas e espiritual do alvo e aplica sangramento baseado na vida atual dele.",
         "cd": 32,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Crow Familiar"
       },
       {
         "key": "★",
-        "name": "Assassinate",
+        "name": "Assassinar",
         "desc": "Dispara um tiro de sniper de longo alcance com mira que causa dano extra a inimigos abaixo de 50% de vida.",
         "cd": 55,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Assassinate"
       }
     ]
   },
@@ -1677,28 +1828,32 @@ const HEROES_DATA = [
         "name": "Tinta Viva",
         "desc": "Suas próximas 3 balas ganham vida e podem ser conduzidas durante o trajeto, causando mais dano de bala e dano espiritual em uma pequena área. Cada acerto em herói reduz a recarga de todas as habilidades (e metade da recarga dos itens). No alt-fire, desenha um traço sólido de tinta que bloqueia projéteis e personagens.",
         "cd": 22,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Tinta Viva"
       },
       {
         "key": "2",
         "name": "Estado de Fluxo",
         "desc": "Arrasta um pincel que continua avançando e deixa um rastro que dá distância extra de deslize para os aliados e causa lentidão e dano espiritual nos inimigos que atravessa, que aumenta quanto mais longe ele vai. Reative para arremessar o pincel e causar dano em uma área maior.",
         "cd": 23,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Estado de Fluxo"
       },
       {
         "key": "3",
         "name": "Natureza Morta",
         "desc": "Escolhe um herói como modelo e causa dano espiritual contínuo enquanto você estiver olhando para ele. Se completar o desenho, o alvo leva dano extra, fica atordoado e deixa cair um esboço: cada esboço coletado dá atributos permanentes.",
         "cd": 35,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Natureza Morta"
       },
       {
         "key": "★",
         "name": "Paisagem Abstrata",
         "desc": "Cria um círculo de tinta gigante que bloqueia a visão e concede Poder Espiritual aos aliados. Os inimigos dentro ficam revelados e, ao sair, levam dano espiritual, ficam silenciados e desacelerados, o que desfaz a tinta.",
         "cd": 165,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Paisagem Abstrata"
       }
     ]
   },
@@ -1718,31 +1873,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Splatter",
+        "name": "Respingo",
         "desc": "Lança uma bola de gosma que causa dano e deixa poças que retardam.",
         "cd": 26,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Splatter"
       },
       {
         "key": "2",
-        "name": "The Cube",
+        "name": "O Cubo",
         "desc": "Envolve um alvo, ele mesmo ou um aliado, num cubo de gosma protetor que bloqueia dano e aumenta a regeneração de vida.",
         "cd": 42,
-        "passive": 0
+        "passive": 0,
+        "name_en": "The Cube"
       },
       {
         "key": "3",
-        "name": "Puddle Punch",
+        "name": "Soco na Poça",
         "desc": "Invoca um punho que lança todos na área ao ar; socar um inimigo também o retarda.",
         "cd": 24,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Puddle Punch"
       },
       {
         "key": "★",
-        "name": "Goo Ball",
+        "name": "Bola de gosma",
         "desc": "Transforma Viscous numa grande bola quicante que atordoa inimigos no impacto e dá resistência a balas e espiritual.",
         "cd": 130,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Goo Ball"
       }
     ]
   },
@@ -1762,31 +1921,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Screwjab Dagger",
+        "name": "Adaga Perfurante",
         "desc": "Lança uma adaga que causa dano espiritual e retarda o alvo; acertos repetidos no mesmo alvo acumulam dano e lentidão.",
         "cd": 10,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Screwjab Dagger"
       },
       {
         "key": "2",
-        "name": "Lethal Venom",
+        "name": "Veneno letal",
         "desc": "Injeta veneno num alvo que dispara após um tempo causando dano espiritual, maior quanto menos vida o alvo tiver.",
         "cd": 28,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Lethal Venom"
       },
       {
         "key": "3",
-        "name": "Slither",
+        "name": "Deslizar",
         "desc": "Aumenta a distância do deslize, deixa Vyper subir ladeiras deslizando e melhora a curva; níveis maiores dão uma barreira ao deslizar.",
         "cd": null,
-        "passive": 1
+        "passive": 1,
+        "name_en": "Slither"
       },
       {
         "key": "★",
-        "name": "Petrifying Bola",
+        "name": "Bola Petrificante",
         "desc": "Lança uma bola explosiva que retarda e fere inimigos na área; acertos diretos petrificam o alvo, bloqueando dano e impedindo ações.",
         "cd": 115,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Petrifying Bola"
       }
     ]
   },
@@ -1806,31 +1969,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Alchemical Flask",
+        "name": "Frasco Alquímico",
         "desc": "Lança um frasco que fere e retarda quem atinge, cortando o dano de arma e a velocidade deles.",
         "cd": 12,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Alchemical Flask"
       },
       {
         "key": "2",
-        "name": "Willpower",
+        "name": "Força de vontade",
         "desc": "Dá uma barreira e velocidade extra por 5 segundos.",
         "cd": 40,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Willpower"
       },
       {
         "key": "3",
-        "name": "Binding Word",
+        "name": "Palavra Vinculante",
         "desc": "Amaldiçoa um herói inimigo, ferindo e imobilizando se ele não sair da posição inicial dentro do tempo de fuga.",
         "cd": 34,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Binding Word"
       },
       {
         "key": "★",
-        "name": "Last Stand",
+        "name": "Última Resistência",
         "desc": "Após 2 segundos de carga, libera pulsos que ferem e curam Warden com base no dano causado, e aumenta muito a resistência a balas e espiritual durante o canal.",
         "cd": 155,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Last Stand"
       }
     ]
   },
@@ -1850,31 +2017,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Card Trick",
+        "name": "Truque de Cartas",
         "desc": "Acertos de arma invocam cartas de naipes aleatórios, que podem ser lançadas em inimigos para dano e um efeito de cada naipe.",
         "cd": 0.6,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Card Trick"
       },
       {
         "key": "2",
-        "name": "Project Mind",
+        "name": "Projeção Mental",
         "desc": "Teleporta Wraith a um local alvo num raio de 25 m.",
         "cd": 46,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Project Mind"
       },
       {
         "key": "3",
-        "name": "Full Auto",
+        "name": "Fogo Total",
         "desc": "Aumenta temporariamente a cadência de tiro de Wraith e adiciona dano espiritual por bala.",
         "cd": 45,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Full Auto"
       },
       {
         "key": "★",
-        "name": "Telekinesis",
+        "name": "Telecinese",
         "desc": "Ergue um herói inimigo no ar e o arremessa contra um local alvo, causando dano espiritual e lentidão.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Telekinesis"
       }
     ]
   },
@@ -1894,31 +2065,35 @@ const HEROES_DATA = [
     "skills": [
       {
         "key": "1",
-        "name": "Power Slash",
+        "name": "Corte Poderoso",
         "desc": "Canaliza para acumular dano por 1,4 segundo e libera um golpe de espada, ou dispara antes para dano parcial.",
         "cd": 12,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Power Slash"
       },
       {
         "key": "2",
-        "name": "Flying Slash",
+        "name": "Corte Voador",
         "desc": "Lança um gancho que puxa Yamato até um inimigo, causando dano corpo a corpo e retardando-o na chegada.",
         "cd": 36,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Flying Slash"
       },
       {
         "key": "3",
-        "name": "Crimson Slash",
+        "name": "Corte Carmesim",
         "desc": "Corta inimigos à frente, ferindo-os e reduzindo a cadência de tiro, curando Yamato se acertar heróis inimigos.",
         "cd": 16,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Crimson Slash"
       },
       {
         "key": "★",
-        "name": "Shadow Transformation",
+        "name": "Transformação das Sombras",
         "desc": "Após uma breve transformação invencível, as habilidades recarregam e são lançadas mais rápido, com imunidade a status e resistências maiores por um tempo.",
         "cd": 150,
-        "passive": 0
+        "passive": 0,
+        "name_en": "Shadow Transformation"
       }
     ]
   }

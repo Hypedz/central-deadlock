@@ -40,6 +40,18 @@ jobs:
         run: python tools/update-stats.py
         continue-on-error: true
 
+      - name: Buscar itens, builds, contadores e ranking reais do jogo
+        run: python tools/update-game-data.py
+        continue-on-error: true
+
+      - name: Traduzir os nomes das habilidades novas
+        run: python tools/traduzir-jogo.py
+        continue-on-error: true
+
+      - name: Gerar a página de cada herói, a de cada notícia e o sitemap
+        run: python tools/gerar-paginas.py
+        continue-on-error: true
+
       - name: Testar o Discord
         if: inputs.teste
         env:
@@ -63,7 +75,7 @@ jobs:
         run: |
           git config user.name "Central Deadlock Bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/
+          git add data/ heroi/ noticia/ sitemap.xml heroes-data.js
           if git diff --staged --quiet; then
             echo "Nada mudou desde a última vez."
             echo "mudou=nao" >> "$GITHUB_OUTPUT"

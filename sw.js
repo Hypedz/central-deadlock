@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-16';
+const VERSAO = 'central-deadlock-2026-10-16b';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -15,6 +15,8 @@ const ESSENCIAIS = [
     './script.js',
     './heroes-data.js',
     './data/hero-stats.js',
+    './data/game-data.js',
+    './data/hero-history.js',
     './data/steam-news.js',
     './manifest.webmanifest',
     './assets/brand/favicon.svg',
@@ -61,7 +63,7 @@ self.addEventListener('fetch', (evento) => {
         evento.respondWith(
             fetch(pedido)
                 .then((resposta) => guardar(pedido, resposta))
-                .catch(() => caches.match(pedido).then((r) => r || caches.match('./index.html')))
+                .catch(() => caches.match(pedido, { ignoreSearch: true }).then((r) => r || caches.match('./index.html')))
         );
         return;
     }

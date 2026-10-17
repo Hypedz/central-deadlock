@@ -22,6 +22,12 @@ python "tools\update-news.py"
 echo.
 python "tools\update-stats.py"
 echo.
+python "tools\update-game-data.py"
+echo.
+python "tools\traduzir-jogo.py"
+echo.
+python "tools\gerar-paginas.py"
+echo.
 
 if not exist "discord-webhook.txt" goto fim
 
