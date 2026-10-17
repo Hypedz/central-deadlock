@@ -32,6 +32,7 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASTA = os.path.join(BASE, "data")
 SAIDA_DADOS = os.path.join(PASTA, "game-data.js")
 SAIDA_HIST = os.path.join(PASTA, "hero-history.js")
+SAIDA_EXTRA = os.path.join(PASTA, "hero-extra.js")
 CACHE = os.path.join(PASTA, "traducao-jogo.json")
 CACHE_MAX = 4000
 
@@ -372,6 +373,113 @@ def buscar_historico(nomes):
     }
 
 
+# --------------------------- extras dos heróis (páginas do herói) ---------------------------
+
+# As "tags" são as etiquetas que aparecem embaixo do nome do herói no jogo
+# (Tanque, Lutador, Cabeça-Dura...). São palavras soltas e a tradução
+# automática erra muito nelas, então esta lista é feita à mão.
+# Se aparecer uma tag nova, ela é traduzida sozinha e pode ser corrigida aqui.
+TAGS_PT = {
+    "A Cut Above": "Um Nível Acima", "Acrobatics": "Acrobacias", "Ambitious": "Ambicioso",
+    "Apprehender": "Capturador", "Area Denial": "Controle de Área", "Arms Expert": "Especialista em Armas",
+    "Arrogant": "Arrogante", "Arsonist": "Incendiário", "Assassin": "Assassino", "Beady": "Olhar Afiado",
+    "Bleed": "Sangramento", "Bloodthirsty": "Sedento de Sangue", "Bodyguard": "Guarda-Costas",
+    "Bomb": "Bomba", "Booksmart": "Estudioso", "Brawler": "Lutador", "Bull-Headed": "Cabeça-Dura",
+    "Burn Rubber": "Cantando Pneu", "Burrower": "Escavador", "Burst Damage": "Dano Explosivo",
+    "Cackling": "Gargalhante", "Calculated": "Calculista", "Can't": "Não Pode", "Chaotic": "Caótico",
+    "Checkmate": "Xeque-Mate", "Clutch": "Decisivo", "Copycat": "Imitador", "Crackshot": "Tiro Certeiro",
+    "Creative": "Criativo", "Cruel": "Cruel", "Dazzling": "Deslumbrante", "Devout": "Devoto",
+    "Disorienting": "Desnorteante", "Disruption": "Interrupção", "Disruptive": "Perturbador",
+    "Disruptor": "Desestabilizador", "Duelist": "Duelista", "Evasive": "Evasivo",
+    "Explorer": "Explorador", "Explosive": "Explosivo", "Fatale": "Fatal", "Fearless": "Destemido",
+    "Feral": "Selvagem", "Finesse": "Elegância", "Focused": "Concentrado", "Frogs": "Sapos",
+    "G.O.A.T.": "G.O.A.T.", "Gooey": "Gosmento", "Gunner": "Metralhador", "Harasser": "Importunador",
+    "Helpful": "Solícito", "Hexing": "Enfeitiçador", "High Voltage": "Alta Tensão",
+    "High-Flying": "Voador", "High-flying": "Voador", "Hook": "Gancho", "Hot Mess": "Pura Confusão",
+    "Hunter": "Caçador", "Ice Cold": "Frio como Gelo", "Initiator": "Iniciador", "Inventor": "Inventor",
+    "Isolator": "Isolador", "Kill Me": "Me Matar", "Lethal": "Letal", "Lifesteal": "Roubo de Vida",
+    "Map Control": "Controle de Mapa", "Merciless": "Impiedoso", "Mind Games": "Jogos Mentais",
+    "Mobility": "Mobilidade", "Morbid": "Mórbido", "Necromancer": "Necromante", "Nimble": "Ágil",
+    "One Man Army": "Exército de Um Homem Só", "One Shot Kill": "Morte com Um Tiro",
+    "Performer": "Artista", "Precision": "Precisão", "Protector": "Protetor", "Punch": "Soco",
+    "Punk": "Punk", "Pursuer": "Perseguidor", "Rage": "Fúria", "Rat-a-Tat": "Tatatá",
+    "Reckless": "Imprudente", "Regal": "Nobre", "Relentless": "Implacável", "Repeat": "Repetição",
+    "Rock Solid": "Sólido como Pedra", "Scrappy": "Brigão", "Self Damage": "Dano em Si Mesmo",
+    "Slippery": "Escorregadio", "Sniper": "Franco-Atirador", "Soaring": "Voando Alto",
+    "Stalker": "Espreitador", "Stealthy": "Furtivo", "Strategist": "Estrategista", "Support": "Suporte",
+    "Tactical": "Tático", "Tactician": "Tática", "Tag-Team": "Dupla Dinâmica", "Tank": "Tanque",
+    "Team-up": "Trabalho em Equipe", "Teamplay": "Jogo em Equipe", "Telekinetic": "Telecinético",
+    "Tenacious": "Tenaz", "Tiny": "Pequenino", "Transformation": "Transformação",
+    "Traveller": "Viajante", "Trickster": "Trapaceiro", "Tricksy": "Ardiloso", "Versatile": "Versátil",
+    "Vexing": "Provocante", "You": "Você", "zZzzZ": "Zzzz"
+}
+
+
+def ler_nossos_herois():
+    """Os nomes dos heróis do nosso heroes-data.js (o arquivo editado à mão)."""
+    caminho = os.path.join(BASE, "heroes-data.js")
+    try:
+        with open(caminho, encoding="utf-8") as arquivo:
+            texto = arquivo.read()
+        inicio = texto.index("const HEROES_DATA = ")
+        lista = json.loads(texto[texto.index("[", inicio):texto.rindex("]") + 1])
+        return {str(h.get("name") or "").strip() for h in lista if h.get("name")}
+    except Exception as erro:
+        print("   (aviso: nao consegui ler o heroes-data.js: {})".format(erro))
+        return set()
+
+
+def buscar_extras(lista_herois, nossos):
+    """Etiquetas, dificuldade, cor, história e habilidades de cada herói.
+
+    Isso monta o banner e os quadros da página do herói. Devolve também a lista
+    de textos de história (que ainda precisam ser traduzidos) e as tags novas."""
+    # 1) quais habilidades são de qual herói (a própria API diz em "heroes")
+    habilidades = {}
+    try:
+        itens_api = baixar_json("{}/v1/assets/items".format(API))
+    except Exception as erro:
+        print("   (aviso: sem os icones das habilidades: {})".format(erro))
+        itens_api = []
+    for it in itens_api:
+        if not isinstance(it, dict) or str(it.get("type")).lower() != "ability":
+            continue
+        if str(it.get("name") or "").strip().lower() == "melee":
+            continue                        # "Melee" é de todos os heróis, não é habilidade
+        donos = it.get("heroes") or []
+        if len(donos) != 1:
+            continue                        # habilidades gerais (vale para vários heróis)
+        endereco = str(it.get("image_webp") or it.get("image") or "")
+        if endereco:
+            habilidades.setdefault(int(donos[0]), []).append({
+                "n": str(it.get("name") or "").strip(),
+                "i": endereco.rsplit("/", 1)[-1],
+            })
+
+    # 2) junta etiquetas, cor, dificuldade e história
+    extras, historias = {}, []
+    for h in lista_herois:
+        if not isinstance(h, dict):
+            continue
+        nome = str(h.get("name") or "").strip()
+        if nome not in nossos:
+            continue
+        lore = str((h.get("description") or {}).get("lore") or "")
+        # a história vem toda junta com <br>; viram parágrafos
+        paragrafos = [limpar_html(p) for p in re.split(r"<br\s*/?>", lore)]
+        paragrafos = [p for p in paragrafos if p]
+        historias.extend(paragrafos)
+        extras[nome] = {
+            "id": int(h.get("id") or 0),
+            "cor": str((h.get("colors") or {}).get("style_hex") or ""),
+            "compl": int(h.get("complexity") or 0),
+            "tags": [str(t).strip() for t in (h.get("tags") or []) if str(t).strip()],
+            "loreEn": paragrafos,
+            "hab": habilidades.get(int(h.get("id") or 0), []),
+        }
+    return extras, historias
+
+
 # --------------------------- principal ---------------------------
 
 def main():
@@ -441,6 +549,18 @@ def main():
     historico = buscar_historico(nomes)
     print("   {} semanas de historico".format(len(historico.get("semanas") or [])))
 
+    print(" - etiquetas, dificuldade e historia de cada heroi ...")
+    extras, historias = buscar_extras(herois_api, ler_nossos_herois())
+    tags_faltando = sorted({t for d in extras.values() for t in d["tags"] if t not in TAGS_PT})
+    traducao_historias = traduzir_lote(historias, cache, "historias dos herois", not sem_traducao)
+    traducao_tags = traduzir_lote(tags_faltando, cache, "etiquetas novas", not sem_traducao) if tags_faltando else {}
+    for dados in extras.values():
+        dados["tags"] = [TAGS_PT.get(t) or traducao_tags.get(t) or t for t in dados["tags"]]
+        # a historia fica em portugues; se a traducao falhar, guarda a original
+        dados["lore"] = [traducao_historias.get(p) or p for p in dados["loreEn"]]
+    salvar_cache(cache)
+    print("   {} herois com etiquetas e historia".format(len(extras)))
+
     agora = datetime.datetime.now().strftime("%d/%m/%Y as %H:%M")
 
     # itens -> chave de texto (JSON precisa de chaves de texto)
@@ -482,9 +602,21 @@ def main():
         with open(SAIDA_HIST, "w", encoding="utf-8") as arquivo:
             arquivo.write(conteudo_hist)
 
+    if extras:
+        conteudo_extra = (
+            "/* ATENCAO: arquivo gerado automaticamente pelo script tools/update-game-data.py\n"
+            "   Etiquetas, dificuldade, cor e historia de cada heroi.\n"
+            "   Usado pelas paginas dos herois (heroi/<nome>.html). Nao edite na mao.\n"
+            "   Dados reais do jogo, via deadlock-api.com\n"
+            "   Ultima atualizacao: {} */\n"
+            "window.HERO_EXTRA = {};\n"
+        ).format(agora, json.dumps({"updated": agora, "herois": extras}, ensure_ascii=False, separators=(",", ":")))
+        with open(SAIDA_EXTRA, "w", encoding="utf-8") as arquivo:
+            arquivo.write(conteudo_extra)
+
     print("OK! {} itens, {} builds, {} contadores, {} bans, {} regioes".format(
         len(itens), sum(len(v) for v in builds.values()), len(contadores), len(ban), len(ranking)))
-    print("    arquivos: data/game-data.js e data/hero-history.js")
+    print("    arquivos: data/game-data.js, data/hero-history.js e data/hero-extra.js")
     return 0
 
 

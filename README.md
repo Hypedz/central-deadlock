@@ -29,6 +29,7 @@ meu-fansite/
 │   ├── steam-news.js        # Notícias do Steam (traduzidas) — GERADO sozinho
 │   ├── hero-stats.js        # Win rate / pick / KDA reais — GERADO sozinho
 │   ├── game-data.js         # Itens, builds, contadores, ranking — GERADO sozinho
+│   ├── hero-extra.js        # Etiquetas, dificuldade, cor e história de cada herói — GERADO sozinho
 │   ├── hero-history.js      # Win rate semana a semana — GERADO sozinho
 │   ├── traducao-cache.json  # Memória das traduções das notícias — GERADO sozinho
 │   ├── traducao-jogo.json   # Memória das traduções do jogo — GERADO sozinho
@@ -37,8 +38,8 @@ meu-fansite/
 ├── tools/
 │   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam (texto completo)
 │   ├── update-stats.py      # Baixa as estatísticas reais dos heróis
-│   ├── update-game-data.py  # Baixa itens, builds, contadores, ban e ranking
-│   ├── baixar-artes.py      # Baixa as artes dos heróis em boa qualidade
+│   ├── update-game-data.py  # Baixa itens, builds, contadores, ban, ranking, etiquetas e história dos heróis
+│   ├── baixar-artes.py      # Baixa as artes dos heróis (carta, capa, letreiro e ícones das habilidades)
 │   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
 │   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
 │   ├── discord-post.py      # Posta no Discord
@@ -56,11 +57,14 @@ meu-fansite/
     │   ├── deadlock-cover.jpg # Capa vertical (reserva)
     │   └── deadlock-header.jpg # Banner horizontal (reserva)
     └── heroes/                # 44 artes dos heróis (cartas 280x380)
+    ├── capas/                 # 44 artes de capa (o banner da página do herói)
+    ├── nomes/                 # 44 nomes desenhados (o letreiro de cada herói)
+    └── habilidades/           # 170 ícones das habilidades
 ```
 
 > ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
 >
-> 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`.
+> 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`. Ele baixa as quatro coisas de uma vez: a **carta** (`assets/heroes`), a **capa** do banner (`assets/capas`), o **letreiro** com o nome (`assets/nomes`) e os **ícones das habilidades** (`assets/habilidades`).
 
 ---
 
@@ -149,6 +153,7 @@ O que isso muda no site:
 | `data/hero-stats.js` | `tools/update-stats.py` | win rate, pick rate, KDA e tier de cada herói |
 | `data/game-data.js` | `tools/update-game-data.py` | itens da loja, builds, contadores, banimento e ranking |
 | `data/hero-history.js` | `tools/update-game-data.py` | win rate semana a semana (usado nos gráficos) |
+| `data/hero-extra.js` | `tools/update-game-data.py` | etiquetas, dificuldade, cor e história de cada herói (usado nas páginas dos heróis) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
@@ -176,7 +181,9 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 
 - **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **56 endereços** hoje)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
-- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), com habilidades, números reais, builds e confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de capa, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+
+> A **cor de cada herói** vem do próprio jogo (`data/hero-extra.js`) e pinta as etiquetas, a linha do banner e a barra de dificuldade. Se a cor for muito escura, o site clareia sozinho o que precisa e escolhe a cor do texto, para nada ficar ilegível.
 - **`noticia/<id>.html`** — **uma página para cada notícia**, com o resumo em português e o texto original
 
 Essas páginas são geradas pelo `tools/gerar-paginas.py` (o robô do GitHub roda sozinho, todo dia). Os cards de notícia do site apontam para elas com links de verdade — quem clica abre a janela bonita aqui; os buscadores leem o texto completo.
@@ -353,8 +360,8 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 
 - **Identidade** — apelido, pronomes, status, bio, título, região e redes (Discord, Twitch, YouTube), em duas colunas
 - **Jogo** — heróis principais (até 3), que aparecem como estandartes no cartão
-- **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, octógono, losango, escudo, estrela) e moldura (dourada, neon, cor de destaque, dupla)
-- **Cartão** — 8 temas de banner, 4 padrões (grade, pontos, listras), cores personalizadas **ou** uma **imagem própria**
+- **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
+- **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
 - **Site** — cor de destaque (recolore o site inteiro), tema escuro/claro, idioma e modo compacto
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)

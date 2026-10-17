@@ -79,7 +79,7 @@ jobs:
         run: |
           git config user.name "Central Deadlock Bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/ heroi/ noticia/ sitemap.xml heroes-data.js
+          git add data/ heroi/ noticia/ assets/ sitemap.xml heroes-data.js
           if git diff --staged --quiet; then
             echo "Nada mudou desde a última vez."
             echo "mudou=nao" >> "$GITHUB_OUTPUT"
