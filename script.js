@@ -299,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initInstalar();
     initMira();
     initBusca();
+    initSteam();
     initToast();
     initToTop();
     fixShareMeta();
@@ -460,6 +461,230 @@ function initMira() {
             showToast('Não deu para copiar. Selecione o código e copie na mão.', 'error');
         }
     });
+}
+
+/* ================= painel do Steam (dentro de "Meu Perfil") =================
+   O jogador digita o nick do Steam e o site mostra as partidas DE VERDADE
+   dele: win rate, KDA, herói mais jogado e os últimos jogos. Os números vêm
+   do serviço público deadlock-api.com e o escolhido fica salvo só no seu
+   navegador (localStorage) — nada é enviado para lugar nenhum. */
+const STEAM_API = 'https://api.deadlock-api.com/v1';
+let steamJogador = store.get('cdl_steam', null);
+let steamDados = null;
+
+function steamPedir(caminho) {
+    return fetch(STEAM_API + caminho).then((resposta) => {
+        if (!resposta.ok) throw new Error('erro ' + resposta.status);
+        return resposta.json();
+    });
+}
+
+function steamNumero(valor) {
+    return (Number(valor) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function steamPorcento(valor) {
+    return (Number(valor) || 0).toFixed(1).replace('.', ',') + '%';
+}
+
+function steamDuracao(segundos) {
+    const minutos = Math.round((Number(segundos) || 0) / 60);
+    if (minutos < 60) return minutos + ' min';
+    return Math.floor(minutos / 60) + 'h ' + (minutos % 60) + 'min';
+}
+
+function steamData(unix) {
+    const d = new Date((Number(unix) || 0) * 1000);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+}
+
+/* O elo de verdade: o "badge" do jogo é elo (2 primeiros dígitos) + subtier. */
+function steamBrasao(badge) {
+    const elos = window.ELOS;
+    if (!badge || !elos || !elos.todos) return null;
+    const tier = Math.floor(Number(badge) / 10);
+    const sub = Number(badge) % 10;
+    const achado = elos.todos.filter(e => e.tier === tier)[0];
+    if (!achado || !achado.img) return null;
+    return { img: achado.img, nome: achado.nome, sub: sub };
+}
+
+function steamAcharConta(lista, id) {
+    return lista.filter(j => String(j.account_id) === String(id))[0] || null;
+}
+
+function steamMostrarAchados(lista) {
+    const caixa = $('#steamAchados');
+    if (!caixa) return;
+    caixa.hidden = false;
+    caixa.innerHTML = lista.map((j, i) => `
+        <button type="button" class="steam-achado" data-i="${i}">
+            <img src="${esc(j.avatarmedium || j.avatar || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span>
+                <b>${esc(j.personaname || 'Jogador')}</b>
+                <small>${j.matches_played_last_30d ? j.matches_played_last_30d + ' partidas nos últimos 30 dias' : 'conta do Steam'}</small>
+            </span>
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>`).join('');
+    $$('.steam-achado', caixa).forEach((b) => b.addEventListener('click', () => {
+        const j = lista[Number(b.dataset.i)];
+        if (!j) return;
+        caixa.hidden = true;
+        steamCarregar(j.account_id, j.personaname, j.avatarfull || j.avatar, j.profileurl);
+    }));
+}
+
+async function steamCarregar(id, nome, avatar, link) {
+    const alvo = $('#steamPerfil');
+    if (!alvo) return;
+    alvo.innerHTML = '<p class="steam-carregando"><i class="fa-solid fa-spinner fa-spin"></i> Buscando as suas partidas de verdade...</p>';
+    try {
+        const respostas = await Promise.all([
+            steamPedir('/players/' + id + '/rank').catch(() => null),
+            steamPedir('/players/' + id + '/match-history')
+        ]);
+        steamJogador = { id: id, nome: nome || 'Jogador', avatar: avatar || '', link: link || '' };
+        store.set('cdl_steam', steamJogador);
+        steamDados = { jogador: steamJogador, elo: respostas[0], partidas: respostas[1] || [] };
+        steamDesenhar();
+    } catch (e) {
+        alvo.innerHTML = '<p class="steam-aviso erro"><i class="fa-solid fa-triangle-exclamation"></i> Não consegui carregar as partidas agora. Confira a sua internet e tente de novo.</p>';
+    }
+}
+
+function steamDesenhar() {
+    const alvo = $('#steamPerfil');
+    if (!alvo || !steamDados) return;
+    const jogador = steamDados.jogador;
+    const todas = steamDados.partidas || [];
+    const contadas = todas.filter(m => m.player_match_outcome === 1 || m.player_match_outcome === 2);
+    const vitorias = contadas.filter(m => m.player_match_outcome === 1).length;
+    const abates = contadas.reduce((s, m) => s + (Number(m.player_kills) || 0), 0);
+    const mortes = contadas.reduce((s, m) => s + (Number(m.player_deaths) || 0), 0);
+    const ajudas = contadas.reduce((s, m) => s + (Number(m.player_assists) || 0), 0);
+    const winRate = contadas.length ? (vitorias * 100 / contadas.length) : 0;
+    const kda = mortes > 0 ? (abates + ajudas) / mortes : (abates + ajudas);
+
+    // heróis mais jogados
+    const porHeroi = [];
+    contadas.forEach(m => {
+        const h = heroiPorApiId(m.hero_id);
+        const chave = h ? h.name : 'Herói ' + m.hero_id;
+        let registro = porHeroi.filter(x => x.chave === chave)[0];
+        if (!registro) { registro = { chave: chave, heroi: h, jogos: 0, vitorias: 0 }; porHeroi.push(registro); }
+        registro.jogos++;
+        if (m.player_match_outcome === 1) registro.vitorias++;
+    });
+    porHeroi.sort((a, b) => b.jogos - a.jogos);
+
+    const elo = steamBrasao(steamDados.elo && steamDados.elo.badge);
+    const favoritos = porHeroi.slice(0, 3).map(f => `
+        <div class="steam-fav">
+            ${f.heroi ? `<img src="assets/heroes/${esc(f.heroi.file)}" alt="" loading="lazy">` : '<i class="fa-solid fa-masks-theater"></i>'}
+            <div>
+                <b>${esc(f.chave)}</b>
+                <small>${f.jogos} ${f.jogos > 1 ? 'partidas' : 'partida'} · ${steamPorcento(f.vitorias * 100 / f.jogos)} de vitória</small>
+            </div>
+        </div>`).join('');
+
+    const ultimos = contadas.slice(0, 20).map(m => {
+        const h = heroiPorApiId(m.hero_id);
+        const ganhou = m.player_match_outcome === 1;
+        const mortesJogo = Number(m.player_deaths) || 0;
+        const kd = mortesJogo > 0 ? ((Number(m.player_kills) || 0) + (Number(m.player_assists) || 0)) / mortesJogo : ((Number(m.player_kills) || 0) + (Number(m.player_assists) || 0));
+        return `<div class="steam-jogo ${ganhou ? 'ganhou' : 'perdeu'}">
+            <span class="steam-jogo-res">${ganhou ? 'Vitória' : 'Derrota'}</span>
+            <span class="steam-jogo-heroi">
+                ${h ? `<img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy">` : ''}
+                <b>${esc(h ? h.name : 'Herói ' + m.hero_id)}</b>
+            </span>
+            <span class="steam-jogo-nums"><b>${m.player_kills}/${m.player_deaths}/${m.player_assists}</b><small>KDA ${steamNumero(kd)} · ${steamDuracao(m.match_duration_s)} · ${steamData(m.start_time)}</small></span>
+        </div>`;
+    }).join('');
+
+    alvo.innerHTML = `
+        <div class="steam-cabeca">
+            <img class="steam-avatar" src="${esc(jogador.avatar || '')}" alt="" onerror="this.style.visibility='hidden'">
+            <div class="steam-quem">
+                <b>${esc(jogador.nome || 'Jogador')}</b>
+                <small>${contadas.length} ${contadas.length === 1 ? 'partida contada' : 'partidas contadas'}${todas.length > contadas.length ? ' · ' + (todas.length - contadas.length) + ' sem resultado' : ''}</small>
+                ${jogador.link ? `<a href="${esc(jogador.link)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+            </div>
+            ${elo ? `<div class="steam-elo">
+                <img src="${esc(elo.img)}" alt="Brasão do elo ${esc(elo.nome)}">
+                <div><b>${esc(elo.nome)}</b><small>subtier ${elo.sub}</small></div>
+            </div>` : ''}
+            <div class="steam-acoes">
+                <button type="button" class="btn btn-dark btn-sm" id="steamAtualizar"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+                <button type="button" class="btn btn-dark btn-sm" id="steamTrocar"><i class="fa-solid fa-right-left"></i> Trocar jogador</button>
+            </div>
+        </div>
+
+        <div class="pg-stats steam-numeros">
+            <div class="pg-stat"><b>${steamPorcento(winRate)}</b><small>win rate</small></div>
+            <div class="pg-stat"><b>${steamNumero(kda)}</b><small>KDA médio</small></div>
+            <div class="pg-stat"><b>${abates}/${mortes}/${ajudas}</b><small>abates / mortes / ajudas</small></div>
+            <div class="pg-stat"><b>${contadas.length}</b><small>partidas contadas</small></div>
+        </div>
+
+        ${favoritos ? '<div class="steam-sec">Seus heróis mais jogados</div><div class="steam-favs">' + favoritos + '</div>' : ''}
+
+        <div class="steam-sec">Últimos jogos</div>
+        <div class="steam-jogos">${ultimos || '<p class="muted-txt">Esse jogador ainda não tem partidas com resultado registradas.</p>'}</div>
+        <p class="stat-fonte"><i class="fa-solid fa-database"></i> Partidas de verdade do jogador, via deadlock-api.com</p>`;
+
+    const atualizar = $('#steamAtualizar');
+    if (atualizar) atualizar.addEventListener('click', () => steamCarregar(jogador.id, jogador.nome, jogador.avatar, jogador.link));
+    const trocar = $('#steamTrocar');
+    if (trocar) trocar.addEventListener('click', () => {
+        steamDados = null;
+        alvo.innerHTML = '';
+        const campo = $('#steamCampo');
+        if (campo) { campo.value = ''; campo.focus(); }
+    });
+}
+
+function initSteam() {
+    const campo = $('#steamCampo');
+    const botao = $('#steamProcurar');
+    if (!campo || !botao) return;
+
+    const avisar = (texto, erro) => {
+        const caixa = $('#steamAviso');
+        if (!caixa) return;
+        caixa.textContent = texto || '';
+        caixa.classList.toggle('erro', !!erro);
+        caixa.hidden = !texto;
+    };
+
+    const procurar = async () => {
+        const nick = campo.value.trim();
+        if (nick.length < 2) { avisar('Digite pelo menos 2 letras do seu nick no Steam.', true); return; }
+        botao.disabled = true;
+        avisar('Procurando "' + nick + '" no Steam...');
+        try {
+            const achados = await steamPedir('/players/steam-search?limit=8&search_query=' + encodeURIComponent(nick));
+            if (!achados || !achados.length) {
+                avisar('Não achei ninguém com esse nick. Confira a escrita (é o nome de exibição do Steam).', true);
+                return;
+            }
+            avisar(achados.length === 1 ? 'Achei 1 jogador — é você?' : 'Achei ' + achados.length + ' jogadores — escolha o seu:');
+            steamMostrarAchados(achados);
+        } catch (e) {
+            avisar('Não consegui falar com o serviço de dados agora. Tente de novo em instantes.', true);
+        } finally {
+            botao.disabled = false;
+        }
+    };
+
+    botao.addEventListener('click', procurar);
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') procurar(); });
+
+    // já tem alguém salvo? então mostra de novo (sem precisar digitar)
+    if (steamJogador && steamJogador.id) {
+        campo.value = steamJogador.nome || '';
+        steamCarregar(steamJogador.id, steamJogador.nome, steamJogador.avatar, steamJogador.link);
+    }
 }
 
 /* ================= busca global (Ctrl + K) =================

@@ -165,6 +165,7 @@ O que isso muda no site:
 | **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
 | **Instalar o app** | não existia | botão que instala o site como app no celular e no computador |
 | **Busca global** | não existia | **Ctrl + K** acha herói, item, notícia, guia, build, tela e termo do glossário num lugar só |
+| **Painel do Steam** (em Meu Perfil) | não existia | digite o seu nick e veja **as suas partidas de verdade**: win rate, KDA, elo, heróis mais jogados e os últimos 20 jogos |
 
 ### De onde sai cada arquivo
 
@@ -390,6 +391,8 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
 
 Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão), **Copiar link** (link com o cartão dentro) e **Copiar texto** (resumo em texto). Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
+
+3. **Meu painel do Steam (no fim da aba)** — digite o seu **nick do Steam** e o site mostra **as suas partidas de verdade**: win rate pessoal, KDA médio, elo atual (com o brasão oficial), os heróis que você mais joga e os **últimos 20 jogos** (vitória/derrota, K/D/A, duração e data). Se aparecerem vários jogadores com o mesmo nome, é só escolher o seu. O jogador escolhido fica salvo no navegador e volta sozinho na próxima visita; os botões **Atualizar** e **Trocar jogador** ficam ao lado do nome. Os números vêm do serviço público **deadlock-api.com** — nada é enviado para lugar nenhum.
 
 ---
 

@@ -350,6 +350,87 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 
 .gloss-destaque { background: rgba(182, 242, 74, .12); box-shadow: inset 0 0 0 1px var(--lime); border-radius: 10px; }
 
+/* ---- painel do Steam (dentro de "Meu Perfil") ---- */
+.steam-painel { padding: 20px; margin-top: 18px; }
+.steam-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.steam-titulo { font-family: var(--font-ui); font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .5px; }
+.steam-titulo i { color: var(--lime); margin-right: 6px; }
+.steam-fonte { font-size: .72rem; color: var(--text-faint); }
+.steam-sub { color: var(--text-soft); font-size: .88rem; margin: 10px 0 14px; line-height: 1.6; }
+.steam-linha { display: flex; gap: 10px; flex-wrap: wrap; }
+.steam-linha input {
+    flex: 1 1 280px; min-width: 0; padding: 12px 14px; border-radius: 8px;
+    background: var(--bg-2); border: 1px solid var(--border-2); color: var(--text);
+    font-family: var(--font-text); font-size: .92rem;
+}
+.steam-linha input:focus { outline: none; border-color: var(--lime); }
+.steam-linha .btn { flex: 0 0 auto; }
+.steam-aviso { margin-top: 12px; font-size: .86rem; color: var(--text-soft); }
+.steam-aviso.erro { color: #ff6b81; }
+.steam-carregando { margin-top: 16px; color: var(--text-soft); font-size: .9rem; }
+.steam-carregando i { color: var(--lime); margin-right: 6px; }
+.steam-achados { margin-top: 12px; display: grid; gap: 8px; }
+.steam-achado {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; text-align: left;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    cursor: pointer; font-family: inherit; transition: var(--trans);
+}
+.steam-achado:hover { border-color: var(--lime); }
+.steam-achado img { width: 40px; height: 40px; border-radius: 8px; flex: 0 0 auto; }
+.steam-achado span { flex: 1; min-width: 0; }
+.steam-achado b { display: block; font-family: var(--font-ui); font-size: .93rem; }
+.steam-achado small { color: var(--text-faint); font-size: .76rem; }
+.steam-achado > i { color: var(--lime); }
+.steam-cabeca {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border);
+}
+.steam-avatar { width: 62px; height: 62px; border-radius: 12px; border: 1px solid var(--border-2); flex: 0 0 auto; }
+.steam-quem { flex: 1; min-width: 150px; }
+.steam-quem b { display: block; font-family: var(--font-ui); font-weight: 800; font-size: 1.2rem; }
+.steam-quem small { display: block; color: var(--text-faint); font-size: .78rem; margin: 3px 0 5px; }
+.steam-quem a { color: var(--lime); font-size: .8rem; }
+.steam-elo {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
+}
+.steam-elo img { width: 44px; height: 44px; object-fit: contain; }
+.steam-elo b { display: block; font-family: var(--font-ui); font-size: .9rem; }
+.steam-elo small { color: var(--text-faint); font-size: .72rem; }
+.steam-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.steam-numeros { margin-top: 16px; }
+.steam-sec {
+    font-family: var(--font-ui); font-size: .68rem; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-faint); margin: 20px 0 10px;
+}
+.steam-favs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.steam-fav { display: flex; align-items: center; gap: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; }
+.steam-fav img { width: 36px; height: 40px; border-radius: 8px; object-fit: cover; object-position: top center; flex: 0 0 auto; }
+.steam-fav i { color: var(--lime); width: 36px; text-align: center; }
+.steam-fav b { display: block; font-family: var(--font-ui); font-size: .88rem; }
+.steam-fav small { color: var(--text-faint); font-size: .74rem; }
+.steam-jogos { display: grid; gap: 7px; }
+.steam-jogo {
+    display: grid; grid-template-columns: 76px minmax(0, 1fr) 190px; align-items: center; gap: 12px;
+    padding: 9px 12px; border-radius: 10px; background: var(--bg-2);
+    border: 1px solid var(--border); border-left: 3px solid var(--border);
+}
+.steam-jogo.ganhou { border-left-color: #4ade80; }
+.steam-jogo.perdeu { border-left-color: #f87171; }
+.steam-jogo-res { font-family: var(--font-ui); font-weight: 800; font-size: .73rem; text-transform: uppercase; letter-spacing: .06em; }
+.steam-jogo.ganhou .steam-jogo-res { color: #4ade80; }
+.steam-jogo.perdeu .steam-jogo-res { color: #f87171; }
+.steam-jogo-heroi { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.steam-jogo-heroi img { width: 32px; height: 36px; border-radius: 7px; object-fit: cover; object-position: top center; flex: 0 0 auto; }
+.steam-jogo-heroi b { font-family: var(--font-ui); font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steam-jogo-nums { text-align: right; }
+.steam-jogo-nums b { display: block; font-family: var(--font-ui); font-size: .86rem; }
+.steam-jogo-nums small { color: var(--text-faint); font-size: .7rem; }
+@media (max-width: 640px) {
+    .steam-jogo { grid-template-columns: 70px minmax(0, 1fr); }
+    .steam-jogo-nums { grid-column: 2; text-align: left; }
+}
+
 @media (max-width: 700px) {
     .busca-overlay { padding-top: 4vh; }
     .busca-janela { max-height: 88vh; }
