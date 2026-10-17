@@ -101,6 +101,7 @@ meu-fansite/
 - **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
 - **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
 - **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
+- **Busca global (Ctrl + K)** — acha **herói, item, notícia, guia, build, tela e termo do glossário** num lugar só. Abre com **Ctrl + K** (⌘ + K no Mac) ou pelo botão de lupa do menu, e funciona de qualquer tela. Nas páginas de herói e de notícia existe o link **Buscar no site**. Use ↑ ↓ para escolher e Enter para abrir.
 - **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
 - **Home** — banner com a notícia mais recente, "Últimas notícias", "Meta de hoje" (com números reais) e atalhos para explorar o site.
 
@@ -163,6 +164,7 @@ O que isso muda no site:
 | **Elos de verdade** | não existia | brasões oficiais do jogo + quantos jogadores há em cada elo |
 | **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
 | **Instalar o app** | não existia | botão que instala o site como app no celular e no computador |
+| **Busca global** | não existia | **Ctrl + K** acha herói, item, notícia, guia, build, tela e termo do glossário num lugar só |
 
 ### De onde sai cada arquivo
 

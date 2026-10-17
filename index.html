@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261016i">
+    <link rel="stylesheet" href="style.css?v=20261017a">
 </head>
 <body data-theme="dark">
 
@@ -81,6 +81,7 @@
             <svg class="topbar-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
             CENTRAL <span>DEADLOCK</span>
         </a>
+        <button class="btn-icon" id="btnBuscaTop" data-busca aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
         <button class="btn-icon" id="btnProfileTop" aria-label="Perfil"><i class="fa-regular fa-user"></i></button>
     </header>
 
@@ -97,6 +98,12 @@
                 </div>
                 <button class="sidebar-close" id="closeSidebar" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
             </a>
+
+            <button type="button" class="sidebar-busca" id="btnBusca" data-busca>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Buscar no site...</span>
+                <kbd>Ctrl K</kbd>
+            </button>
 
             <nav class="sidebar-nav">
                 <span class="nav-group">Deadlock</span>
@@ -567,6 +574,19 @@
         </main>
     </div>
 
+    <!-- ===== BUSCA GLOBAL (Ctrl + K) ===== -->
+    <div class="modal-overlay busca-overlay" id="buscaModal">
+        <div class="busca-janela">
+            <div class="busca-topo">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="buscaCampo" placeholder="Buscar herói, item, notícia, termo do glossário..." autocomplete="off" spellcheck="false" aria-label="Buscar no site">
+                <button type="button" class="busca-esc" data-close="buscaModal">ESC</button>
+            </div>
+            <div class="busca-lista" id="buscaLista"></div>
+            <div class="busca-pe"><span><b>↑ ↓</b> escolher</span><span><b>Enter</b> abrir</span><span><b>Esc</b> fechar</span></div>
+        </div>
+    </div>
+
     <!-- ===== MODAL: DETALHE DO HERÓI ===== -->
     <div class="modal-overlay hero-modal-overlay" id="heroModal">
         <div class="hero-modal" id="heroModalBox"></div>
@@ -622,12 +642,12 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261016i"></script>
-    <script src="data/game-data.js?v=20261016i"></script>
-    <script src="data/hero-history.js?v=20261016i"></script>
-    <script src="data/hero-stats.js?v=20261016i"></script>
-    <script src="data/steam-news.js?v=20261016i"></script>
-<script src="data/elos.js?v=20261016i"></script>
-    <script src="script.js?v=20261016i"></script>
+    <script src="heroes-data.js?v=20261017a"></script>
+    <script src="data/game-data.js?v=20261017a"></script>
+    <script src="data/hero-history.js?v=20261017a"></script>
+    <script src="data/hero-stats.js?v=20261017a"></script>
+    <script src="data/steam-news.js?v=20261017a"></script>
+<script src="data/elos.js?v=20261017a"></script>
+    <script src="script.js?v=20261017a"></script>
 </body>
 </html>

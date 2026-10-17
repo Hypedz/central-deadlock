@@ -32,7 +32,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261016i"
+VERSAO_CSS = "20261017a"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -185,6 +185,7 @@ def topo(secao_url, secao_nome, atual):
     return f"""    <header class="pg-top">
         <a class="pg-brand" href="../index.html"><img src="../assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
         <nav class="pg-crumb"><a href="../index.html">Início</a> › <a href="../index.html#{e(secao_url)}">{e(secao_nome)}</a> › <b>{e(atual)}</b></nav>
+        <a class="pg-busca" href="../index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
     </header>
 """
 

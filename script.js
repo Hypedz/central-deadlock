@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initModals();
     initInstalar();
     initMira();
+    initBusca();
     initToast();
     initToTop();
     fixShareMeta();
@@ -459,6 +460,208 @@ function initMira() {
             showToast('Não deu para copiar. Selecione o código e copie na mão.', 'error');
         }
     });
+}
+
+/* ================= busca global (Ctrl + K) =================
+   Acha herói, item, notícia, tela e termo do glossário num lugar só,
+   de qualquer tela do site. Abre com Ctrl + K (⌘ + K no Mac) ou pelo
+   botão de lupa no menu. */
+let buscaIndice = null;
+let buscaAchados = [];
+let buscaEscolha = 0;
+
+function semAcento(texto) {
+    return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function indiceBusca() {
+    if (buscaIndice) return buscaIndice;
+    const itens = [];
+
+    // telas do site
+    $$('.nav-item[data-section]').forEach(n => {
+        const nome = n.textContent.trim();
+        itens.push({
+            tipo: 'Tela', nome: nome, sub: 'Abrir esta tela do site', icone: 'fa-table-columns',
+            chave: nome, abrir: () => showSection(n.dataset.section)
+        });
+    });
+
+    // heróis
+    HEROES.forEach(h => itens.push({
+        tipo: 'Herói', nome: h.name, sub: [h.arch, h.role].filter(Boolean).join(' · '),
+        icone: 'fa-user-ninja', img: 'assets/heroes/' + h.file,
+        chave: [h.name, h.arch, h.role, h.tier, (h.skills || []).map(s => s.name + ' ' + s.desc).join(' ')].join(' '),
+        abrir: () => openHero(h.name)
+    }));
+
+    // itens da loja
+    const g = dadosJogo();
+    if (g && g.itens) Object.keys(g.itens).forEach(id => {
+        const it = g.itens[id];
+        itens.push({
+            tipo: 'Item', nome: it.n, icone: 'fa-shield-halved',
+            sub: (ITEM_TIPO_NOME[it.s] || 'Item') + (it.c ? ' · ' + money(it.c) + ' almas' : ''),
+            chave: [it.n, it.en, it.d, it.s].join(' '), abrir: () => openItem(id)
+        });
+    });
+
+    // notícias, guias e builds
+    const noticias = [];
+    (typeof STEAM_ARTICLES !== 'undefined' ? STEAM_ARTICLES : []).concat(NEWS).forEach(a => {
+        if (!noticias.some(x => x.id === a.id)) noticias.push(a);
+    });
+    noticias.forEach(a => itens.push({
+        tipo: 'Notícia', nome: tituloPT(a), sub: a.date || '', icone: 'fa-newspaper',
+        chave: [tituloPT(a), a.title, a.desc, a.cat].join(' '), abrir: () => openArticle(a.id)
+    }));
+    GUIDES.forEach(a => itens.push({
+        tipo: 'Guia', nome: tituloPT(a), sub: a.desc || '', icone: 'fa-book-open',
+        chave: [tituloPT(a), a.title, a.desc].join(' '), abrir: () => openArticle(a.id)
+    }));
+    BUILDS.forEach(a => itens.push({
+        tipo: 'Build', nome: tituloPT(a), sub: a.desc || '', icone: 'fa-cubes',
+        chave: [tituloPT(a), a.title, a.desc, (a.items || []).map(x => x[0]).join(' ')].join(' '),
+        abrir: () => openArticle(a.id)
+    }));
+
+    // glossário (lido da própria lista da tela, então nunca sai de sincronia)
+    $$('#glossList .glossary-item').forEach(el => {
+        const titulo = el.querySelector('h3');
+        if (!titulo) return;
+        const nome = titulo.textContent.trim();
+        const texto = el.querySelector('p');
+        itens.push({
+            tipo: 'Glossário', nome: nome, sub: (texto ? texto.textContent : '').slice(0, 80), icone: 'fa-book',
+            chave: nome + ' ' + (texto ? texto.textContent : ''),
+            abrir: () => { showSection('glossario'); setTimeout(() => destacarGlossario(nome), 60); }
+        });
+    });
+
+    buscaIndice = itens;
+    return itens;
+}
+
+function destacarGlossario(nome) {
+    const el = $$('#glossList .glossary-item').find(x => {
+        const t = x.querySelector('h3');
+        return t && t.textContent.trim() === nome;
+    });
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.add('gloss-destaque');
+    setTimeout(() => el.classList.remove('gloss-destaque'), 2600);
+}
+
+function pontuarBusca(item, termo) {
+    const nome = semAcento(item.nome);
+    if (nome === termo) return 100;
+    if (nome.indexOf(termo) === 0) return 80;
+    if (nome.split(/[\s(–-]+/).some(p => p.indexOf(termo) === 0)) return 65;
+    if (nome.includes(termo)) return 50;
+    if (semAcento(item.chave).includes(termo)) return 20;
+    return 0;
+}
+
+function marcarTermo(texto, termo) {
+    if (!termo) return esc(texto);
+    const i = semAcento(texto).indexOf(termo);
+    if (i < 0) return esc(texto);
+    return esc(texto.slice(0, i)) + '<mark>' + esc(texto.slice(i, i + termo.length)) + '</mark>' + esc(texto.slice(i + termo.length));
+}
+
+function botaoBusca(item, termo, i) {
+    return '<button type="button" class="busca-item" data-i="' + i + '">' +
+        '<span class="busca-ico">' + (item.img
+            ? '<img src="' + esc(item.img) + '" alt="" loading="lazy">'
+            : '<i class="fa-solid ' + item.icone + '"></i>') + '</span>' +
+        '<span class="busca-txt"><b>' + marcarTermo(item.nome, termo) + '</b><small>' + esc(item.sub) + '</small></span>' +
+        '<span class="busca-tipo">' + esc(item.tipo) + '</span></button>';
+}
+
+function renderBusca(termo) {
+    const lista = $('#buscaLista');
+    if (!lista) return;
+    const t = semAcento(termo).trim();
+
+    if (!t) {
+        buscaAchados = indiceBusca().filter(x => x.tipo === 'Tela');
+        lista.innerHTML = '<div class="busca-sec">Telas do site</div>' + buscaAchados.map((x, i) => botaoBusca(x, '', i)).join('');
+    } else {
+        buscaAchados = indiceBusca()
+            .map(x => ({ x: x, p: pontuarBusca(x, t) }))
+            .filter(r => r.p > 0)
+            .sort((a, b) => b.p - a.p || a.x.nome.length - b.x.nome.length)
+            .slice(0, 30)
+            .map(r => r.x);
+        lista.innerHTML = buscaAchados.length
+            ? '<div class="busca-sec">' + buscaAchados.length + ' resultado' + (buscaAchados.length > 1 ? 's' : '') + '</div>' +
+              buscaAchados.map((x, i) => botaoBusca(x, t, i)).join('')
+            : '<div class="busca-vazio"><i class="fa-regular fa-face-frown"></i>Nada encontrado para "<b>' + esc(termo) + '</b>".<br>Tente o nome de um herói, de um item ou um termo do glossário.</div>';
+    }
+    buscaEscolha = 0;
+    pintarBusca();
+}
+
+function pintarBusca() {
+    const botoes = $$('#buscaLista .busca-item');
+    botoes.forEach((b, i) => b.classList.toggle('on', i === buscaEscolha));
+    if (botoes[buscaEscolha]) botoes[buscaEscolha].scrollIntoView({ block: 'nearest' });
+}
+
+function escolherBusca(i) {
+    const item = buscaAchados[i];
+    if (!item) return;
+    fecharBusca();
+    setTimeout(() => item.abrir(), 90);
+}
+
+function abrirBusca() {
+    const modal = $('#buscaModal');
+    if (!modal) return;
+    const campo = $('#buscaCampo');
+    if (campo) campo.value = '';
+    renderBusca('');
+    openOverlay(modal);
+    if (campo) setTimeout(() => campo.focus(), 40);
+}
+
+function fecharBusca() {
+    const modal = $('#buscaModal');
+    if (modal) closeOverlay(modal);
+}
+
+function initBusca() {
+    const modal = $('#buscaModal');
+    const campo = $('#buscaCampo');
+    const lista = $('#buscaLista');
+    if (!modal || !campo || !lista) return;
+
+    $$('[data-busca]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); abrirBusca(); }));
+
+    campo.addEventListener('input', () => renderBusca(campo.value));
+    campo.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); buscaEscolha = Math.min(buscaAchados.length - 1, buscaEscolha + 1); pintarBusca(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); buscaEscolha = Math.max(0, buscaEscolha - 1); pintarBusca(); }
+        else if (e.key === 'Enter') { e.preventDefault(); escolherBusca(buscaEscolha); }
+        else if (e.key === 'Escape') { e.preventDefault(); fecharBusca(); }
+    });
+
+    lista.addEventListener('click', (e) => {
+        const b = e.target.closest('.busca-item');
+        if (b) escolherBusca(Number(b.dataset.i));
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && semAcento(e.key) === 'k') { e.preventDefault(); abrirBusca(); return; }
+        if (e.key === 'Escape' && modal.classList.contains('show')) fecharBusca();
+    });
+
+    // veio de outra página pelo link "Buscar no site" (index.html#buscar)
+    if (location.hash === '#buscar') {
+        abrirBusca();
+        if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+    }
 }
 
 /* ================= navegação ================= */
