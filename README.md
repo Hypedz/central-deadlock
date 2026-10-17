@@ -34,6 +34,8 @@ meu-fansite/
 │   ├── hero-analytics.js    # Ordem das habilidades, duplas e rota — GERADO sozinho
 │   ├── elos.js              # Brasões de elo oficiais + jogadores por elo — GERADO sozinho
 │   ├── guias.js             # O guia de cada herói, em português — GERADO sozinho
+│   ├── builds.js            # As builds mais usadas de cada herói — GERADO sozinho
+│   ├── esports.js           # Torneios e resultados reais (Liquipedia) — GERADO sozinho
 │   ├── traducao-cache.json  # Memória das traduções das notícias — GERADO sozinho
 │   ├── traducao-jogo.json   # Memória das traduções do jogo — GERADO sozinho
 │   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
@@ -48,6 +50,8 @@ meu-fansite/
 │   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
 │   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
 │   ├── gerar-guias.py       # Escreve o guia de cada herói (com os números reais)
+│   ├── gerar-builds.py      # Escreve as builds mais usadas de cada herói
+│   ├── update-esports.py    # Busca os torneios e resultados reais (Liquipedia)
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
@@ -99,21 +103,26 @@ meu-fansite/
 ### Abas novas
 
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
-- **Builds** — **as builds que a comunidade mais usa no jogo**, com o **win rate real** de cada uma e os itens da build (clique em um item para ver o preço e o efeito).
+- **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** — **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo.
 - **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
 - **Eventos** — calendário da comunidade com botão **Lembrar** (salvo no navegador).
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
-- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
+- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). **Clique em um jogador** para ver a posição dele, os heróis mais jogados e **buscar o perfil de verdade no Steam** (o site mostra as partidas reais daquela conta). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
 - **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
 - **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
 - **Busca global (Ctrl + K)** — acha **herói, item, notícia, guia, build, tela e termo do glossário** num lugar só. Abre com **Ctrl + K** (⌘ + K no Mac) ou pelo botão de lupa do menu, e funciona de qualquer tela. Nas páginas de herói e de notícia existe o link **Buscar no site**. Use ↑ ↓ para escolher e Enter para abrir.
 - **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
-- **Home** — banner com a notícia mais recente, "Últimas notícias", "Meta de hoje" (com números reais) e atalhos para explorar o site.
+- **Home** — banner com a notícia mais recente, "Últimas notícias" (oficiais do Steam), "Meta de hoje" (com números reais) e **atalhos** para as ferramentas do site (Comparar, Itens, Minha Mira, Glossário, Esports e Ranking).
 
-### Logos dos times (Esports)
+### Esports (torneios de verdade)
 
-Cada time tem um **badge próprio** (feito por nós, não são logos oficiais) com as cores do time. Ficam nos cards de partida e na janela de detalhes.
+Os torneios e resultados vêm da **[Liquipedia](https://liquipedia.net/deadlock/Portal:Tournaments)** — a fonte pública de esports do Deadlock (o jogo **não tem** uma API de torneios). O script `tools/update-esports.py` lê a página de torneios e grava o arquivo `data/esports.js` com:
+
+- **Próximos torneios** — nome, logo, data, premiação, região e quantos times;
+- **Resultados recentes** — quem foi **campeão** e **vice**, com o prêmio e a data.
+
+Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a página do torneio na Liquipedia. Nada é inventado: os **logos são os oficiais** de cada torneio, e o conteúdo da Liquipedia é usado com o devido crédito no rodapé da aba.
 
 ### Heróis (44)
 
@@ -164,9 +173,11 @@ O que isso muda no site:
 | Ficha do herói | "Estatísticas (exemplo)" | "Estatísticas reais" + nº de partidas, posição e banimento |
 | **Histórico de win rate** | não existia | gráfico com **58 semanas** de partidas reais |
 | **Itens da loja** | lista de exemplo | **173 itens reais**, com preço, efeito e win rate |
-| **Builds** | sugestão genérica | **as builds mais usadas**, com win rate de cada uma |
+| **Builds** | 5 builds genéricas escritas à mão | as **builds mais usadas de cada um dos 42 heróis**, na ordem real de compra, com win rate e partidas de cada uma |
 | **Confrontos** | exemplo | win rate real contra **cada inimigo** |
-| **Ranking** | exemplo | **top 50 real** de 5 regiões |
+| **Ranking** | exemplo | **top 50 real** de 5 regiões — e **clicar no jogador** mostra os heróis dele e busca o perfil no Steam |
+| **Esports** | partidas inventadas (FURIA 3 x 1 LOUD) | **torneios e resultados reais** (Liquipedia): próximos torneios, campeões, vice, prêmios e os **logos oficiais** |
+| **Home** | 3 artigos de exemplo ("Patch Notes…", "Suba de ranque…") | **só conteúdo real**: notícia mais nova no banner, últimas notícias do Steam e **atalhos** para as ferramentas |
 | **Taxa de banimento** | não existia | % real + posição entre os mais banidos |
 | **Elos de verdade** | não existia | brasões oficiais do jogo + quantos jogadores há em cada elo |
 | **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
@@ -186,6 +197,8 @@ O que isso muda no site:
 | `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
 | `data/elos.js` | `tools/update-elos.py` | brasões de elo oficiais + quantos jogadores há em cada elo (usado na aba Estatísticas e no Ranking) |
 | `data/guias.js` | `tools/gerar-guias.py` | o guia de cada um dos 43 heróis, já escrito em português e com os números reais (usado na aba Guias e na busca) |
+| `data/builds.js` | `tools/gerar-builds.py` | as builds mais usadas de cada um dos 42 heróis, na ordem real de compra, com win rate e partidas (usado na aba Builds e na busca) |
+| `data/esports.js` | `tools/update-esports.py` | torneios de Deadlock e resultados recentes, com logos, datas, prêmios e campeões (fonte: Liquipedia) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
@@ -227,7 +240,30 @@ Para o Google achar o site mais rápido: entre no **[Google Search Console](http
 
 ## 📰 Conteúdo clicável (Notícias / Guias / Esports)
 
-Todos os cards da Home, Notícias, Guias e Esports agora são **clicáveis** e abrem uma **janela com o texto completo**. Para editar as matérias, procure no `script.js` os blocos `FEATURED`, `NEWS`, `MATCHES` e `GUIA_EXEMPLO`.
+Todos os cards da Home, Notícias, Guias, Builds e Esports são **clicáveis** e abrem uma **janela com o texto completo**.
+
+Nada de conteúdo inventado no site: as notícias são **oficiais do Steam**, os guias e as builds são montados sozinhos com os **números reais das partidas**, e os torneios são **reais (Liquipedia)**. Os únicos blocos escritos à mão no `script.js` são `NEWS` (notícias de reserva, caso o robô ainda não tenha rodado) e `GUIA_EXEMPLO` / `BUILD_EXEMPLO` (planos B, que não aparecem quando os arquivos gerados existem).
+
+---
+
+## 🛠️ Builds — as mais usadas de cada herói (42)
+
+A aba **Builds** mostra as **builds mais usadas de cada um dos 42 heróis que já receberam dados**, na **ordem real de compra** dos itens, com o **win rate** e o **número de partidas** de cada build. Nada foi escrito à mão: o script `tools/gerar-builds.py` monta tudo com os dados das partidas e escreve o arquivo `data/builds.js`.
+
+Cada build traz:
+
+- **O nome** que a comunidade deu à build (nomes ofensivos são trocados sozinhos por "Build da comunidade")
+- **O win rate real** e **quantas partidas** foram jogadas com ela
+- **Os itens na ordem certa de compra** — clique em um item para ver o preço, o tipo e o efeito
+- Um botão, no fim, que abre a **página completa do herói**
+
+**Para achar rápido:** use a caixa de busca (nome, papel ou tier) ou os botões de papel (Tanque, Suporte, Carry, Controle, Assassino). As builds também aparecem na **busca global (Ctrl + K)**.
+
+Para atualizar as builds com os números de hoje:
+
+```powershell
+python tools/gerar-builds.py
+```
 
 ---
 
@@ -397,7 +433,7 @@ Pronto! Todo dia às 9h (horário de Brasília), se sair novidade, ela aparece n
 
 ## 🖼️ Banner da Home
 
-O destaque da Home usa a **capa do jogo** (`assets/brand/library_hero.jpg`) como imagem de fundo, com um degradê escuro para o texto ficar legível.
+O destaque da Home é a **notícia mais recente** (a capa/foto dela vira o fundo, com um degradê escuro para o texto ficar legível). Se o robô ainda não tiver buscado nenhuma notícia, aparece um aviso neutro com a capa do jogo (`assets/brand/library_hero.jpg`).
 
 ---
 

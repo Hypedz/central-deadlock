@@ -67,6 +67,14 @@ jobs:
         run: python tools/gerar-guias.py
         continue-on-error: true
 
+      - name: Escrever as builds mais usadas de cada heroi (dados reais)
+        run: python tools/gerar-builds.py
+        continue-on-error: true
+
+      - name: Buscar os torneios e resultados de esports (Liquipedia)
+        run: python tools/update-esports.py
+        continue-on-error: true
+
       - name: Gerar a página de cada herói, a de cada notícia e o sitemap
         run: python tools/gerar-paginas.py
         continue-on-error: true

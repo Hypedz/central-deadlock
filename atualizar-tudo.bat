@@ -45,6 +45,8 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 %PY% "tools\update-analytics.py" >> "%LOG%" 2>&1
 %PY% "tools\update-elos.py" >> "%LOG%" 2>&1
 %PY% "tools\gerar-guias.py" >> "%LOG%" 2>&1
+%PY% "tools\gerar-builds.py" >> "%LOG%" 2>&1
+%PY% "tools\update-esports.py" >> "%LOG%" 2>&1
 %PY% "tools\gerar-paginas.py" >> "%LOG%" 2>&1
 %PY% "tools\discord-post.py" >> "%LOG%" 2>&1
 
