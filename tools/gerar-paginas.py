@@ -29,6 +29,11 @@ SITE = "https://hypedz.github.io/central-deadlock/"
 PASTA_HEROIS = os.path.join(BASE, "heroi")
 PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 
+# Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
+# link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
+# versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
+VERSAO_CSS = "20261016f"
+
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil", "Muito Difícil"]
 
 # Uma frase curta explicando o papel do herói (aparece no quadrinho "Papel")
@@ -153,7 +158,7 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo=""):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../style.css?v={VERSAO_CSS}">
 </head>
 <body class="pg-body {classe}"{estilo}>"""
 

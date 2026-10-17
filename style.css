@@ -1361,8 +1361,8 @@ body.compact .cards-grid { gap: 14px; }
 }
 @media (max-width: 760px) {
     .ht { min-height: 300px; }
-    /* no celular o banner é estreito: mostra mais a parte do personagem */
-    .ht-bg img { object-position: 74% 40%; }
+    /* no celular o banner é estreito: mostra o personagem (fica na direita da imagem) */
+    .ht-bg img { object-position: 100% 40%; }
     .ht-in { padding: 32px 16px 20px; }
     .ht-h1 img { max-width: min(300px, 86%); }
     .ht-hab { width: 44px; height: 44px; }
