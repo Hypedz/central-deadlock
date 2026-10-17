@@ -119,10 +119,19 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
   - **Build** — **as 3 builds mais usadas** por quem joga de verdade com aquele herói, com o win rate de cada uma e os itens (clique para ver o item)
   - **Confrontos** — **contra quem o herói realmente ganha e contra quem perde**, com a porcentagem e o número de partidas. Cada inimigo é clicável
 - No fim da ficha tem o botão **Página completa**, que abre a página própria do herói (boa para compartilhar no grupo e para o Google achar)
+- A **página completa** de cada herói traz, além da ficha:
+  - **Dificuldade para aprender** e **Dificuldade para masterizar** — as duas notas juntas, com barrinhas coloridas (verde = fácil, amarelo = médio, vermelho = difícil)
+  - **O que upar primeiro** — a ordem das habilidades **nível por nível**, do jeito que os jogadores mais usam em partidas reais (com a % de cada nível)
+  - **Melhores duplas** — com quem aquele herói mais ganha e com quem não combina (partidas reais)
+  - **Rota (lane)** — contra quem ele ganha ou perde a rota e por quantas almas de diferença
 - **The Doorman** aparece normalmente; só **Nurse Harrow** está marcada como **"Em breve"** (ela ainda está em pré-lançamento no jogo — a própria API oficial diz isso)
 - **Violet** foi lançada em **16/10/2026** e já está completa, com as 4 habilidades reais (Tinta Viva, Estado de Fluxo, Natureza Morta e Paisagem Abstrata) e os atributos reais (710 de vida, 6,9 m/s)
 
 > Os textos/atributos dos heróis ficam em **`heroes-data.js`** — é só editar o texto entre aspas que a ficha atualiza.
+>
+> Cada herói tem duas notas de dificuldade: **`diff`** (para aprender) e **`dominio`** (para masterizar), de 1 a 3.
+> Elas são as notas do **dlbr.gg** (é uma avaliação deles, não do jogo). Nos poucos heróis que ainda não têm a nota
+> lá, o site usa a **complexidade oficial do jogo** e escreve isso embaixo da nota (o herói ganha o campo `dif_fonte: "jogo"`).
 >
 > Para adicionar um herói novo, escreva o nome das habilidades **em inglês** (como está na deadlock.wiki) e rode `python tools/traduzir-jogo.py`: ele traduz sozinho e guarda o original no campo `name_en`.
 
@@ -158,6 +167,7 @@ O que isso muda no site:
 | `data/game-data.js` | `tools/update-game-data.py` | itens da loja, builds, contadores, banimento e ranking |
 | `data/hero-history.js` | `tools/update-game-data.py` | win rate semana a semana (usado nos gráficos) |
 | `data/hero-extra.js` | `tools/update-game-data.py` | etiquetas, dificuldade, cor e história de cada herói (usado nas páginas dos heróis) |
+| `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
@@ -397,6 +407,7 @@ e acesse `http://localhost:8123`.
 - **Google** — `sitemap.xml` + `robots.txt`.
 - **Notícias traduzidas** — títulos e resumos em português, com o original em inglês preservado.
 - **Estatísticas reais** — win rate, pick rate, KDA e tier list vindos de milhões de partidas.
+- **Duas notas de dificuldade** por herói (para aprender e para masterizar), no estilo do dlbr.gg.
 
 ---
 

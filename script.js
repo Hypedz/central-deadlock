@@ -548,7 +548,8 @@ function renderHeroModal() {
            <div class="hp-tags" style="justify-content:flex-start;margin:14px 0">
              <span class="tag">${esc(h.role)}</span>
              ${h.arch !== '—' ? `<span class="tag vio">${esc(h.arch)}</span>` : ''}
-             <span class="tag cy">Dificuldade: ${DIFF_LABEL[h.diff]}</span>
+             <span class="tag cy">Aprender: ${DIFF_LABEL[h.diff]}</span>
+             <span class="tag cy">Masterizar: ${DIFF_LABEL[h.dominio || h.diff]}</span>
              <span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span>
            </div>
            <h2 class="pform-sec" style="margin-top:20px">Atributos base</h2>
@@ -633,7 +634,7 @@ function renderHeroModal() {
                 <h1>${esc(h.name)}</h1>
                 <p class="hp-role">${h.soon ? 'Em breve' : esc(h.role) + (h.arch !== '—' ? ' · ' + esc(h.arch) : '')}</p>
                 <div class="hp-tags">
-                    ${h.soon ? '' : `<span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span><span class="tag cy">${DIFF_LABEL[h.diff]}</span>`}
+                    ${h.soon ? '' : `<span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span><span class="tag cy">Aprender: ${DIFF_LABEL[h.diff]}</span><span class="tag cy">Masterizar: ${DIFF_LABEL[h.dominio || h.diff]}</span>`}
                 </div>
                 <button class="btn ${favs.includes(h.name) ? 'btn-lime' : 'btn-dark'} btn-block" data-favtoggle="${esc(h.name)}">
                     ${favs.includes(h.name) ? '★ Favorito' : '☆ Favoritar'}
@@ -906,11 +907,11 @@ function renderCompare() {
             <div class="hc-tags">${h.soon ? '<span class="tag vio">Em breve</span>' : `<span class="tag">${esc(h.role)}</span><span class="tag ${tierClass(h.tier)}">Tier ${h.tier}</span>`}</div>
         </div>`).join('');
 
-    const score = { tier: h => 5 - 'SABCD'.indexOf(h.tier), hp: h => h.hp, spd: h => h.spd, win: h => +h.win, pick: h => +h.pick, diff: h => 4 - h.diff };
-    const disp = { tier: h => h.tier, hp: h => String(h.hp), spd: h => h.spd + ' m/s', win: h => h.win + '%', pick: h => h.pick + '%', diff: h => DIFF_LABEL[h.diff] };
-    const labels = { tier: 'Tier', hp: 'Vida', spd: 'Velocidade', win: 'Win rate', pick: 'Pick rate', diff: 'Facilidade' };
+    const score = { tier: h => 5 - 'SABCD'.indexOf(h.tier), hp: h => h.hp, spd: h => h.spd, win: h => +h.win, pick: h => +h.pick, diff: h => 4 - h.diff, dominio: h => 4 - (h.dominio || h.diff) };
+    const disp = { tier: h => h.tier, hp: h => String(h.hp), spd: h => h.spd + ' m/s', win: h => h.win + '%', pick: h => h.pick + '%', diff: h => DIFF_LABEL[h.diff], dominio: h => DIFF_LABEL[h.dominio || h.diff] };
+    const labels = { tier: 'Tier', hp: 'Vida', spd: 'Velocidade', win: 'Win rate', pick: 'Pick rate', diff: 'Dificuldade (aprender)', dominio: 'Dificuldade (masterizar)' };
 
-    $('#cmpRows').innerHTML = ['tier', 'hp', 'spd', 'win', 'pick', 'diff'].map(k => {
+    $('#cmpRows').innerHTML = ['tier', 'hp', 'spd', 'win', 'pick', 'diff', 'dominio'].map(k => {
         const sa = a.soon ? 0 : score[k](a), sb = b.soon ? 0 : score[k](b);
         const max = Math.max(sa, sb, 1);
         const aBest = !a.soon && sa > sb, bBest = !b.soon && sb > sa;

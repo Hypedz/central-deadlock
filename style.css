@@ -1330,8 +1330,19 @@ body.compact .cards-grid { gap: 14px; }
 .pg-lbl { font-family: var(--font-ui); font-size: .66rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px; }
 .pg-side-txt { color: var(--text-soft); font-size: .86rem; line-height: 1.6; }
 .pg-card-fonte .pg-side-txt { font-size: .78rem; }
-.pg-dif { display: flex; align-items: center; gap: 10px; }
-.pg-dif b { font-family: var(--font-ui); font-size: .95rem; white-space: nowrap; }
+.pg-difs { display: flex; flex-direction: column; gap: 9px; }
+.pg-dif-linha { display: flex; align-items: center; gap: 9px; }
+.pg-dif-nome { font-size: .79rem; color: var(--text-soft); min-width: 92px; }
+.pg-pips { display: flex; gap: 4px; flex: none; }
+.pg-pips i { width: 18px; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .13); display: block; }
+.pg-pips i.on.n1 { background: #4ade80; }
+.pg-pips i.on.n2 { background: #fbbf24; }
+.pg-pips i.on.n3 { background: #f87171; }
+.pg-dif-rot { font-family: var(--font-ui); font-size: .84rem; font-weight: 800; margin-left: auto; }
+.pg-dif-rot.n1 { color: #4ade80; }
+.pg-dif-rot.n2 { color: #fbbf24; }
+.pg-dif-rot.n3 { color: #f87171; }
+.pg-dif-fonte { font-size: .68rem; color: var(--text-faint); margin-top: 11px; }
 .pg-barra { flex: 1; height: 6px; border-radius: 99px; background: var(--bg-2); overflow: hidden; }
 .pg-barra i { display: block; height: 100%; background: var(--cor-borda, var(--lime)); border-radius: 99px; }
 .pg-mini { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: .85rem; }
@@ -1489,6 +1500,32 @@ body.compact .cards-grid { gap: 14px; }
 .pg-lista li { display: flex; align-items: center; gap: 8px; padding: 5px 0; color: var(--text-soft); font-size: .88rem; }
 .pg-lista img { width: 28px; height: 28px; border-radius: 8px; object-fit: cover; object-position: top center; }
 .pg-lista b { font-family: var(--font-ui); color: var(--text); }
+
+/* ---- "o que upar primeiro": a ordem das habilidades, nível por nível ---- */
+.pg-nota { color: var(--text-faint); font-size: .8rem; line-height: 1.6; margin: 0 0 14px; }
+.pg-ordem { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+.pg-niv {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 4px 7px; background: var(--card); border: 1px solid var(--border);
+    border-top: 3px solid var(--hc, var(--lime)); border-radius: 10px;
+}
+.pg-niv-n { font-family: var(--font-ui); font-weight: 800; font-size: .72rem; color: var(--text-faint); line-height: 1; }
+.pg-niv img { width: 30px; height: 30px; border-radius: 50%; display: block; }
+.pg-niv-vazio { font-family: var(--font-ui); font-weight: 800; font-size: 1.1rem; color: var(--lime); line-height: 1.4; }
+.pg-niv-p { font-size: .7rem; font-weight: 700; color: var(--text-soft); line-height: 1; }
+.pg-legenda { display: flex; flex-wrap: wrap; gap: 7px 16px; margin-top: 13px; }
+.pg-legenda span { display: inline-flex; align-items: center; gap: 7px; font-size: .82rem; color: var(--text-soft); }
+.pg-legenda i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.pg-legenda em { font-style: normal; color: var(--text-faint); }
+
+/* ---- listas com barrinha (duplas) e confrontos de rota ---- */
+.pg-lista-tab li { gap: 10px; }
+.pg-lista-tab .pg-barra { max-width: 130px; }
+.pg-lista-tab em { font-style: normal; font-family: var(--font-ui); font-weight: 700; font-size: .82rem; color: var(--text); min-width: 48px; text-align: right; }
+.pg-lista small { color: var(--text-faint); font-size: .76rem; }
+.pg-almas { font-family: var(--font-ui); font-weight: 700; font-size: .78rem; }
+.pg-almas.bom { color: var(--lime); }
+.pg-almas.ruim { color: #ff6b81; }
 .pg-skill .tag { margin-left: 6px; }
 .pg-noticia-body { max-width: 820px; }
 .pg-noticia-body .pg-title { margin: 10px 0 8px; }

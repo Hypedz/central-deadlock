@@ -55,6 +55,10 @@ jobs:
         run: python tools/traduzir-jogo.py
         continue-on-error: true
 
+      - name: Buscar a ordem das habilidades, as duplas e os confrontos de rota
+        run: python tools/update-analytics.py
+        continue-on-error: true
+
       - name: Gerar a página de cada herói, a de cada notícia e o sitemap
         run: python tools/gerar-paginas.py
         continue-on-error: true

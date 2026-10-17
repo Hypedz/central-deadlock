@@ -32,9 +32,9 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261016f"
+VERSAO_CSS = "20261016g"
 
-DIFF_LABEL = ["", "Fácil", "Médio", "Difícil", "Muito Difícil"]
+DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
 # Uma frase curta explicando o papel do herói (aparece no quadrinho "Papel")
 PAPEL_TXT = {
@@ -191,7 +191,7 @@ def topo(secao_url, secao_nome, atual):
 
 # --------------------------- páginas dos heróis ---------------------------
 
-def paginas_herois(herois, stats, jogo, hist, extra):
+def paginas_herois(herois, stats, jogo, hist, extra, analitico):
     os.makedirs(PASTA_HEROIS, exist_ok=True)
     stats_herois = stats.get("herois") or {}
     ids = jogo.get("ids") or {}
@@ -203,7 +203,11 @@ def paginas_herois(herois, stats, jogo, hist, extra):
     semanas = (hist or {}).get("semanas") or []
     serie_hist = (hist or {}).get("herois") or {}
     extras = (extra or {}).get("herois") or {}
+    analises = (analitico or {}).get("herois") or {}
     pasta_hab = os.path.join(BASE, "assets", "habilidades")
+
+    # uma cor para cada uma das 4 habilidades (usada no "o que upar primeiro")
+    CORES_HAB = ["#b6f24a", "#22d3ee", "#f472b6", "#fbbf24"]
 
     def nome_de_id(ident):
         for nome, valor in ids.items():
@@ -233,7 +237,6 @@ def paginas_herois(herois, stats, jogo, hist, extra):
         tier = s.get("tier", h.get("tier", "?"))
         cor = str(ex.get("cor") or "")
         etiquetas = [x for x in (ex.get("tags") or [h.get("role"), h.get("arch")]) if x and x != "—"]
-        compl = max(1, min(4, int(ex.get("compl") or h.get("diff") or 1)))
         lore = ex.get("lore") or []
         lista_hab = ex.get("hab") or []
         capa = "assets/capas/{}.webp".format(apelido)
@@ -404,6 +407,95 @@ def paginas_herois(herois, stats, jogo, hist, extra):
                           '<ul class="pg-lista">{}</ul></div>'.format("".join(linha(x) for x in (cont.get("ruins") or []))))
             pagina.append('            </div>')
 
+        # ---------------- o que upar primeiro (dados reais) ----------------
+        analise = analises.get(apelido) or {}
+        ordem = analise.get("ordem") or []
+        especiais = h.get("skills") or []
+        if ordem and especiais:
+            chips, usadas = [], []
+            for nivel, ponto in enumerate(ordem, start=1):
+                numero, pct = ponto[0], ponto[1]
+                if not (1 <= numero <= len(especiais)):
+                    continue
+                sk = especiais[numero - 1]
+                icone = icone_da(sk, numero - 1)
+                cor = CORES_HAB[(numero - 1) % len(CORES_HAB)]
+                if numero not in usadas:
+                    usadas.append(numero)
+                dentro = ('<img src="../assets/habilidades/{}" alt="{}" loading="lazy" width="30" height="30">'.format(e(icone), e(sk.get("name")))
+                          if icone else '<span class="pg-niv-vazio">{}</span>'.format(e(sk.get("key"))))
+                chips.append('                <div class="pg-niv" style="--hc:{}"><span class="pg-niv-n">{}</span>{}'
+                             '<span class="pg-niv-p">{}%</span></div>'.format(cor, nivel, dentro, pct))
+            if chips:
+                pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-arrow-up-1-9"></i> O que upar primeiro</h2>')
+                pagina.append('            <p class="pg-nota">Nível por nível, na ordem que os jogadores mais usam em partidas de verdade. '
+                              'A porcentagem mostra quantos escolheram aquela habilidade naquele nível.</p>')
+                pagina.append('            <div class="pg-ordem">')
+                pagina.extend(chips)
+                pagina.append('            </div>')
+                legenda = []
+                for numero in sorted(usadas):
+                    sk = especiais[numero - 1]
+                    cor = CORES_HAB[(numero - 1) % len(CORES_HAB)]
+                    legenda.append('<span><i style="background:{}"></i> {} <em>({})</em></span>'.format(
+                        cor, e(sk.get("name")), e(sk.get("key"))))
+                pagina.append('            <div class="pg-legenda">{}</div>'.format("".join(legenda)))
+
+        # ---------------- melhores duplas (dados reais) ----------------
+        duplas = analise.get("duplas") or []
+        duplas_ruins = analise.get("duplasRuins") or []
+        if duplas:
+            def linha_dupla(item):
+                outro = nome_de_id(item[0])
+                if not outro:
+                    return ""
+                # a barrinha vai de 40% a 60% de vitória: assim a diferença entre as duplas aparece
+                largura = max(6, min(100, int(round((item[1] - 40) / 20.0 * 100))))
+                return ('<li><img src="../assets/heroes/{}" alt="" width="28" height="28" loading="lazy"> '
+                        '<b>{}</b><span class="pg-barra"><i style="width:{}%"></i></span>'
+                        '<em>{}</em></li>').format(e(arquivo_de(outro)), e(outro), largura, "{:.1f}%".format(item[1]).replace(".", ","))
+            pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-people-group"></i> Melhores duplas</h2>')
+            pagina.append('            <p class="pg-nota">Heróis que mais ganham jogando junto com ele, em partidas reais '
+                          '(pelo menos {} partidas juntos).</p>'.format(moeda(analitico.get("minimos", {}).get("dupla", 0))))
+            pagina.append('            <div class="pg-skills">')
+            pagina.append('                <div class="pg-skill"><div class="pg-skill-info"><b>Ganha muito com</b></div>'
+                          '<ul class="pg-lista pg-lista-tab">{}</ul></div>'.format("".join(linha_dupla(x) for x in duplas)))
+            if duplas_ruins:
+                pagina.append('                <div class="pg-skill"><div class="pg-skill-info"><b>Não combina com</b></div>'
+                              '<ul class="pg-lista pg-lista-tab">{}</ul></div>'.format(
+                                  "".join(linha_dupla(x) for x in duplas_ruins)))
+            pagina.append('            </div>')
+
+        # ---------------- rota (lane) ----------------
+        rota = analise.get("rota") or []
+        rota_boas = analise.get("rotaBoas") or []
+        if rota:
+            def linha_rota(item):
+                outro = nome_de_id(item[0])
+                if not outro:
+                    return ""
+                almas = item[3] if len(item) > 3 else None
+                marca_almas = ""
+                if almas is not None:
+                    classe = "bom" if almas >= 0 else "ruim"
+                    sinal = "+" if almas >= 0 else "−"
+                    marca_almas = '<span class="pg-almas {}">{}{} almas</span>'.format(classe, sinal, moeda(abs(almas)))
+                return ('<li><img src="../assets/heroes/{}" alt="" width="28" height="28" loading="lazy"> '
+                        '<b>{}</b> — {}% de vitória {} <small>({} partidas)</small></li>').format(
+                            e(arquivo_de(outro)), e(outro), "{:.1f}".format(item[1]).replace(".", ","),
+                            marca_almas, moeda(item[2]))
+            pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-road"></i> Rota (lane)</h2>')
+            pagina.append('            <p class="pg-nota">Na rota, cada lado joga em dupla. Estes números são de confrontos reais: '
+                          'a diferença de almas é medida com o jogo já começado, então almas no verde significa que ele costuma '
+                          'estar na frente.</p>')
+            pagina.append('            <div class="pg-skills">')
+            pagina.append('                <div class="pg-skill"><div class="pg-skill-info"><b>Sofre na rota contra</b></div>'
+                          '<ul class="pg-lista">{}</ul></div>'.format("".join(linha_rota(x) for x in rota)))
+            if rota_boas:
+                pagina.append('                <div class="pg-skill"><div class="pg-skill-info"><b>Vai bem na rota contra</b></div>'
+                              '<ul class="pg-lista">{}</ul></div>'.format("".join(linha_rota(x) for x in rota_boas)))
+            pagina.append('            </div>')
+
         # ---------------- histórico ----------------
         serie = serie_hist.get(nome)
         if serie and semanas:
@@ -424,9 +516,24 @@ def paginas_herois(herois, stats, jogo, hist, extra):
         pagina.append('            </div>')
         pagina.append('            <div class="pg-card">')
         pagina.append('                <div class="pg-lbl">Dificuldade</div>')
-        pagina.append('                <div class="pg-dif"><b>{}</b>'
-                      '<span class="pg-barra"><i style="width:{}%"></i></span></div>'.format(
-                          e(DIFF_LABEL[compl]), int(compl / 4 * 100)))
+        pagina.append('                <div class="pg-difs">')
+
+        def linha_dificuldade(rotulo, nota):
+            """Uma linha de dificuldade: 3 barrinhas (verde/amarelo/vermelho) e o nome da nota."""
+            nota = max(1, min(3, int(nota or 1)))
+            barrinhas = "".join('<i class="on n{}"></i>'.format(nota) if posicao < nota else "<i></i>"
+                                for posicao in range(3))
+            return ('                    <div class="pg-dif-linha">'
+                    '<span class="pg-dif-nome">{}</span>'
+                    '<span class="pg-pips">{}</span>'
+                    '<b class="pg-dif-rot n{}">{}</b></div>').format(
+                        e(rotulo), barrinhas, nota, e(DIFF_LABEL[nota]))
+
+        pagina.append(linha_dificuldade("Para aprender", h.get("diff")))
+        pagina.append(linha_dificuldade("Para masterizar", h.get("dominio")))
+        pagina.append('                </div>')
+        fonte_dif = ("complexidade oficial do jogo" if h.get("dif_fonte") == "jogo" else "dlbr.gg")
+        pagina.append('                <p class="pg-dif-fonte">Nota de dificuldade: {}</p>'.format(e(fonte_dif)))
         pagina.append('            </div>')
         pagina.append('            <div class="pg-card">')
         pagina.append('                <div class="pg-lbl">Resumo</div>')
@@ -540,10 +647,11 @@ def main():
     jogo = ler_js("data/game-data.js")
     hist = ler_js("data/hero-history.js")
     extra = ler_js("data/hero-extra.js")
+    analitico = ler_js("data/hero-analytics.js")
     noticias = ler_js("data/steam-news.js")
     noticias = noticias.get("items") or []
 
-    paginas = paginas_herois(herois, stats, jogo, hist, extra)
+    paginas = paginas_herois(herois, stats, jogo, hist, extra, analitico)
     print("   {} paginas de herois".format(len(paginas)))
     paginas_not = paginas_noticias(noticias)
     print("   {} paginas de noticias".format(len(paginas_not)))
