@@ -1,19 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Busca as notícias oficiais do Deadlock no Steam e grava o arquivo
-data/steam-news.js (usado pelo site).
+Busca as notícias oficiais do Deadlock no Steam, TRADUZ para português e
+grava o arquivo data/steam-news.js (usado pelo site).
 
 Como usar:
     python tools/update-news.py
 
 No Windows, você também pode dar dois cliques em: atualizar-noticias.bat
+
+A tradução é feita de graça pelo tradutor do Google (sem precisar de chave)
+e fica guardada em data/traducao-cache.json, para nunca traduzir a mesma
+notícia duas vezes. Se a tradução falhar, o site mostra o texto original
+em inglês — nada quebra.
 """
 
 import datetime
+import hashlib
 import json
 import os
 import re
 import sys
+import time
+import urllib.parse
 import urllib.request
 
 # App ID do Deadlock na Steam (não mude)
@@ -23,9 +31,14 @@ QUANTOS = 40
 API = ("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
        "?appid={appid}&count={count}&maxlength=0&format=json")
 
+# tradutor gratuito do Google (não precisa de chave nem cadastro)
+TRADUTOR = ("https://translate.googleapis.com/translate_a/single"
+            "?client=gtx&sl=en&tl=pt-BR&dt=t&q={texto}")
+
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASTA = os.path.join(BASE, "data")
 SAIDA = os.path.join(PASTA, "steam-news.js")
+CACHE = os.path.join(PASTA, "traducao-cache.json")
 
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun",
          "jul", "ago", "set", "out", "nov", "dez"]
@@ -33,6 +46,11 @@ MESES = ["jan", "fev", "mar", "abr", "mai", "jun",
 # quanto texto guardar de cada notícia (para o site não ficar gigante)
 MAX_LINHAS = 40
 MAX_LINHA = 300
+
+# quantas notícias (as mais novas) são traduzidas a cada rodada
+TRADUZIR_ATE = 25
+# quantas traduções ficam guardadas no cache
+CACHE_MAX = 800
 
 
 def limpar_html(texto):
@@ -92,7 +110,61 @@ def baixar_json(url):
         return json.loads(resposta.read().decode("utf-8"))
 
 
+# --------------------------- tradução ---------------------------
+
+def carregar_cache():
+    try:
+        with open(CACHE, encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+        return dados if isinstance(dados, dict) else {}
+    except Exception:
+        return {}
+
+
+def salvar_cache(cache):
+    # guarda só as traduções mais recentes, para o arquivo não crescer demais
+    if len(cache) > CACHE_MAX:
+        for chave in list(cache)[:-CACHE_MAX]:
+            cache.pop(chave, None)
+    try:
+        with open(CACHE, "w", encoding="utf-8") as arquivo:
+            json.dump(cache, arquivo, ensure_ascii=False, indent=1)
+    except Exception as erro:
+        print("   (aviso: nao consegui salvar o cache de traducao: {})".format(erro))
+
+
+def _traduzir_bruto(texto):
+    url = TRADUTOR.format(texto=urllib.parse.quote(texto))
+    pedido = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(pedido, timeout=25) as resposta:
+        dados = json.loads(resposta.read().decode("utf-8"))
+    partes = [p[0] for p in dados[0] if p and p[0]]
+    return "".join(partes).strip()
+
+
+def traduzir(texto, cache):
+    """Traduz um texto (com cache). Devolve "" se não conseguir."""
+    texto = (texto or "").strip()
+    if not texto:
+        return ""
+    chave = hashlib.md5(texto.encode("utf-8")).hexdigest()
+    if chave in cache:
+        return cache[chave]
+    try:
+        traducao = _traduzir_bruto(texto)
+        # tira sobras estranhas que o tradutor às vezes devolve
+        traducao = traducao.replace("\n", " ").strip()
+        if traducao:
+            cache[chave] = traducao
+        return traducao
+    except Exception:
+        return ""
+
+
 def main():
+    #  --sem-traducao  =  gera o arquivo sem falar com o tradutor (mais rápido)
+    sem_traducao = "--sem-traducao" in sys.argv
+
     print("Buscando noticias do Deadlock (app {}) ...".format(APPID))
     try:
         dados = baixar_json(API.format(appid=APPID, count=QUANTOS))
@@ -102,6 +174,8 @@ def main():
 
     noticias = dados.get("appnews", {}).get("newsitems", []) or []
     itens = []
+    cache = {} if sem_traducao else carregar_cache()
+    traduzidas = 0
 
     for n in noticias:
         # mantem apenas os posts oficiais da Valve (ignora sites de imprensa)
@@ -122,9 +196,20 @@ def main():
         if len(" ".join(linhas)) > 190:
             resumo += "..."
 
+        titulo = (n.get("title") or "").strip() or "Atualizacao do Deadlock"
+
+        # ---- traducao para portugues (nas mais novas) ----
+        titulo_pt, resumo_pt = "", ""
+        if not sem_traducao and len(itens) < TRADUZIR_ATE:
+            titulo_pt = traduzir(titulo, cache)
+            resumo_pt = traduzir(resumo[:200], cache)
+            if titulo_pt:
+                traduzidas += 1
+
         itens.append({
             "id": "s{}".format(n.get("gid") or ts),
-            "title": (n.get("title") or "").strip() or "Atualizacao do Deadlock",
+            "title": titulo,
+            "title_pt": titulo_pt,
             "url": n.get("url") or "",
             "ts": ts,
             "date": "{:02d} {} {}".format(quando.day, MESES[quando.month - 1], quando.year),
@@ -132,12 +217,16 @@ def main():
             "patch": patch,
             "image": imagem_url(n.get("contents")),
             "desc": resumo,
+            "desc_pt": resumo_pt,
             "lines": linhas,
         })
 
     if not itens:
         print("AVISO: nenhuma noticia oficial encontrada. O arquivo nao foi alterado.")
         return 1
+
+    if not sem_traducao:
+        salvar_cache(cache)
 
     agora = datetime.datetime.now().strftime("%d/%m/%Y as %H:%M")
     conteudo = (
@@ -153,8 +242,12 @@ def main():
         arquivo.write(conteudo)
 
     print("OK! {} noticias salvas em data/steam-news.js".format(len(itens)))
+    if not sem_traducao:
+        print("   {} noticias traduzidas para portugues".format(traduzidas))
+        if traduzidas == 0:
+            print("   (aviso: o tradutor nao respondeu agora; o site mostra o texto em ingles)")
     for n in itens[:5]:
-        print("   - [{}] {}".format(n["date"], n["title"]))
+        print("   - [{}] {} / {}".format(n["date"], n["title"][:45], (n.get("title_pt") or "-")[:45]))
     return 0
 
 

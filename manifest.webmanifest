@@ -1,0 +1,51 @@
+{
+  "name": "Central Deadlock",
+  "short_name": "Central DL",
+  "description": "Notícias, heróis, estatísticas reais e perfil personalizável para a comunidade brasileira de Deadlock.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./?app=1",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0c0e",
+  "theme_color": "#0c0c0e",
+  "categories": ["games", "entertainment", "news"],
+  "icons": [
+    {
+      "src": "assets/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Estatísticas",
+      "short_name": "Stats",
+      "url": "./#estatisticas"
+    },
+    {
+      "name": "Notícias",
+      "short_name": "Notícias",
+      "url": "./#noticias"
+    },
+    {
+      "name": "Heróis",
+      "short_name": "Heróis",
+      "url": "./#herois"
+    }
+  ]
+}

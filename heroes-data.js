@@ -1,14 +1,18 @@
 // ========================================
 // CENTRAL DEADLOCK - Dados dos heróis
 // Baseado no protótipo "Deadlock BR v3".
-// Atributos, habilidades e estatísticas são dados de exemplo
-// (nomes de habilidades conforme a deadlock.wiki).
+// Nomes de habilidades conforme a deadlock.wiki.
 // Para editar um herói, mude o texto entre aspas aqui.
+//
+// IMPORTANTE: os campos "win" (win rate) e "pick" (taxa de escolha) são
+// apenas reserva. O site troca eles pelos NÚMEROS REAIS assim que carrega
+// o arquivo data/hero-stats.js (gerado sozinho por tools/update-stats.py).
+// A "tier" de cada herói também é recalculada com os dados reais.
 // ========================================
 
 const ROLES = ["Tanque","Suporte","Carry","Controle","Assassino"];
 const DIFF_LABEL = ["","Fácil","Médio","Difícil"];
-const HEROES_SOON = ["Nurse Harrow","Violet"];
+const HEROES_SOON = ["Nurse Harrow"];
 
 const HEROES_DATA = [
   {
@@ -1657,17 +1661,46 @@ const HEROES_DATA = [
   {
     "name": "Violet",
     "file": "Violet.png",
-    "arch": "—",
-    "role": "A definir",
-    "diff": 2,
-    "tier": "B",
-    "desc": "Artista ágil e criativa, com um pincel enorme. Ainda não foi lançada.",
-    "soon": true,
-    "win": "52.0",
-    "pick": "5.4",
-    "hp": 0,
-    "spd": 0,
-    "skills": []
+    "arch": "Místico",
+    "role": "Carry",
+    "diff": 1,
+    "tier": "D",
+    "desc": "Artista ágil que pinta a luta: fortalece os próprios tiros, atrapalha os inimigos e ainda retrata os adversários.",
+    "soon": false,
+    "win": "44.8",
+    "pick": "0.1",
+    "hp": 710,
+    "spd": 6.9,
+    "skills": [
+      {
+        "key": "1",
+        "name": "Tinta Viva",
+        "desc": "Suas próximas 3 balas ganham vida e podem ser conduzidas durante o trajeto, causando mais dano de bala e dano espiritual em uma pequena área. Cada acerto em herói reduz a recarga de todas as habilidades (e metade da recarga dos itens). No alt-fire, desenha um traço sólido de tinta que bloqueia projéteis e personagens.",
+        "cd": 22,
+        "passive": 0
+      },
+      {
+        "key": "2",
+        "name": "Estado de Fluxo",
+        "desc": "Arrasta um pincel que continua avançando e deixa um rastro que dá distância extra de deslize para os aliados e causa lentidão e dano espiritual nos inimigos que atravessa, que aumenta quanto mais longe ele vai. Reative para arremessar o pincel e causar dano em uma área maior.",
+        "cd": 23,
+        "passive": 0
+      },
+      {
+        "key": "3",
+        "name": "Natureza Morta",
+        "desc": "Escolhe um herói como modelo e causa dano espiritual contínuo enquanto você estiver olhando para ele. Se completar o desenho, o alvo leva dano extra, fica atordoado e deixa cair um esboço: cada esboço coletado dá atributos permanentes.",
+        "cd": 35,
+        "passive": 0
+      },
+      {
+        "key": "★",
+        "name": "Paisagem Abstrata",
+        "desc": "Cria um círculo de tinta gigante que bloqueia a visão e concede Poder Espiritual aos aliados. Os inimigos dentro ficam revelados e, ao sair, levam dano espiritual, ficam silenciados e desacelerados, o que desfaz a tinta.",
+        "cd": 165,
+        "passive": 0
+      }
+    ]
   },
   {
     "name": "Viscous",

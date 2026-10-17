@@ -9,7 +9,11 @@
     <meta name="author" content="Central Deadlock">
     <meta name="keywords" content="Deadlock, Valve, heróis, guias, builds, itens, tier list, comunidade brasileira">
     <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
-    <link rel="apple-touch-icon" href="assets/brand/share.jpg">
+    <link rel="apple-touch-icon" href="assets/brand/icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Central Deadlock">
 
     <!-- ===== Compartilhamento (Discord / WhatsApp / redes sociais) =====
          Estas URLs apontam para o site publicado em hypedz.github.io.
@@ -100,6 +104,7 @@
                 <a href="#herois" class="nav-item" data-section="herois"><i class="fa-solid fa-masks-theater"></i> Heróis</a>
                 <a href="#comparar" class="nav-item" data-section="comparar"><i class="fa-solid fa-right-left"></i> Comparar</a>
                 <a href="#tierlist" class="nav-item" data-section="tierlist"><i class="fa-solid fa-layer-group"></i> Tier List</a>
+                <a href="#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
                 <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
                 <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
                 <a href="#builds" class="nav-item" data-section="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Builds</a>
@@ -189,6 +194,18 @@
                     </div>
                 </div>
                 <div class="tier-list" id="tierRows"></div>
+            </section>
+
+            <!-- ============ ESTATÍSTICAS ============ -->
+            <section id="estatisticas" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Estatísticas</h1>
+                        <p class="page-sub">Win rate, pick rate e KDA de verdade, calculados sobre milhões de partidas. Clique em um herói para abrir a ficha dele.</p>
+                    </div>
+                </div>
+                <div class="roles-row" id="statsOrdens"></div>
+                <div id="statsBox"></div>
             </section>
 
             <!-- ============ HOME ============ -->
@@ -492,6 +509,7 @@
     </button>
 
     <script src="heroes-data.js"></script>
+    <script src="data/hero-stats.js"></script>
     <script src="data/steam-news.js"></script>
     <script src="script.js"></script>
 </body>

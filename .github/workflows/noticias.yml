@@ -33,8 +33,12 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Buscar as notícias oficiais do Deadlock
+      - name: Buscar as notícias oficiais do Deadlock (e traduzir)
         run: python tools/update-news.py
+
+      - name: Buscar as estatísticas reais dos heróis
+        run: python tools/update-stats.py
+        continue-on-error: true
 
       - name: Testar o Discord
         if: inputs.teste
@@ -54,22 +58,22 @@ jobs:
         run: python tools/discord-post.py
         continue-on-error: true
 
-      - name: Salvar as novidades no repositório
+      - name: Salvar as novidades e as estatísticas no repositório
         id: salvar
         run: |
           git config user.name "Central Deadlock Bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/steam-news.js data/discord-posted.json
+          git add data/
           if git diff --staged --quiet; then
             echo "Nada mudou desde a última vez."
             echo "mudou=nao" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Notícias atualizadas automaticamente"
+            git commit -m "Notícias e estatísticas atualizadas automaticamente"
             git push
             echo "mudou=sim" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Republicar o site com as notícias novas
+      - name: Republicar o site com as novidades
         if: steps.salvar.outputs.mudou == 'sim'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

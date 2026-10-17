@@ -11,6 +11,29 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 const money = (n) => n.toLocaleString('pt-BR');
 
 const HEROES = (typeof HEROES_DATA !== 'undefined' ? HEROES_DATA : []).map((h, i) => ({ ...h, idx: i }));
+
+/* ================= estatísticas REAIS dos heróis =================
+   O arquivo data/hero-stats.js é gerado sozinho por tools/update-stats.py,
+   com números reais de partidas (fonte: deadlock-api.com).
+   Quando ele existe, o win rate, o pick rate e a tier list deixam de ser
+   exemplo e passam a ser os números de verdade. Se o arquivo não existir,
+   o site continua funcionando com os valores do heroes-data.js. */
+const HERO_STATS = (window.HERO_STATS && window.HERO_STATS.herois) || {};
+const STATS_INFO = window.HERO_STATS || {};
+const temStatsReais = Object.keys(HERO_STATS).length > 0;
+
+HEROES.forEach(h => {
+    const s = HERO_STATS[h.name];
+    if (!s) return;
+    h.partidas = s.partidas;
+    h.kda = s.kda;
+    h.posicao = s.posicao;
+    h.win = Number(s.win).toFixed(1);
+    h.pick = Number(s.pick).toFixed(1);
+    if (s.tier) h.tier = s.tier;   // tier list calculada com dados reais
+    h.real = true;
+});
+
 const PLAYABLE = HEROES.filter(h => !h.soon);
 const heroByName = (n) => HEROES.find(h => h.name === n);
 
@@ -165,7 +188,7 @@ const GUIDES = [
         body: ['McGinnis domina o espaço com torres e barreiras. Posicione-se atrás do time e use as construções para controlar as entradas.', 'Nos primeiros minutos, foque em farm seguro e monte itens de vitalidade antes de partir para o dano.']
     },
     {
-        id: 'g2', cat: 'Guia', title: 'Seven - Estratégia Elétrica', img: 'Vindicta.png', date: '11 out 2026',
+        id: 'g2', cat: 'Guia', title: 'Seven - Estratégia Elétrica', img: 'Seven.png', date: '11 out 2026',
         desc: 'Melhores itens, habilidades e combos para o herói elétrico.',
         body: ['Seven brilha nas lutas de equipe com dano em área. Guarde a suprema para o momento certo: quando os inimigos estiverem agrupados.', 'Itens de espírito potencializam o dano elétrico e reduzem a recarga.']
     },
@@ -237,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initContents();
     initCompare();
     initTierList();
+    initStats();
     initMap();
     initEvents();
     initQuiz();
@@ -247,7 +271,19 @@ document.addEventListener('DOMContentLoaded', () => {
     fixShareMeta();
     updateChip();
     checkSharedCard();
+    registrarApp();
 });
+
+/* ================= app instalável (PWA) =================
+   O sw.js deixa o site abrir mais rápido e funcionar mesmo com
+   internet ruim. Se o navegador não suportar, o site segue normal. */
+function registrarApp() {
+    if (!('serviceWorker' in navigator)) return;
+    if (!/^https?:$/.test(location.protocol)) return;   // só funciona publicado/servidor local
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+}
 
 /* ================= navegação ================= */
 function showSection(id) {
@@ -329,6 +365,12 @@ function pennant(hero, w) {
             <div class="pen-name">${words.map(t => `<span>${esc(t)}</span>`).join(' ')}</div>
         </div>
     </div>`;
+}
+
+/* mostra "< 0,1%" quando o número é pequeno demais (senão fica "0%") */
+function pickTxt(p) {
+    const n = +p;
+    return (isFinite(n) && n < 0.1) ? '< 0,1%' : p + '%';
 }
 
 function heroCard(hero, w) {
@@ -458,8 +500,8 @@ function renderHeroModal() {
     const preset = h.role === 'Tanque' ? 'Tanque' : (h.role === 'Suporte' || h.role === 'Controle') ? (h.role === 'Controle' ? 'Controle' : 'Suporte') : h.role === 'Carry' ? 'Carry' : 'Assassino';
     const pick = BUILD_PRESETS[preset] || BUILD_PRESETS.Assassino;
 
-    const bar = (label, val, max, unit = '') =>
-        `<div class="statline">${label}: <b>${val}${unit}</b></div><div class="bar"><i style="width:${Math.max(4, Math.min(100, val / max * 100))}%"></i></div>`;
+    const bar = (label, val, max, unit = '', txt = null) =>
+        `<div class="statline">${label}: <b>${txt != null ? txt : val + unit}</b></div><div class="bar"><i style="width:${Math.max(4, Math.min(100, val / max * 100))}%"></i></div>`;
 
     const tabVisao = h.soon
         ? `<p>${esc(h.desc)}</p><div class="hp-tags" style="justify-content:flex-start;margin-top:14px"><span class="tag vio">Em breve</span></div>
@@ -474,9 +516,13 @@ function renderHeroModal() {
            <h2 class="pform-sec" style="margin-top:20px">Atributos base</h2>
            ${bar('Vida', h.hp, 1000)}
            ${bar('Velocidade', h.spd, 10, ' m/s')}
-           <h2 class="pform-sec" style="margin-top:20px">Estatísticas (exemplo)</h2>
+           <h2 class="pform-sec" style="margin-top:20px">${h.real ? 'Estatísticas reais' : 'Estatísticas (exemplo)'}</h2>
            ${bar('Win rate', +h.win, 70, '%')}
-           ${bar('Pick rate', +h.pick, 20, '%')}`;
+           ${bar('Pick rate', +h.pick, 20, '%', pickTxt(h.pick))}
+           ${h.real ? bar('KDA', +h.kda, 5, '') : ''}
+           ${h.real
+                ? `<p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> ${money(h.partidas)} partidas analisadas · ${h.posicao}º melhor win rate do jogo. Fonte: deadlock-api.com</p>`
+                : ''}`;
 
     const tabHab = h.soon
         ? '<p style="color:var(--text-soft)">Habilidades disponíveis após o lançamento.</p>'
@@ -561,7 +607,10 @@ function buildSteamArticles() {
         id: n.id,
         cat: n.cat || 'Steam',
         title: n.title,
-        img: steamHeroImg(n.title + ' ' + (n.lines || []).slice(0, 6).join(' '), i),
+        titlePT: n.title_pt || '',       // título traduzido (tools/update-news.py)
+        descPT: n.desc_pt || '',         // resumo traduzido
+        imgHero: steamHeroImg(n.title + ' ' + (n.lines || []).slice(0, 6).join(' '), i),
+        imgSteam: n.image || '',         // imagem oficial publicada pela Valve
         date: n.date,
         desc: n.desc,
         body: (n.lines || []).slice(0, 40),
@@ -570,6 +619,17 @@ function buildSteamArticles() {
         steam: true
     }));
 }
+
+/* imagem de um card de notícia: usa a oficial da Valve quando existe e,
+   se ela falhar, cai para a arte do herói citado na notícia. */
+function cardImg(a, cls = '') {
+    const reserva = 'assets/heroes/' + (a.imgHero || a.img);
+    const src = a.imgSteam || reserva;
+    return `<img src="${esc(src)}" alt=""${cls ? ` class="${cls}"` : ''} loading="lazy" onerror="this.onerror=null;this.src='${reserva}'">`;
+}
+
+/* título do card: em português quando a tradução existir */
+function tituloPT(a) { return a.titlePT || a.title; }
 
 const STEAM_ARTICLES = buildSteamArticles();
 
@@ -585,12 +645,13 @@ function initContents() {
                 <span class="news-more">${label} <i class="fa-solid fa-arrow-right"></i></span>
             </article>`;
         }
+        const pt = !!a.titlePT;
         return `<article class="news-card" data-article="${a.id}">
-            <img src="assets/heroes/${a.img}" alt="">
+            ${cardImg(a)}
             <div class="news-body">
-                <span class="news-cat">${esc(a.cat)}</span>
-                <h3 class="news-title">${esc(a.title)}</h3>
-                <p class="news-desc">${esc(a.desc)}</p>
+                <span class="news-cat">${esc(a.cat)}${pt ? ' <span class="pt-tag" title="Traduzido automaticamente do inglês"><i class="fa-solid fa-language"></i> PT</span>' : ''}</span>
+                <h3 class="news-title">${esc(tituloPT(a))}</h3>
+                <p class="news-desc">${esc(a.descPT || a.desc)}</p>
                 <span class="news-date">${esc(a.date)}</span>
                 <span class="news-more">Ler matéria <i class="fa-solid fa-arrow-right"></i></span>
             </div>
@@ -606,8 +667,8 @@ function initContents() {
     const sub = $('#newsSub');
     if (sub) {
         sub.innerHTML = STEAM_ARTICLES.length
-            ? `As últimas notícias oficiais do Deadlock, direto da Steam. Clique para ler.
-               <span class="news-sub-note"><i class="fa-solid fa-rotate"></i> Atualizado em <b>${esc((window.STEAM_NEWS || {}).updated || '')}</b> · textos originais da Valve (em inglês)</span>`
+            ? `As últimas notícias oficiais do Deadlock, direto da Steam — <b>traduzidas para português</b>. Clique para ler.
+               <span class="news-sub-note"><i class="fa-solid fa-rotate"></i> Atualizado em <b>${esc((window.STEAM_NEWS || {}).updated || '')}</b> · tradução automática · texto original da Valve (em inglês)</span>`
             : 'As últimas novidades sobre Deadlock. Clique para ler.';
     }
 
@@ -620,7 +681,7 @@ function initContents() {
                 const primeira = (a.body[0] || a.desc || '');
                 const resumo = primeira.slice(0, 210) + (primeira.length > 210 ? '...' : '');
                 return `<article class="patch-entry" data-article="${a.id}">
-                    <div class="patch-head"><span class="patch-version">${esc(a.title)}</span><span class="patch-date">${esc(a.date)}</span></div>
+                    <div class="patch-head"><span class="patch-version">${esc(tituloPT(a))}</span><span class="patch-date">${esc(a.date)}</span></div>
                     <p>${esc(resumo)}</p>
                     <span class="patch-more">Ver o patch completo <i class="fa-solid fa-arrow-right"></i></span>
                 </article>`;
@@ -658,15 +719,27 @@ function openArticle(id) {
     const corpo = a.patch
         ? `<div class="cm-patch">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`
         : `<div class="cm-text">${a.body.map(p => `<p>${esc(p)}</p>`).join('')}</div>`;
+
+    // notícias do Steam: mostra o resumo em português e guarda o original
+    const temPT = !!a.descPT;
+    const resumoPT = temPT
+        ? `<div class="cm-pt"><span class="cm-pt-tag"><i class="fa-solid fa-language"></i> Resumo em português</span><p>${esc(a.descPT)}</p></div>`
+        : '';
+    const original = temPT
+        ? `<div class="pform-sec" style="margin:24px 0 10px">Texto original (em inglês)</div>
+           ${a.titlePT ? `<p class="cm-original-title">${esc(a.title)}</p>` : ''}`
+        : '';
     const linkSteam = a.url
         ? `<a class="cm-link" href="${esc(a.url)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
         : '';
     $('#contentModalBox').innerHTML = `
         <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
-        <img class="cm-img" src="assets/heroes/${a.img}" alt="">
+        ${cardImg(a, 'cm-img')}
         <div class="cm-body">
-            <div class="cm-meta"><span class="tag acc">${esc(a.cat)}</span><span class="cm-date">${esc(a.date)}</span>${a.steam ? '<span class="news-src"><i class="fa-brands fa-steam"></i> Notícia oficial</span>' : ''}</div>
-            <h2 class="cm-title">${esc(a.title)}</h2>
+            <div class="cm-meta"><span class="tag acc">${esc(a.cat)}</span><span class="cm-date">${esc(a.date)}</span>${a.steam ? '<span class="news-src"><i class="fa-brands fa-steam"></i> Notícia oficial</span>' : ''}${a.titlePT ? '<span class="news-src"><i class="fa-solid fa-language"></i> Traduzido</span>' : ''}</div>
+            <h2 class="cm-title">${esc(tituloPT(a))}</h2>
+            ${resumoPT}
+            ${original}
             ${corpo}
             ${items}
             ${linkSteam}
@@ -754,6 +827,86 @@ function initTierList() {
             : '<span style="color:var(--text-faint);font-size:13px">Nenhum herói neste tier.</span>';
         return `<div class="tier-row"><div class="tier-badge tier-${t}">${t}</div><div class="tier-heroes">${inner}</div></div>`;
     }).join('');
+}
+
+/* ================= estatísticas (números reais) ================= */
+const STATS_ORDENS = {
+    win: ['Win rate', (a, b) => (+b.win) - (+a.win)],
+    pick: ['Pick rate', (a, b) => (+b.pick) - (+a.pick)],
+    partidas: ['Partidas', (a, b) => b.partidas - a.partidas],
+    kda: ['KDA', (a, b) => (+b.kda) - (+a.kda)]
+};
+let statsOrdem = 'win';
+
+function initStats() {
+    const ordens = $('#statsOrdens');
+    if (ordens && temStatsReais) {
+        ordens.innerHTML = Object.entries(STATS_ORDENS)
+            .map(([k, v]) => `<button class="pill ${k === statsOrdem ? 'on' : ''}" data-ordem="${k}">${v[0]}</button>`).join('');
+        ordens.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-ordem]'); if (!b) return;
+            statsOrdem = b.dataset.ordem;
+            $$('.pill', ordens).forEach(p => p.classList.toggle('on', p === b));
+            renderStats();
+        });
+    }
+    document.addEventListener('click', (e) => {
+        const row = e.target.closest('#statsBox .st-row');
+        if (row) openHero(row.dataset.hero);
+    });
+    renderStats();
+}
+
+function renderStats() {
+    const box = $('#statsBox');
+    if (!box) return;
+
+    if (!temStatsReais) {
+        box.innerHTML = `<div class="card" style="padding:24px">
+            <h2 class="pform-sec" style="margin-top:0">Ainda sem estatísticas</h2>
+            <p style="color:var(--text-soft)">Os números reais são baixados pelo arquivo <code>tools/update-stats.py</code>.
+            Dê dois cliques em <code>atualizar-tudo.bat</code> para buscá-los agora — ou espere: o GitHub atualiza sozinho, todo dia.</p>
+        </div>`;
+        return;
+    }
+
+    const info = STATS_INFO.destaques || {};
+    const lista = PLAYABLE.filter(h => h.real).sort(STATS_ORDENS[statsOrdem][1]);
+    const num = (v) => (v == null ? '-' : v);
+
+    const cards = `<div class="stats-cards">
+        <div class="card stat-card"><i class="fa-solid fa-database"></i><b>${money(STATS_INFO.partidas || 0)}</b><small>partidas analisadas</small></div>
+        <div class="card stat-card ok"><i class="fa-solid fa-crown"></i><b>${esc(num(info.melhor))}</b><small>melhor win rate · ${num(info.melhor_win)}%</small></div>
+        <div class="card stat-card"><i class="fa-solid fa-fire"></i><b>${esc(num(info.mais_jogado))}</b><small>mais escolhido · ${num(info.mais_jogado_pick)}%</small></div>
+        <div class="card stat-card bad"><i class="fa-solid fa-triangle-exclamation"></i><b>${esc(num(info.pior))}</b><small>menor win rate · ${num(info.pior_win)}%</small></div>
+    </div>`;
+
+    const linhas = lista.map((h, i) => {
+        const largura = Math.max(6, Math.min(100, (+h.win) / 60 * 100));
+        const cor = (+h.win) >= 52 ? 'ok' : ((+h.win) >= 50 ? 'warn' : 'bad');
+        return `<div class="st-row" data-hero="${esc(h.name)}" title="Ver ${esc(h.name)}">
+            <span class="st-pos">${i + 1}</span>
+            <span class="st-hero"><img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="this.remove()"><b>${esc(h.name)}</b></span>
+            <span class="st-tier"><span class="tag ${tierClass(h.tier)}">${esc(h.tier)}</span></span>
+            <span class="st-num">${money(h.partidas)}</span>
+            <span class="st-win"><i class="${cor}" style="width:${largura}%"></i><em>${h.win}%</em></span>
+            <span class="st-num">${pickTxt(h.pick)}</span>
+            <span class="st-num">${h.kda}</span>
+        </div>`;
+    }).join('');
+
+    box.innerHTML = cards + `
+        <div class="stats-table">
+            <div class="st-head">
+                <span>#</span><span>Herói</span><span>Tier</span><span>Partidas</span>
+                <span>Win rate</span><span>Pick</span><span>KDA</span>
+            </div>
+            ${linhas}
+        </div>
+        <p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i>
+            Números reais de partidas, via <b>deadlock-api.com</b> · atualizado em <b>${esc(STATS_INFO.updated || '')}</b>.
+            Clique em um herói para ver a ficha completa.
+        </p>`;
 }
 
 /* ================= mapa ================= */

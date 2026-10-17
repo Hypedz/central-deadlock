@@ -1,0 +1,14 @@
+# Central Deadlock - regras para os buscadores (Google, Bing, Discord...)
+
+User-agent: *
+Allow: /
+
+# Robôs de redes sociais (o cartão com imagem continua funcionando)
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Mapa do site
+Sitemap: https://hypedz.github.io/central-deadlock/sitemap.xml

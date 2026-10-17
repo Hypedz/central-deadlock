@@ -10,32 +10,46 @@ Portal da comunidade brasileira de **Deadlock**, com identidade visual inspirada
 meu-fansite/
 ├── index.html
 ├── style.css
-├── heroes-data.js           # Dados dos heróis (nomes, atributos, habilidades)
+├── heroes-data.js           # Ficha dos heróis (nomes, atributos, habilidades)
 ├── script.js
-├── atualizar-noticias.bat   # 2 cliques aqui = busca as notícias do Steam
+├── manifest.webmanifest     # Faz o site virar "app" no celular
+├── sw.js                    # Guarda o site no navegador (abre mais rápido)
+├── sitemap.xml              # Mapa do site para o Google
+├── robots.txt               # Regras para os buscadores
+├── atualizar-noticias.bat   # 2 cliques = notícias + estatísticas
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
-├── atualizar-tudo.bat       # 2 cliques = atualiza notícias + posta (sem perguntar)
+├── atualizar-tudo.bat       # 2 cliques = notícias + estatísticas + Discord
 ├── README.md
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
-│   └── noticias.yml         # Notícias do Steam + Discord, todo dia
+│   └── noticias.yml         # Notícias + estatísticas + Discord, todo dia
 ├── data/
-│   ├── steam-news.js        # Notícias do Steam — GERADO automaticamente
-│   ├── discord-posted.json  # O que o bot já postou (GERADO automaticamente)
+│   ├── steam-news.js        # Notícias do Steam (traduzidas) — GERADO sozinho
+│   ├── hero-stats.js        # Win rate / pick / KDA reais — GERADO sozinho
+│   ├── traducao-cache.json  # Memória das traduções — GERADO sozinho
+│   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
 │   └── atualizacoes.log     # Registro das execuções automáticas (fora do Git)
 ├── tools/
-│   ├── update-news.py       # Script que baixa as notícias
-│   ├── discord-post.py      # Script que posta no Discord
-│   └── make-share.py        # Gera a imagem de compartilhamento
+│   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam
+│   ├── update-stats.py      # Baixa as estatísticas reais dos heróis
+│   ├── discord-post.py      # Posta no Discord
+│   ├── make-share.py        # Gera a imagem de compartilhamento
+│   ├── make-icons.py        # Gera os ícones do app (celular/PC)
+│   └── checar-segredos.py   # Trava que impede vazar o webhook no Git
 └── assets/
     ├── brand/
     │   ├── favicon.svg        # Ícone da aba do navegador
+    │   ├── icon-192.png       # Ícone do app (celular)
+    │   ├── icon-512.png       # Ícone do app (grande)
+    │   ├── icon-maskable-512.png # Ícone do app (Android recorta)
     │   ├── share.jpg          # Imagem que aparece ao compartilhar o link
     │   ├── library_hero.jpg   # Capa usada no banner da Home
     │   ├── deadlock-cover.jpg # Capa vertical (reserva)
     │   └── deadlock-header.jpg # Banner horizontal (reserva)
     └── heroes/                # 44 artes dos heróis (PNG)
 ```
+
+> ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
 
 ---
 
@@ -82,9 +96,55 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
   - **Habilidades** — as 4 habilidades com descrição e recarga
   - **Build** — sugestão de itens
   - **Confrontos** — contra quem vai bem e contra quem sofre
-- **The Doorman**, **Nurse Harrow** e **Violet** aparecem marcados como **"Em breve"**
+- **The Doorman** aparece normalmente; só **Nurse Harrow** está marcada como **"Em breve"** (ela ainda está em pré-lançamento no jogo — a própria API oficial diz isso)
+- **Violet** foi lançada em **16/10/2026** e já está completa, com as 4 habilidades reais (Tinta Viva, Estado de Fluxo, Natureza Morta e Paisagem Abstrata) e os atributos reais (710 de vida, 6,9 m/s)
 
 > Os textos/atributos dos heróis ficam em **`heroes-data.js`** — é só editar o texto entre aspas que a ficha atualiza.
+
+---
+
+## 📊 Estatísticas reais (números de verdade)
+
+A aba **Estatísticas** mostra **win rate, pick rate e KDA reais**, calculados sobre **milhões de partidas** — nada de número inventado.
+
+De onde vêm os dados? Do projeto público e gratuito **[deadlock-api.com](https://deadlock-api.com)**, que lê as próprias partidas do jogo. O script `tools/update-stats.py` baixa tudo e grava em `data/hero-stats.js`.
+
+O que isso muda no site:
+
+| Onde | Antes | Agora |
+|---|---|---|
+| Aba **Estatísticas** | não existia | tabela completa, com barras e 4 destaques |
+| **Win rate / pick rate** dos heróis | exemplo | **números reais** |
+| **Tier List** (S a D) | exemplo | **calculada** pelos dados reais |
+| Ordenar heróis por "Melhor tier" / "Maior win rate" | exemplo | real |
+| Ficha do herói | "Estatísticas (exemplo)" | "Estatísticas reais" + nº de partidas e posição |
+
+> 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
+
+---
+
+## 📱 O site virou um "app" (PWA)
+
+Agora dá para **instalar a Central Deadlock no celular ou no PC**, igual a um aplicativo — com ícone próprio, tela cheia e sem a barra do navegador:
+
+- **Celular (Android/Chrome):** menu ⋮ → **Instalar aplicativo**
+- **Celular (iPhone/Safari):** botão **Compartilhar** → **Adicionar à Tela de Início**
+- **PC (Chrome/Edge):** ícone de **instalar** (uma telinha com uma seta) na barra de endereço
+
+Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js` (uma cópia do site guardada no navegador, para abrir rápido) e os ícones em `assets/brand/icon-*.png`.
+
+> **Notícia nunca fica velha:** o `sw.js` foi feito para sempre **buscar as notícias na internet primeiro** e usar a cópia guardada só quando a internet falha.
+>
+> Para gerar os ícones de novo (se algum dia mudar a logo): `python tools/make-icons.py` (precisa da biblioteca Pillow).
+
+---
+
+## 🔎 Aparecer no Google
+
+- **`sitemap.xml`** — a lista de páginas para os buscadores
+- **`robots.txt`** — libera a leitura e aponta para o sitemap
+
+Para o Google achar o site mais rápido: entre no **[Google Search Console](https://search.google.com/search-console)**, adicione a propriedade `https://hypedz.github.io/central-deadlock/` e envie o `sitemap.xml`. Não é obrigatório — o Google acha sozinho com o tempo.
 
 ---
 
@@ -101,8 +161,9 @@ As abas **Notícias** e **Patch Notes** puxam as publicações **oficiais do Dea
 **Como funciona:**
 
 1. O script `tools/update-news.py` conversa com a API da Steam e salva tudo em `data/steam-news.js`.
-2. O site lê esse arquivo e monta os cards sozinho — inclusive escolhendo a **arte do herói** citado na notícia.
-3. Se você rodar o site pelo GitHub, o robô `.github/workflows/noticias.yml` faz isso **todo dia às 9h (horário de Brasília)** e salva no repositório.
+2. Ele **traduz o título e o resumo para português** (tradutor gratuito do Google, sem precisar de chave) e usa a **imagem oficial** que a Valve publicou em cada notícia. Cada tradução fica guardada em `data/traducao-cache.json`, então nunca é traduzida duas vezes.
+3. O site lê esse arquivo e monta os cards sozinho — inclusive escolhendo a **arte do herói** citado na notícia, se a notícia não tiver imagem própria.
+4. Se você rodar o site pelo GitHub, o robô `.github/workflows/noticias.yml` faz isso **todo dia às 9h (horário de Brasília)** e salva no repositório.
 
 **Para atualizar na mão (no seu PC):**
 
@@ -110,8 +171,12 @@ As abas **Notícias** e **Patch Notes** puxam as publicações **oficiais do Dea
 - Rode no terminal: `python tools/update-news.py`
 
 > **Importante:** o arquivo `data/steam-news.js` é **gerado automaticamente** — não edite ele na mão, porque a próxima atualização apaga suas mudanças. Para editar notícias manualmente, use o bloco `NEWS` no `script.js` (ele é o plano B quando o arquivo do Steam não existe).
+
+> 🌎 **Sobre a tradução:** a Valve publica tudo **em inglês**. O site mostra o **título e o resumo traduzidos** (com um selinho 🇧🇷 **PT**) e, ao abrir a notícia, guarda o **texto original em inglês** logo abaixo — assim ninguém perde nenhum detalhe e dá para conferir na fonte.
 >
-> Os textos oficiais da Valve são publicados **em inglês** — o site mostra o original e o botão "Ver no Steam" leva para a publicação completa.
+> Se a tradução falhar (internet fora, por exemplo), o card simplesmente mostra o texto original. **Nada quebra.**
+>
+> Para economizar tempo, só as **25 notícias mais novas** são traduzidas a cada rodada. Se quiser atualizar sem traduzir: `python tools/update-news.py --sem-traducao`.
 
 ---
 
@@ -208,7 +273,7 @@ O aviso só aparece nos **patches** — nas notícias comuns, não marca ningué
 
 ### ✅ Automático no GitHub (24h, sem ligar o PC) — já configurado
 
-O robô `.github/workflows/noticias.yml` roda **todo dia às 09:00 (horário de Brasília)** no próprio GitHub: busca as notícias no Steam, posta o que for novo no Discord e manda o site se republicar. **Não depende do seu PC estar ligado.**
+O robô `.github/workflows/noticias.yml` roda **todo dia às 09:00 (horário de Brasília)** no próprio GitHub: busca as notícias no Steam (e traduz), atualiza as estatísticas reais, posta o que for novo no Discord e manda o site se republicar. **Não depende do seu PC estar ligado.**
 
 Para isso, as URLs ficam guardadas como *secrets* (chaves criptografadas) do repositório:
 
@@ -279,6 +344,10 @@ e acesse `http://localhost:8123`.
 - **Compartilhamento** — ao colar o link no Discord/WhatsApp aparece um cartão com imagem (`assets/brand/share.jpg`).
 - **Botão "voltar ao topo"** — aparece no canto quando você rola a página.
 - **`theme-color`** — a barra do navegador no celular fica na cor do site.
+- **App instalável** — dá para instalar no celular/PC, com ícone próprio (`manifest.webmanifest` + `sw.js`).
+- **Google** — `sitemap.xml` + `robots.txt`.
+- **Notícias traduzidas** — títulos e resumos em português, com o original em inglês preservado.
+- **Estatísticas reais** — win rate, pick rate, KDA e tier list vindos de milhões de partidas.
 
 ---
 

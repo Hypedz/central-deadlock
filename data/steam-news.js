@@ -1,13 +1,14 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 16/10/2026 as 23:38 */
+   Ultima atualizacao: 16/10/2026 as 20:51 */
 window.STEAM_NEWS = {
- "updated": "16/10/2026 as 23:38",
+ "updated": "16/10/2026 as 20:51",
  "count": 11,
  "items": [
   {
    "id": "s1846651706683085",
    "title": "Paint the Town",
+   "title_pt": "Pinte a cidade",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706683085",
    "ts": 1792184407,
    "date": "16 out 2026",
@@ -15,6 +16,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/8c5131174ced00e11e346cc1c3cb4d7c69013370.png",
    "desc": "Brush in hand, Violet approaches the ritual with the same precision she does her art, wielding Living Ink that both empowers her bullets, and draws mere inspiration into reality. When enteri...",
+   "desc_pt": "Pincel na mão, Violet aborda o ritual com a mesma precisão com que faz sua arte, empunhando Tinta Viva que fortalece suas balas e atrai mera inspiração para a realidade. Quando entrei...",
    "lines": [
     "Brush in hand, Violet approaches the ritual with the same precision she does her art, wielding Living Ink that both empowers her bullets, and draws mere inspiration into reality. When entering Flow State , her ink glides easily, weaving towards danger to deal damage, or away from it to make a quick...",
     "Violet is available in-game now! Which means that our final hero - Nurse Harrow - will be joining us Next Tuesday October 20th at 2pm PDT . We want to thank everyone for participating in voting once again, and we'll see you next week for the culmination of our City Never Sleeps update. Have a good w..."
@@ -23,6 +25,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1846651706676198",
    "title": "Minor Update - 10-14-2026",
+   "title_pt": "Atualização secundária - 14/10/2026",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706676198",
    "ts": 1792033918,
    "date": "15 out 2026",
@@ -30,6 +33,7 @@ window.STEAM_NEWS = {
    "patch": true,
    "image": "",
    "desc": "Radiant Regeneration: Spirit scaling reduced from 0.04 to 0.035 Baba: Spirit Resistance scaling reduced from 0.12 to 0.1 Baba: Now has -7% Base Bullet Resistance Baba: Threadsap - Spirit red...",
+   "desc_pt": "Regeneração Radiante: Escala de Espírito reduzida de 0,04 para 0,035 Baba: Escala de Resistência de Espírito reduzida de 0,12 para 0,1 Baba: Agora tem -7% de Resistência Base a Balas Baba: Threadsap - Espírito vermelho...",
    "lines": [
     "Radiant Regeneration: Spirit scaling reduced from 0.04 to 0.035",
     "Baba: Spirit Resistance scaling reduced from 0.12 to 0.1",
@@ -63,6 +67,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1846018067945303",
    "title": "Fairfax Industries Employee Spotlight",
+   "title_pt": "Destaque do funcionário da Fairfax Industries",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846018067945303",
    "ts": 1791925195,
    "date": "13 out 2026",
@@ -70,6 +75,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/02829fc9750a193799ea05d6e0ab0ef78b0cffa0.png",
    "desc": "Today, Fairfax Industries is proud to introduce their most valuable salesman: Deadman Danny. Wielding a rocket launcher and flying high above the streets of New York (courtesy of the Chimera...",
+   "desc_pt": "Hoje, a Fairfax Industries tem o orgulho de apresentar seu vendedor mais valioso: Deadman Danny. Empunhando um lançador de foguetes e voando alto sobre as ruas de Nova York (cortesia do Chimera...",
    "lines": [
     "Today, Fairfax Industries is proud to introduce their most valuable salesman: Deadman Danny. Wielding a rocket launcher and flying high above the streets of New York (courtesy of the Chimera Mk1 - the latest and greatest in self-adhered aviation technology), Danny rains his Strix Salvo missiles down...",
     "Take flight with Deadman Danny, available in-game now! With only two hero releases remaining, keep your votes coming to help determine who will be joining us on Friday October 16th at 2pm PDT."
@@ -78,6 +84,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1846018067934643",
    "title": "Make Your Move.",
+   "title_pt": "Faça sua jogada.",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846018067934643",
    "ts": 1791579604,
    "date": "09 out 2026",
@@ -85,6 +92,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/23db53380c461b7f978c620d5607f9b23271e10c.png",
    "desc": "Solomon remains calm and collected when facing a new challenger, so when the Patrons come calling, he approaches the city as if it's one giant chessboard. With Setup Bishop he advances, plan...",
+   "desc_pt": "Solomon permanece calmo e controlado ao enfrentar um novo desafiante, então quando os Patronos o chamam, ele se aproxima da cidade como se fosse um tabuleiro de xadrez gigante. Com Setup Bishop ele avança, planeja...",
    "lines": [
     "Solomon remains calm and collected when facing a new challenger, so when the Patrons come calling, he approaches the city as if it's one giant chessboard. With Setup Bishop he advances, planting his loyal damage dealers ahead of him and sliding them across the streets with ease. Kingside Knight come...",
     "Solomon is available in-game now ( just in time for National Chess Day)! We're halfway through our latest set of heroes, keep your votes coming to help determine who will be joining us next Tuesday at 2pm PDT. Have a great weekend!"
@@ -93,6 +101,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1845383656397580",
    "title": "Mind the Birds!",
+   "title_pt": "Cuidado com os pássaros!",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1845383656397580",
    "ts": 1791320394,
    "date": "06 out 2026",
@@ -100,6 +109,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/720ba4e0f1b1ed105708f7b15cdfc7ad95bfdb30.png",
    "desc": "It was a close contest, but today we find New York's notorious pigeon lady leaving her favorite perch in Central Park and joining the fight on the city streets. Tourists in the park might no...",
+   "desc_pt": "Foi uma disputa acirrada, mas hoje encontramos a famosa pomba de Nova York deixando seu poleiro favorito no Central Park e se juntando à luta nas ruas da cidade. Os turistas no parque podem não...",
    "lines": [
     "It was a close contest, but today we find New York's notorious pigeon lady leaving her favorite perch in Central Park and joining the fight on the city streets.",
     "Tourists in the park might not think much of ol' Baba sitting on her bench - sipping tea and talking to her birds - but the locals have always suspected that something more brews below the surface. In the heat of battle, Baba throws out her Threadsap , a chaotic spool of yarn that steals the very sp...",
@@ -110,6 +120,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1845383656394833",
    "title": "Minor Update - 10-05-2026",
+   "title_pt": "Atualização secundária - 05/10/2026",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1845383656394833",
    "ts": 1791241532,
    "date": "05 out 2026",
@@ -117,6 +128,7 @@ window.STEAM_NEWS = {
    "patch": true,
    "image": "",
    "desc": "Fixed bugs that were causing troopers to walk too slowly in lane - Rat King: Scrap Grenade - Fixed some bugs with bouncing targeting - Rat King: Scrap Grenade - Damage increased from 65 to 7...",
+   "desc_pt": "Corrigidos bugs que faziam com que os soldados andassem muito devagar na pista - Rat King: Scrap Grenade - Corrigidos alguns bugs com mira saltitante - Rat King: Scrap Grenade - Dano aumentado de 65 para 7...",
    "lines": [
     "Fixed bugs that were causing troopers to walk too slowly in lane - Rat King: Scrap Grenade - Fixed some bugs with bouncing targeting - Rat King: Scrap Grenade - Damage increased from 65 to 70 - Rat King: Scrap Grenade - T2 Damage increased from 65 to 70 - Rat King: Rat Swarm - Base Cooldown reduced..."
    ]
@@ -124,6 +136,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1845383656387709",
    "title": "Listen up, Crumbums! Your King is here.",
+   "title_pt": "Ouça, Crumbums! Seu rei está aqui.",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1845383656387709",
    "ts": 1790974791,
    "date": "02 out 2026",
@@ -131,6 +144,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/40a0a47432b4e8c857d40152295f1551702c1012.png",
    "desc": "Scrap Grenade bouncing down Broadway, nor for his Swarm of Rats biting at their heels. By donning his Royal Pestments , the Rat King shakes off incoming damage, allowing him to bravely lead...",
+   "desc_pt": "Scrap Grenade quicando pela Broadway, nem por seu enxame de ratos mordendo seus calcanhares. Ao vestir suas Pestments Reais, o Rei Rato se livra dos danos recebidos, permitindo-lhe liderar bravamente...",
    "lines": [
     "Scrap Grenade bouncing down Broadway, nor for his Swarm of Rats biting at their heels. By donning his Royal Pestments , the Rat King shakes off incoming damage, allowing him to bravely lead the charge into battle. His loyal subjects will feel awed and inspired when they see the great Banner of Ratan...",
     "The Rat King is available to play now! Have a great weekend and keep those votes coming, as our next hero will be joining us on Tuesday at 2pm PDT. We'll see you then!"
@@ -139,6 +153,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1844751498235383",
    "title": "City Never Sleeps",
+   "title_pt": "A cidade nunca dorme",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1844751498235383",
    "ts": 1790713511,
    "date": "29 set 2026",
@@ -146,6 +161,7 @@ window.STEAM_NEWS = {
    "patch": false,
    "image": "https://clan.cloudflare.steamstatic.com/images/45164767/4cb96ab54e327aefdcfeef87a67414bdf8f03c6f.png",
    "desc": "The Cursed Apple is ever changing, and these streets are nothing like you remember. A massive visual update to the map and neutrals, six new heroes, HUD updates, numerous quality-of-life add...",
+   "desc_pt": "A Maçã Amaldiçoada está sempre mudando, e essas ruas não são nada como você se lembra. Uma grande atualização visual no mapa e nos neutros, seis novos heróis, atualizações no HUD, vários complementos de qualidade de vida...",
    "lines": [
     "The Cursed Apple is ever changing, and these streets are nothing like you remember. A massive visual update to the map and neutrals, six new heroes, HUD updates, numerous quality-of-life additions, accessibility options, and more.",
     "Check out everything that's new at: https://www.playdeadlock.com/cityneversleeps",
@@ -158,6 +174,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1844115010490072",
    "title": "Minor Update - 09-16-2026",
+   "title_pt": "Atualização secundária - 16/09/2026",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1844115010490072",
    "ts": 1789589803,
    "date": "16 set 2026",
@@ -165,6 +182,7 @@ window.STEAM_NEWS = {
    "patch": true,
    "image": "",
    "desc": "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first on...",
+   "desc_pt": "\\[Geral] - Os valores máximos de resistência ao retorno do Rift instável agora aumentam ao longo do jogo. Anteriormente, os valores máximos eram de 35%. Agora é 10% + 1% por minuto (cerca de ~20% para o primeiro...",
    "lines": [
     "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first one), with an upper limit of 40% at 30 minutes. - Removed a fixed amount of extra bonus souls you would get for..."
    ]
@@ -172,6 +190,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1841579228672283",
    "title": "Minor Update - 08-22-2026",
+   "title_pt": "Atualização secundária - 22/08/2026",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1841579228672283",
    "ts": 1787434846,
    "date": "22 ago 2026",
@@ -179,6 +198,7 @@ window.STEAM_NEWS = {
    "patch": true,
    "image": "",
    "desc": "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste...",
+   "desc_pt": "Regeneração Radiante: Cura ao lançar reduzida de 70 para 65 - Medalhão Restaurador: Resistência Espiritual reduzida de 10% para 8% - Celeste: Cooldown do Truque Deslumbrante aumentado de 32s para 34s - Celeste...",
    "lines": [
     "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste: Dazzling Trick T2 barrier rescaled from \"+80 and +0.7 scaling\" to \"+70 and +0.76\" - Celeste: Dazzling Trick..."
    ]
@@ -186,6 +206,7 @@ window.STEAM_NEWS = {
   {
    "id": "s1840944183775204",
    "title": "Minor Update - 08-12-2026",
+   "title_pt": "Atualização secundária - 12/08/2026",
    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1840944183775204",
    "ts": 1786575464,
    "date": "12 ago 2026",
@@ -193,6 +214,7 @@ window.STEAM_NEWS = {
    "patch": true,
    "image": "",
    "desc": "Apollo: Riposte melee resist reduction increased from -22% to -25% Apollo: Riposte T2 changed from \"-30% Melee Resist\" to \"-25% Melee Resist and +0.4s Stun Duration\" Apollo: Riposte T3 incre...",
+   "desc_pt": "Apollo: Redução de resistência corpo a corpo de Riposte aumentada de -22% para -25% Apollo: Riposte T2 alterado de \"-30% de Resistência Corpo a Corpo\" para \"-25% de Resistência Corpo a Corpo e +0,4s de Duração de Atordoamento\" Apollo: Riposte T3 aumenta...",
    "lines": [
     "Apollo: Riposte melee resist reduction increased from -22% to -25%",
     "Apollo: Riposte T2 changed from \"-30% Melee Resist\" to \"-25% Melee Resist and +0.4s Stun Duration\"",

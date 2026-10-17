@@ -3,7 +3,7 @@ chcp 65001 >nul
 cd /d "%~dp0"
 
 rem ============================================================
-rem  CENTRAL DEADLOCK - atualizar noticias + postar no Discord
+rem  CENTRAL DEADLOCK - atualizar noticias + estatisticas + Discord
 rem
 rem  RODAR NA MAO (para postar na hora): dois cliques aqui.
 rem
@@ -38,10 +38,11 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 %GIT% pull --ff-only --quiet >> "%LOG%" 2>&1
 
 %PY% "tools\update-news.py" >> "%LOG%" 2>&1
+%PY% "tools\update-stats.py" >> "%LOG%" 2>&1
 %PY% "tools\discord-post.py" >> "%LOG%" 2>&1
 
 rem --- avisa o GitHub do que ja foi postado aqui (evita postar de novo la) ---
-%GIT% add data/discord-posted.json >> "%LOG%" 2>&1
+%GIT% add data/ >> "%LOG%" 2>&1
 %GIT% commit -m "Registro de postagens atualizado (pelo PC)" --quiet >> "%LOG%" 2>&1
 %GIT% push --quiet >> "%LOG%" 2>&1
 

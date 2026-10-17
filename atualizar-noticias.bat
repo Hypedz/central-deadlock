@@ -20,6 +20,8 @@ if errorlevel 1 (
 
 python "tools\update-news.py"
 echo.
+python "tools\update-stats.py"
+echo.
 
 if not exist "discord-webhook.txt" goto fim
 
