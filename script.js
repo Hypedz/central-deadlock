@@ -71,7 +71,11 @@ const BANNERS = {
     mono: ['Mono', ['#6b7280', '#111827']],
     custom: ['Personalizado', ['#b6f24a', '#2f7a1a']]
 };
-const PATTERNS = [['none', 'Nenhum'], ['grid', 'Grade'], ['dots', 'Pontos'], ['diag', 'Listras']];
+const PATTERNS = [
+    ['none', 'Nenhum'], ['grid', 'Grade'], ['dots', 'Pontos'], ['dotsbig', 'Pontos grandes'],
+    ['diag', 'Listras'], ['vstripes', 'Listras verticais'], ['checks', 'Xadrez'], ['diamonds', 'Losangos'],
+    ['chevron', 'Zigue-zague'], ['rays', 'Raios'], ['rings', 'Anéis'], ['glow', 'Brilho'], ['noise', 'Granulado']
+];
 const SHAPES = [['squircle', 'Arredondado'], ['circle', 'Círculo'], ['sharp', 'Quadrado'], ['hex', 'Hexágono'], ['hexflat', 'Hexágono deitado'], ['octagon', 'Octógono'], ['diamond', 'Losango'], ['pentagon', 'Pentágono'], ['triangle', 'Triângulo'], ['shield', 'Escudo'], ['star', 'Estrela'], ['flower', 'Flor']];
 const FRAMES = [['none', 'Sem moldura'], ['solid', 'Cor de destaque'], ['neon', 'Neon'], ['gold', 'Dourada'], ['silver', 'Prata'], ['fire', 'Fogo'], ['ice', 'Gelo'], ['blood', 'Sangue'], ['rainbow', 'Arco-íris'], ['double', 'Dupla']];
 /* cores das molduras (nome -> degradê + brilho) */
@@ -93,7 +97,9 @@ const AV_COLORS = [['#b6f24a', '#2f7a1a'], ['#22d3ee', '#0e7490'], ['#8b5cf6', '
     ['#fbbf24', '#b45309'], ['#ef4444', '#7f1d1d'], ['#38bdf8', '#1e3a8a'], ['#34d399', '#065f46'],
     ['#f8fafc', '#475569'], ['#111827', '#64748b']];
 const POLY = {
-    hex: [[0, -1], [1, -0.5], [1, 0.5], [0, 1], [-1, 0.5], [-1, -0.5]],
+    /* hexágono de verdade: a largura tem que ser 0,866 da altura, senão ele
+       fica "achatado" (mais largo do que devia). */
+    hex: [[0, -1], [0.866, -0.5], [0.866, 0.5], [0, 1], [-0.866, 0.5], [-0.866, -0.5]],
     diamond: [[0, -1], [1, 0], [0, 1], [-1, 0]],
     shield: [[-1, -0.9], [0, -1], [1, -0.9], [1, 0.1], [0, 1], [-1, 0.1]]
 };
@@ -101,7 +107,7 @@ POLY.octagon = Array.from({ length: 8 }, (_, i) => { const a = Math.PI / 8 + i *
 POLY.star = Array.from({ length: 10 }, (_, i) => { const a = i * Math.PI / 5, r = i % 2 ? 0.5 : 1; return [r * Math.sin(a), -r * Math.cos(a)]; });
 POLY.pentagon = Array.from({ length: 5 }, (_, i) => { const a = i * 2 * Math.PI / 5; return [Math.sin(a), -Math.cos(a)]; });
 POLY.triangle = [[0, -1], [1, 0.92], [-1, 0.92]];
-POLY.hexflat = [[-1, 0], [-0.5, -1], [0.5, -1], [1, 0], [0.5, 1], [-0.5, 1]];
+POLY.hexflat = [[-1, 0], [-0.5, -0.866], [0.5, -0.866], [1, 0], [0.5, 0.866], [-0.5, 0.866]];
 POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17; const r = 0.87 + 0.13 * Math.cos(6 * a); return [r * Math.sin(a), -r * Math.cos(a)]; });
 
 const PROFILE_DEF = {
@@ -1582,14 +1588,44 @@ function initModals() {
 /* ================= perfil ================= */
 function bannerColors(p) { return p.banner === 'custom' ? [p.bc1, p.bc2] : (BANNERS[p.banner] || BANNERS.lima)[1]; }
 
+/* Cada padrão do banner = uma lista de "desenhos" (camada, tamanho, posição).
+   O degradê de cor entra por baixo, como última camada. Para criar um padrão
+   novo, basta acrescentar uma linha aqui e outra na PATTERNS (acima). */
+const PATTERN_ART = {
+    grid: [
+        ['linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px)', '24px 24px'],
+        ['linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px)', '24px 24px']
+    ],
+    dots: [['radial-gradient(rgba(255,255,255,.32) 1.5px,transparent 1.6px)', '16px 16px']],
+    dotsbig: [['radial-gradient(rgba(255,255,255,.30) 4px,transparent 4.6px)', '34px 34px']],
+    diag: [['repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 2px,transparent 2px 12px)', 'auto']],
+    vstripes: [['repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 2px,transparent 2px 12px)', 'auto']],
+    checks: [['conic-gradient(rgba(255,255,255,.15) 25%,transparent 0 50%,rgba(255,255,255,.15) 0 75%,transparent 0)', '20px 20px']],
+    diamonds: [
+        ['repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 1px,transparent 1px 16px)', 'auto'],
+        ['repeating-linear-gradient(-45deg,rgba(255,255,255,.10) 0 1px,transparent 1px 16px)', 'auto']
+    ],
+    chevron: [
+        ['linear-gradient(135deg,rgba(255,255,255,.16) 25%,transparent 25%)', '18px 18px', '-9px 0'],
+        ['linear-gradient(225deg,rgba(255,255,255,.16) 25%,transparent 25%)', '18px 18px', '-9px 0'],
+        ['linear-gradient(315deg,rgba(255,255,255,.16) 25%,transparent 25%)', '18px 18px'],
+        ['linear-gradient(45deg,rgba(255,255,255,.16) 25%,transparent 25%)', '18px 18px']
+    ],
+    rays: [['repeating-conic-gradient(from 0deg at 50% -20%,rgba(255,255,255,.14) 0deg 5deg,transparent 5deg 16deg)', 'auto']],
+    rings: [['repeating-radial-gradient(circle at 50% 130%,rgba(255,255,255,.14) 0 1px,transparent 1px 16px)', 'auto']],
+    glow: [['radial-gradient(120% 150% at 25% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 58%)', 'auto']],
+    noise: [['url(data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27120%27%20height=%27120%27%3E%3Cfilter%20id=%27n%27%3E%3CfeTurbulence%20type=%27fractalNoise%27%20baseFrequency=%270.85%27%20numOctaves=%273%27%20stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect%20width=%27120%27%20height=%27120%27%20filter=%27url%28%23n%29%27%20opacity=%270.52%27/%3E%3C/svg%3E)', '120px 120px']]
+};
+
 function bannerStyle(p) {
     if (p.bannerImg) return `background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),url('${p.bannerImg}') center/cover no-repeat;`;
     const [a, b] = bannerColors(p);
     const base = `linear-gradient(120deg,${a},${b})`;
-    if (p.pattern === 'grid') return `background:linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px),${base};background-size:24px 24px,24px 24px,auto;`;
-    if (p.pattern === 'dots') return `background:radial-gradient(rgba(255,255,255,.32) 1.5px,transparent 1.6px),${base};background-size:16px 16px,auto;`;
-    if (p.pattern === 'diag') return `background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 2px,transparent 2px 12px),${base};`;
-    return `background:${base};`;
+    const arte = PATTERN_ART[p.pattern] || [];
+    const camadas = arte.map(l => l[0]).concat(base).join(',');
+    const tamanhos = arte.map(l => l[1] || 'auto').concat('auto').join(',');
+    const posicoes = arte.map(l => l[2] || '0 0').concat('0 0').join(',');
+    return `background:${camadas};background-size:${tamanhos};background-position:${posicoes};`;
 }
 
 function shapeCss(shape) {
@@ -2238,6 +2274,70 @@ function wrapText(ctx, text, x, y, maxW, lh, maxLines) {
     if (line && n < maxLines) ctx.fillText(line, x, y + n * lh);
 }
 
+/* Desenha o padrão do banner no PNG baixado (o mesmo desenho que aparece na tela). */
+function drawPattern(ctx, padrao, x, y, w, h) {
+    if (!padrao || padrao === 'none') return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    const riscos = (cor, esp) => { ctx.strokeStyle = cor; ctx.lineWidth = esp; };
+
+    if (padrao === 'grid') {
+        riscos('rgba(255,255,255,.14)', 1);
+        for (let px = x; px < x + w; px += 24) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y + h); ctx.stroke(); }
+        for (let py = y; py < y + h; py += 24) { ctx.beginPath(); ctx.moveTo(x, py); ctx.lineTo(x + w, py); ctx.stroke(); }
+    } else if (padrao === 'dots' || padrao === 'dotsbig') {
+        const passo = padrao === 'dotsbig' ? 34 : 18, r = padrao === 'dotsbig' ? 4 : 1.6;
+        ctx.fillStyle = 'rgba(255,255,255,.30)';
+        for (let px = x + passo / 2; px < x + w; px += passo)
+            for (let py = y + passo / 2; py < y + h; py += passo) { ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill(); }
+    } else if (padrao === 'diag' || padrao === 'vstripes') {
+        riscos('rgba(255,255,255,.12)', 2);
+        if (padrao === 'vstripes') {
+            for (let px = x; px < x + w; px += 12) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y + h); ctx.stroke(); }
+        } else {
+            for (let px = x - h; px < x + w; px += 14) { ctx.beginPath(); ctx.moveTo(px, y + h); ctx.lineTo(px + h, y); ctx.stroke(); }
+        }
+    } else if (padrao === 'checks') {
+        const passo = 20;
+        ctx.fillStyle = 'rgba(255,255,255,.15)';
+        for (let i = 0, px = x; px < x + w; px += passo, i++)
+            for (let j = 0, py = y; py < y + h; py += passo, j++)
+                if ((i + j) % 2 === 0) ctx.fillRect(px, py, passo, passo);
+    } else if (padrao === 'diamonds') {
+        riscos('rgba(255,255,255,.10)', 1);
+        for (let px = x - h; px < x + w; px += 16) { ctx.beginPath(); ctx.moveTo(px, y + h); ctx.lineTo(px + h, y); ctx.stroke(); }
+        for (let px = x; px < x + w + h; px += 16) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px - h, y + h); ctx.stroke(); }
+    } else if (padrao === 'chevron') {
+        riscos('rgba(255,255,255,.16)', 2);
+        const largura = 18, altura = 9;
+        for (let py = y; py < y + h + altura; py += altura * 2) {
+            ctx.beginPath(); ctx.moveTo(x, py);
+            for (let px = x; px < x + w; px += largura) { ctx.lineTo(px + largura / 2, py + altura); ctx.lineTo(px + largura, py); }
+            ctx.stroke();
+        }
+    } else if (padrao === 'rays') {
+        riscos('rgba(255,255,255,.14)', 3);
+        const cx = x + w / 2, cy = y - h * 0.2, alcance = w + h;
+        for (let grau = 0; grau < 360; grau += 16) {
+            const rad = grau * Math.PI / 180;
+            ctx.beginPath(); ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(rad) * alcance, cy + Math.sin(rad) * alcance); ctx.stroke();
+        }
+    } else if (padrao === 'rings') {
+        riscos('rgba(255,255,255,.14)', 2);
+        const cx = x + w / 2, cy = y + h * 1.3;
+        for (let r = 20; r < w; r += 16) { ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.stroke(); }
+    } else if (padrao === 'glow') {
+        const g = ctx.createRadialGradient(x + w * 0.25, y - h * 0.1, 0, x + w * 0.25, y - h * 0.1, w * 0.75);
+        g.addColorStop(0, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    } else if (padrao === 'noise') {
+        ctx.fillStyle = 'rgba(255,255,255,.22)';
+        for (let i = 0; i < Math.round(w * h / 85); i++) ctx.fillRect(x + Math.random() * w, y + Math.random() * h, 1, 1);
+    }
+    ctx.restore();
+}
+
 async function downloadCard() {
     const p = profile;
     const W = 1000, H = 600;
@@ -2258,17 +2358,7 @@ async function downloadCard() {
         const [a, b] = bannerColors(p);
         const g = ctx.createLinearGradient(bx, 0, bx + bw, 0); g.addColorStop(0, a); g.addColorStop(1, b);
         ctx.fillStyle = g; ctx.fillRect(bx, by, bw, bh);
-        if (p.pattern === 'grid') {
-            ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1;
-            for (let x = bx; x < bx + bw; x += 24) { ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x, by + bh); ctx.stroke(); }
-            for (let y = by; y < by + bh; y += 24) { ctx.beginPath(); ctx.moveTo(bx, y); ctx.lineTo(bx + bw, y); ctx.stroke(); }
-        } else if (p.pattern === 'dots') {
-            ctx.fillStyle = 'rgba(255,255,255,.3)';
-            for (let x = bx + 8; x < bx + bw; x += 18) for (let y = by + 8; y < by + bh; y += 18) { ctx.beginPath(); ctx.arc(x, y, 1.6, 0, 7); ctx.fill(); }
-        } else if (p.pattern === 'diag') {
-            ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;
-            for (let x = bx - bh; x < bx + bw; x += 14) { ctx.beginPath(); ctx.moveTo(x, by + bh); ctx.lineTo(x + bh, by); ctx.stroke(); }
-        }
+        drawPattern(ctx, p.pattern, bx, by, bw, bh);
     }
     ctx.restore();
 
