@@ -33,6 +33,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Instalar as ferramentas de imagem (Pillow)
+        run: pip install pillow
+
       - name: Buscar as notícias oficiais do Deadlock (e traduzir)
         run: python tools/update-news.py
 

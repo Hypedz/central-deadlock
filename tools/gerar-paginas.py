@@ -257,13 +257,31 @@ def paginas_herois(herois, stats, jogo, hist, extra):
         botoes_hab = []
         for i, sk in enumerate(h.get("skills") or []):
             arq = icone_da(sk, i)
-            if arq:
-                botoes_hab.append('                    <a class="ht-hab" href="#hab-{}" title="{}">'
-                                  '<img src="../assets/habilidades/{}" alt="{}" loading="lazy"></a>'.format(
-                                      i + 1, e(sk.get("name")), e(arq), e(sk.get("name"))))
+            if not arq:
+                continue
+            marcas = []
+            if sk.get("key") == "★":
+                marcas.append('<span class="tag acc">Suprema</span>')
+            if str(sk.get("passive")) in ("1", "True", "true"):
+                marcas.append('<span class="tag">Passiva</span>')
+            if str(sk.get("cd") or "").strip() not in ("", "None", "none"):
+                marcas.append('<span class="tag cy">Recarga {}s</span>'.format(e(sk["cd"])))
+            en = sk.get("name_en")
+            ingles = ' <span class="s-en">{}</span>'.format(e(en)) if en and en != sk["name"] else ""
+            # o "title" fica de fora de proposito: quem mostra o texto e a caixinha (ht-tip)
+            botoes_hab.append(
+                '                    <a class="ht-hab" href="#hab-{}">\n'
+                '                        <img src="../assets/habilidades/{}" alt="{}" loading="lazy">\n'
+                '                        <span class="ht-tip">\n'
+                '                            <b>{}</b>{}\n'
+                '                            <span class="ht-tip-tags">{}</span>\n'
+                '                            <span class="ht-tip-txt">{}</span>\n'
+                '                        </span>\n'
+                '                    </a>'.format(i + 1, e(arq), e(sk.get("name")), e(sk.get("name")),
+                                                  ingles, " ".join(marcas), e(sk.get("desc"))))
         pagina.append('        <section class="ht">')
         if tem_capa:
-            pagina.append('            <div class="ht-bg"><img src="../{}" alt="" width="1200" height="677"></div>'.format(e(capa)))
+            pagina.append('            <div class="ht-bg"><img src="../{}" alt="" width="1920" height="600"></div>'.format(e(capa)))
         pagina.append('            <div class="ht-in">')
         pagina.append('                <h1 class="ht-h1">{}</h1>'.format(titulo_html))
         if etiquetas:

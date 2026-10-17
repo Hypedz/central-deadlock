@@ -57,14 +57,18 @@ meu-fansite/
     │   ├── deadlock-cover.jpg # Capa vertical (reserva)
     │   └── deadlock-header.jpg # Banner horizontal (reserva)
     └── heroes/                # 44 artes dos heróis (cartas 280x380)
-    ├── capas/                 # 44 artes de capa (o banner da página do herói)
+    ├── capas/                 # 43 banners prontos do topo das páginas dos heróis
     ├── nomes/                 # 44 nomes desenhados (o letreiro de cada herói)
     └── habilidades/           # 170 ícones das habilidades
 ```
 
 > ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
 >
-> 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`. Ele baixa as quatro coisas de uma vez: a **carta** (`assets/heroes`), a **capa** do banner (`assets/capas`), o **letreiro** com o nome (`assets/nomes`) e os **ícones das habilidades** (`assets/habilidades`).
+> 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`. Ele baixa as quatro coisas de uma vez: a **carta** (`assets/heroes`), o **banner** (`assets/capas`), o **letreiro** com o nome (`assets/nomes`) e os **ícones das habilidades** (`assets/habilidades`).
+>
+> 🧩 O **banner** não é uma imagem solta: o programa junta a **arte de fundo do jogo** com o **personagem recortado** e grava um arquivo só (1920x600, bem leve). Quem monta isso é a biblioteca **Pillow** — se ela não estiver instalada, rode `pip install pillow` antes. Assim o personagem aparece de verdade e a imagem fica nítida.
+>
+> Para refazer todos os banners do zero (por exemplo, se você mudou o tamanho deles), use `python tools/baixar-artes.py --forcar`.
 
 ---
 
@@ -181,7 +185,8 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 
 - **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **56 endereços** hoje)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
-- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de capa, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de fundo do jogo **e o personagem recortado** por cima, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+  - 💡 **Passe o mouse (ou toque) no ícone de uma habilidade** no banner: abre uma caixinha com o **nome em português e inglês**, as etiquetas (**Suprema**, **Passiva**, **Recarga**) e a **descrição completa** — sem precisar rolar a página.
 
 > A **cor de cada herói** vem do próprio jogo (`data/hero-extra.js`) e pinta as etiquetas, a linha do banner e a barra de dificuldade. Se a cor for muito escura, o site clareia sozinho o que precisa e escolhe a cor do texto, para nada ficar ilegível.
 - **`noticia/<id>.html`** — **uma página para cada notícia**, com o resumo em português e o texto original
