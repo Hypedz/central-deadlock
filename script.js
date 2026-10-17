@@ -285,9 +285,53 @@ document.addEventListener('DOMContentLoaded', () => {
 function registrarApp() {
     if (!('serviceWorker' in navigator)) return;
     if (!/^https?:$/.test(location.protocol)) return;   // só funciona publicado/servidor local
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+
+    /* Na PRIMEIRA visita o app se instala (nada a avisar). A partir da
+       segunda, quando o site troca de versão, o aviso "Atualizar agora"
+       aparece — assim ninguém fica preso na versão antiga. */
+    let jaEraControlada = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (jaEraControlada) mostrarAvisoVersao();
     });
+
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+            // já existe uma versão nova esperando? avisa agora.
+            if (reg.waiting && navigator.serviceWorker.controller) mostrarAvisoVersao();
+
+            // baixou uma versão nova e ela terminou de instalar? avisa.
+            reg.addEventListener('updatefound', () => {
+                const novo = reg.installing;
+                if (!novo) return;
+                novo.addEventListener('statechange', () => {
+                    if (novo.state === 'installed' && navigator.serviceWorker.controller) mostrarAvisoVersao();
+                });
+            });
+
+            // procura atualização quando a pessoa volta para a aba (economiza internet)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') reg.update().catch(() => {});
+            });
+        }).catch(() => {});
+    });
+}
+
+/* Avisinho que aparece quando o site tem uma versão nova publicada. */
+function mostrarAvisoVersao() {
+    if ($('#avisoVersao')) return;
+    const cx = document.createElement('div');
+    cx.id = 'avisoVersao';
+    cx.className = 'aviso-versao';
+    cx.innerHTML = `<i class="fa-solid fa-rotate"></i>
+        <span>Nova versão do site disponível!</span>
+        <button type="button" class="btn btn-lime btn-sm" id="avisoAtualizar">Atualizar agora</button>
+        <button type="button" class="aviso-x" id="avisoFechar" aria-label="Fechar aviso"><i class="fa-solid fa-xmark"></i></button>`;
+    document.body.appendChild(cx);
+    $('#avisoAtualizar', cx).addEventListener('click', () => {
+        $('#avisoAtualizar', cx).innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+        location.reload();
+    });
+    $('#avisoFechar', cx).addEventListener('click', () => cx.remove());
 }
 
 /* ================= janela (modal) genérica =================

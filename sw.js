@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-17d';
+const VERSAO = 'central-deadlock-2026-10-17e';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -41,6 +41,12 @@ self.addEventListener('activate', (evento) => {
             .then((chaves) => Promise.all(chaves.filter((k) => k !== VERSAO).map((k) => caches.delete(k))))
             .then(() => self.clients.claim())
     );
+});
+
+/* O site pode pedir para o app novo assumir na hora (quando aparece o
+   aviso "Atualizar agora"). */
+self.addEventListener('message', (evento) => {
+    if (evento.data && evento.data.type === 'skipWaiting') self.skipWaiting();
 });
 
 function guardar(pedido, resposta) {

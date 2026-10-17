@@ -18,5 +18,45 @@
     var euMesmo = (document.currentScript && document.currentScript.src) || '';
     var endereco = euMesmo ? euMesmo.replace(/pwa\.js.*$/, 'sw.js') : 'sw.js';
 
-    navigator.serviceWorker.register(endereco).catch(function () {});
+    /* Na primeira visita o app se instala (nada a avisar). Depois disso,
+       quando o site troca de versão, aparece o aviso "Atualizar agora". */
+    var jaEraControlada = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (jaEraControlada) avisarVersaoNova();
+    });
+
+    navigator.serviceWorker.register(endereco).then(function (reg) {
+        if (reg.waiting && navigator.serviceWorker.controller) avisarVersaoNova();
+
+        reg.addEventListener('updatefound', function () {
+            var novo = reg.installing;
+            if (!novo) return;
+            novo.addEventListener('statechange', function () {
+                if (novo.state === 'installed' && navigator.serviceWorker.controller) avisarVersaoNova();
+            });
+        });
+
+        // procura atualização quando a pessoa volta para a aba
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') reg.update().catch(function () {});
+        });
+    }).catch(function () {});
+
+    /* Avisinho de "nova versão disponível". */
+    function avisarVersaoNova() {
+        if (document.getElementById('avisoVersao')) return;
+        var cx = document.createElement('div');
+        cx.id = 'avisoVersao';
+        cx.className = 'aviso-versao';
+        cx.innerHTML = '<i class="fa-solid fa-rotate"></i>' +
+            '<span>Nova versão do site disponível!</span>' +
+            '<button type="button" class="btn btn-lime btn-sm" id="avisoAtualizar">Atualizar agora</button>' +
+            '<button type="button" class="aviso-x" id="avisoFechar" aria-label="Fechar aviso"><i class="fa-solid fa-xmark"></i></button>';
+        document.body.appendChild(cx);
+        document.getElementById('avisoAtualizar').onclick = function () {
+            this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+            location.reload();
+        };
+        document.getElementById('avisoFechar').onclick = function () { cx.parentNode.removeChild(cx); };
+    }
 })();
