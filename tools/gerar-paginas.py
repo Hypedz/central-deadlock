@@ -32,7 +32,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261016g"
+VERSAO_CSS = "20261016h"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -532,8 +532,6 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico):
         pagina.append(linha_dificuldade("Para aprender", h.get("diff")))
         pagina.append(linha_dificuldade("Para masterizar", h.get("dominio")))
         pagina.append('                </div>')
-        fonte_dif = ("complexidade oficial do jogo" if h.get("dif_fonte") == "jogo" else "dlbr.gg")
-        pagina.append('                <p class="pg-dif-fonte">Nota de dificuldade: {}</p>'.format(e(fonte_dif)))
         pagina.append('            </div>')
         pagina.append('            <div class="pg-card">')
         pagina.append('                <div class="pg-lbl">Resumo</div>')

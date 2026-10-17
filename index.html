@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261016g">
+    <link rel="stylesheet" href="style.css?v=20261016h">
 </head>
 <body data-theme="dark">
 
@@ -111,6 +111,7 @@
                 <a href="#patch" class="nav-item" data-section="patch"><i class="fa-solid fa-code-branch"></i> Patch Notes</a>
                 <a href="#glossario" class="nav-item" data-section="glossario"><i class="fa-solid fa-list"></i> Glossário</a>
                 <a href="#mapa" class="nav-item" data-section="mapa"><i class="fa-solid fa-map"></i> Mapa</a>
+                <a href="#mira" class="nav-item" data-section="mira"><i class="fa-solid fa-crosshairs"></i> Minha Mira</a>
 
                 <span class="nav-group">Comunidade</span>
                 <a href="#esports" class="nav-item" data-section="esports"><i class="fa-solid fa-trophy"></i> Esports</a>
@@ -124,6 +125,7 @@
             </nav>
 
             <div class="sidebar-footer">
+                <button class="btn-instalar" id="btnInstalar" hidden><i class="fa-solid fa-circle-down"></i> INSTALAR O APP</button>
                 <button class="btn-download" id="btnDownload"><i class="fa-solid fa-download"></i> BAIXAR DEADLOCK</button>
                 <div class="user-chip" id="userChip">
                     <div class="user-chip-avatar" id="chipAvatar">?</div>
@@ -412,6 +414,33 @@
                 </div>
             </section>
 
+            <!-- ============ MINHA MIRA (CROSSHAIR) ============ -->
+            <section id="mira" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Minha Mira</h1>
+                        <p class="page-sub">Cole o código da sua mira e veja como ela fica — e o que cada ajuste quer dizer. O código aparece no jogo em Configurações › Mira (começa com "DL.").</p>
+                    </div>
+                </div>
+
+                <div class="card cx-caixa">
+                    <label class="cx-rotulo" for="cxCodigo">Código da mira</label>
+                    <div class="cx-linha">
+                        <input type="text" id="cxCodigo" placeholder="DL.AQFAdYkfKLUv_WANAO0GAFQL..." spellcheck="false" autocomplete="off">
+                        <button class="btn btn-lime" id="cxVer"><i class="fa-solid fa-crosshairs"></i> VER MINHA MIRA</button>
+                    </div>
+                    <p class="cx-aviso" id="cxAviso" hidden></p>
+                </div>
+
+                <div class="cx-wrap" id="cxResultado" hidden>
+                    <div class="card cx-preview">
+                        <div class="cx-fundo"><img id="cxImagem" alt="Prévia da mira"></div>
+                        <button class="btn btn-dark btn-sm" id="cxCopiar"><i class="fa-regular fa-copy"></i> Copiar código</button>
+                    </div>
+                    <div class="card cx-detalhes" id="cxDetalhes"></div>
+                </div>
+            </section>
+
             <!-- ============ ESPORTS ============ -->
             <section id="esports" class="section">
                 <div class="section-top">
@@ -583,11 +612,11 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261016g"></script>
-    <script src="data/game-data.js?v=20261016g"></script>
-    <script src="data/hero-history.js?v=20261016g"></script>
-    <script src="data/hero-stats.js?v=20261016g"></script>
-    <script src="data/steam-news.js?v=20261016g"></script>
-    <script src="script.js?v=20261016g"></script>
+    <script src="heroes-data.js?v=20261016h"></script>
+    <script src="data/game-data.js?v=20261016h"></script>
+    <script src="data/hero-history.js?v=20261016h"></script>
+    <script src="data/hero-stats.js?v=20261016h"></script>
+    <script src="data/steam-news.js?v=20261016h"></script>
+    <script src="script.js?v=20261016h"></script>
 </body>
 </html>

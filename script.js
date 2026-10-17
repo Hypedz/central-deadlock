@@ -295,6 +295,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuiz();
     initProfile();
     initModals();
+    initInstalar();
+    initMira();
     initToast();
     initToTop();
     fixShareMeta();
@@ -311,6 +313,150 @@ function registrarApp() {
     if (!/^https?:$/.test(location.protocol)) return;   // só funciona publicado/servidor local
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+}
+
+/* ================= janela (modal) genérica =================
+   Serve para abrir qualquer conteúdo numa janelinha (fechada no X,
+   no clique fora ou com a tecla Esc). */
+function abrirJanela(html) {
+    const caixa = $('#contentModalBox');
+    if (!caixa) return;
+    caixa.innerHTML = '<button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>' + html;
+    openOverlay($('#contentModal'));
+}
+
+/* ================= instalar o app (PWA) =================
+   O botão só aparece quando o navegador permite instalar ("beforeinstallprompt").
+   No iPhone o Safari não avisa nada: nesse caso o botão abre o passo a passo. */
+function initInstalar() {
+    const botao = $('#btnInstalar');
+    if (!botao) return;
+    const jaInstalado = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    if (jaInstalado) return;                     // já está aberto como app
+
+    const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    let convite = null;
+
+    window.addEventListener('beforeinstallprompt', (evento) => {
+        evento.preventDefault();                 // guardamos para tocar no nosso botão
+        convite = evento;
+        botao.hidden = false;
+    });
+    if (ehIOS) botao.hidden = false;             // iPhone: mostramos o passo a passo
+
+    botao.addEventListener('click', async () => {
+        if (convite) {
+            convite.prompt();
+            try {
+                const escolha = await convite.userChoice;
+                if (escolha && escolha.outcome === 'accepted') {
+                    botao.hidden = true;
+                    showToast('App instalado! O ícone está junto dos seus apps.');
+                }
+            } catch (e) { /* se o navegador recusar, não acontece nada */ }
+            convite = null;
+            return;
+        }
+        abrirJanela(`
+            <h2 class="cm-title">Instalar o app</h2>
+            <p class="muted-txt">${ehIOS
+                ? 'No iPhone e no iPad o Safari não deixa o site pedir sozinho. É rapidinho:'
+                : 'O seu navegador não mostrou o convite, mas dá para instalar na mão:'}</p>
+            <ol class="cx-passos">
+                <li>${ehIOS ? 'Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).' : 'Abra o menu do navegador (os três pontinhos).'}</li>
+                <li>Escolha <b>Adicionar à Tela de Início</b>${ehIOS ? '' : ' ou <b>Instalar app</b>'}.</li>
+                <li>Confirme. O ícone da Central Deadlock aparece junto dos seus apps.</li>
+            </ol>
+            <p class="muted-txt">Dentro do app, o site abre em tela cheia e carrega mais rápido.</p>`);
+    });
+
+    window.addEventListener('appinstalled', () => { botao.hidden = true; });
+}
+
+/* ================= minha mira (crosshair) =================
+   Lê o código da mira do jogo (aquele que começa com "DL.") pelo serviço
+   público de dados do Deadlock, desenha a mira em tamanho grande e explica
+   cada ajuste em português. Nada é guardado em lugar nenhum. */
+const CX_API = 'https://api.deadlock-api.com/v1/crosshair';
+let cxCodigo = '';
+
+function corDeRGB(r, g, b) {
+    const pedaco = (valor) => Math.max(0, Math.min(255, parseInt(valor, 10) || 0)).toString(16).padStart(2, '0');
+    return '#' + pedaco(r) + pedaco(g) + pedaco(b);
+}
+
+function initMira() {
+    const campo = $('#cxCodigo');
+    const botao = $('#cxVer');
+    if (!campo || !botao) return;
+
+    const avisar = (texto, erro) => {
+        const caixa = $('#cxAviso');
+        if (!caixa) return;
+        caixa.textContent = texto || '';
+        caixa.classList.toggle('erro', !!erro);
+        caixa.hidden = !texto;
+    };
+
+    const desenharDetalhes = (c) => {
+        const pct = (v) => Math.round((parseFloat(v) || 0) * 100) + '%';
+        const linhas = [
+            ['Formato', c.themed ? 'Mira com tema (colorida do jogo)' : 'Mira padrão'],
+            ['Barrinhas', `${c.pip_width}px de espessura · ${c.pip_height}px de comprimento`],
+            ['Espaço no meio', `${c.pip_gap}px ${c.pip_gap_static ? '(fixo)' : '(acompanha o alvo)'}`],
+            ['Opacidade das barrinhas', pct(c.pip_opacity)],
+            ['Ponto do meio', (c.dot_size > 0 ? `${c.dot_size}px · opacidade ${pct(c.dot_opacity)}` : 'sem ponto no meio')],
+            ['Contorno', ((c.pip_outline_border || c.dot_outline_border)
+                ? `${c.pip_outline_border}px nas barrinhas · ${c.dot_outline_border}px no ponto`
+                : 'sem contorno')],
+        ];
+        const cor = corDeRGB(c.color_r, c.color_g, c.color_b);
+        const corBorda = corDeRGB(c.outline_color_r, c.outline_color_g, c.outline_color_b);
+        $('#cxDetalhes').innerHTML =
+            '<div class="cx-sec">O que a sua mira tem</div>' +
+            linhas.map(([rotulo, valor]) => `<div class="cx-item"><span>${esc(rotulo)}</span><b>${esc(String(valor))}</b></div>`).join('') +
+            '<div class="cx-sec">Cores</div>' +
+            `<div class="cx-cores">
+                <span><i style="background:${cor}"></i> Mira ${cor}</span>
+                <span><i style="background:${corBorda}"></i> Contorno ${corBorda}</span>
+            </div>`;
+        $('#cxImagem').src = `${CX_API}/code/image?code=${encodeURIComponent(cxCodigo)}&scale=8&screen_height=2160`;
+        $('#cxResultado').hidden = false;
+    };
+
+    const ver = async () => {
+        const codigo = campo.value.trim();
+        if (!codigo) { avisar('Cole o código da sua mira primeiro.', true); return; }
+        if (!/^DL\./i.test(codigo)) { avisar('Esse código não parece de mira: ele precisa começar com "DL." (veja em Configurações › Mira, no jogo).', true); return; }
+        botao.disabled = true;
+        avisar('Lendo a sua mira...');
+        try {
+            const resposta = await fetch(`${CX_API}/code/settings?code=${encodeURIComponent(codigo)}`);
+            if (!resposta.ok) throw new Error('codigo invalido');
+            const c = await resposta.json();
+            cxCodigo = codigo;
+            desenharDetalhes(c);
+            avisar('');
+        } catch (e) {
+            $('#cxResultado').hidden = true;
+            avisar('Não consegui ler esse código. Confira se copiou ele inteiro (começa com "DL.").', true);
+        } finally {
+            botao.disabled = false;
+        }
+    };
+
+    botao.addEventListener('click', ver);
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') ver(); });
+
+    const copiar = $('#cxCopiar');
+    if (copiar) copiar.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(cxCodigo);
+            showToast('Código copiado!');
+        } catch (e) {
+            showToast('Não deu para copiar. Selecione o código e copie na mão.', 'error');
+        }
     });
 }
 
