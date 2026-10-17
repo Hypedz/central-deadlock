@@ -655,6 +655,31 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .news-date { display: block; margin-top: 10px; font-size: 0.78rem; color: var(--text-faint); }
 .news-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-family: var(--font-ui); font-weight: 700; font-size: 0.8rem; color: var(--lime); }
 
+/* atalhos da home: só caminhos para as ferramentas reais do site */
+.atalho-card {
+    display: flex; flex-direction: column; align-items: flex-start;
+    padding: 18px; width: 100%; text-align: left; font: inherit; color: inherit;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    cursor: pointer; transition: var(--trans);
+}
+.atalho-card:hover { border-color: var(--lime); transform: translateY(-3px); box-shadow: var(--shadow); }
+.atalho-card .news-title, .atalho-card .news-desc, .atalho-card .news-more { display: block; }
+.atalho-card .news-more { margin-top: auto; padding-top: 14px; }
+.atalho-ico {
+    width: 44px; height: 44px; margin-bottom: 10px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 1.05rem;
+    background: rgba(182, 242, 74, .12); border: 1px solid rgba(182, 242, 74, .35); color: var(--lime);
+}
+
+/* jogador do ranking (janela): heróis mais jogados */
+.rk-lista { display: flex; flex-wrap: wrap; gap: 10px; }
+.rk-heroi {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px 5px 5px; font-family: var(--font-ui); font-weight: 700; font-size: 0.86rem;
+}
+.rk-heroi img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; object-position: center 25%; }
+
 .guide-card { padding: 16px; }
 .guide-head { position: relative; height: 150px; border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
 .guide-head img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
@@ -742,7 +767,8 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .ranking-table { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .ranking-head, .ranking-row { display: grid; grid-template-columns: 60px 1fr 120px 120px; align-items: center; padding: 14px 18px; }
 .ranking-head { background: var(--bg-2); font-family: var(--font-ui); font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint); }
-.ranking-row { border-top: 1px solid var(--border); transition: var(--trans); }
+.ranking-row { border-top: 1px solid var(--border); transition: var(--trans); cursor: pointer; }
+.ranking-row:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
 .ranking-row:hover { background: var(--card-hover); }
 .rank-pos { font-family: var(--font-ui); font-weight: 800; font-size: 1.1rem; color: var(--lime); }
 .rank-name { font-family: var(--font-ui); font-weight: 600; }

@@ -155,35 +155,10 @@ function level() {
 function touch(key) { if (key && !stats.changed[key]) { stats.changed[key] = 1; saveStats(); } }
 
 /* ================= conteúdo (notícias / guias / partidas) ================= */
-const FEATURED = [
-    {
-        id: 'f1', cat: 'Patch', title: 'Patch Notes: balanceamento de heróis e itens', img: 'McGinnis.png', date: '15 out 2026',
-        desc: 'Veja o que mudou nos heróis mais usados e como isso afeta seu rank.',
-        body: [
-            'A atualização mais recente mexeu no coração do meta: heróis de dano contínuo perderam um pouco de força no início da partida, enquanto os tanques ganharam sobrevida nas lutas de equipe.',
-            'Os itens de vitalidade ficaram um pouco mais caros, o que atrasa o primeiro pico de poder. Na prática, vale priorizar farm seguro nos primeiros minutos e evitar lutas desnecessárias antes do primeiro item completo.',
-            'Nossa recomendação: revise suas builds e teste os heróis que você domina no modo de treino antes de levá-los para o competitivo.'
-        ]
-    },
-    {
-        id: 'f2', cat: 'Guia', title: 'Suba de ranque rapidamente em Deadlock', img: 'Vindicta.png', date: '13 out 2026',
-        desc: 'Dicas de movimentação, farm e escolha de heróis para iniciantes.',
-        body: [
-            'Dominar a movimentação é o que mais separa jogadores iniciantes dos intermediários. Use as tirolesas com frequência para rotacionar rápido e sempre olhe o minimapa a cada poucos segundos.',
-            'No farm, o segredo é consistência: colete almas das tropas mesmo quando a lane está tranquila e transforme isso em itens. Um item comprado no tempo certo vale mais do que três comprados atrasados.',
-            'Por último, escolha dois ou três heróis e domine-os de verdade antes de sair testando o elenco inteiro.'
-        ]
-    },
-    {
-        id: 'f3', cat: 'Esports', title: 'Primeiro torneio brasileiro confirmado', img: 'Holliday.png', date: '10 out 2026',
-        desc: 'FURIA, LOUD e paiN já se preparam para a estreia oficial.',
-        body: [
-            'A cena competitiva brasileira deu um passo importante: o primeiro torneio nacional oficial foi confirmado, com a participação de organizações que já são referência em outros jogos.',
-            'A competição deve reunir times convidados e vagas abertas para a comunidade, com transmissão ao vivo e premiação simbólica nesta primeira edição.',
-            'Fique de olho na nossa aba Esports para acompanhar os confrontos e os horários das partidas.'
-        ]
-    }
-];
+/* As notícias de verdade vêm do data/steam-news.js (oficiais, traduzidas).
+   A lista NEWS abaixo é só o plano B: ela aparece se, por algum motivo, o
+   robô do GitHub ainda não tiver buscado nenhuma notícia. Nada de conteúdo
+   inventado aparece na tela quando as notícias reais existem. */
 const NEWS = [
     {
         id: 'n1', cat: 'Atualização', title: 'Patch Notes: balanceamento de heróis e itens', img: 'Shiv.png', date: '15 out 2026',
@@ -1327,10 +1302,6 @@ function guiaCardHTML(a) {
     </article>`;
 }
 
-function semAcento(texto) {
-    return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
 function guiasFiltrados() {
     const campo = $('#guiasBusca');
     const termo = semAcento(campo ? campo.value.trim() : '');
@@ -1391,7 +1362,26 @@ function initContents() {
         return newsCardHTML(a);
     };
 
-    $('#homeGrid').innerHTML = FEATURED.map(a => cardHTML(a, 'news')).join('');
+    // ---- atalhos para as ferramentas reais do site ----
+    // Nada de artigo inventado: aqui só existem caminhos para o que o site
+    // tem de verdade (comparador, itens, mira, glossário, esports, ranking).
+    const atalhos = [
+        { goto: 'comparar', icone: 'fa-right-left', titulo: 'Comparar heróis', desc: 'Escolha dois heróis e veja as diferenças lado a lado.' },
+        { goto: 'itens', icone: 'fa-gem', titulo: 'Itens do jogo', desc: 'Preço e efeito reais de todos os itens da loja.' },
+        { goto: 'mira', icone: 'fa-crosshairs', titulo: 'Minha Mira', desc: 'Cole o seu código DL. e veja a mira desenhada na hora.' },
+        { goto: 'glossario', icone: 'fa-list', titulo: 'Glossário', desc: 'Os termos do jogo explicados em português.' },
+        { goto: 'esports', icone: 'fa-trophy', titulo: 'Esports', desc: 'Os torneios de Deadlock e quem está ganhando.' },
+        { goto: 'ranking', icone: 'fa-ranking-star', titulo: 'Ranking', desc: 'Os melhores jogadores de cada região, direto do jogo.' }
+    ];
+    const gradeHome = $('#homeGrid');
+    if (gradeHome) {
+        gradeHome.innerHTML = atalhos.map(a => `<button type="button" class="atalho-card" data-goto="${a.goto}">
+            <span class="atalho-ico"><i class="fa-solid ${a.icone}"></i></span>
+            <span class="news-title">${esc(a.titulo)}</span>
+            <span class="news-desc">${esc(a.desc)}</span>
+            <span class="news-more">Abrir <i class="fa-solid fa-arrow-right"></i></span>
+        </button>`).join('');
+    }
     const listaNoticias = STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS;
     $('#newsGrid').innerHTML = listaNoticias.map(a => cardHTML(a, 'news')).join('');
     initGuias();                       // guias: um cartão para cada herói + filtro
@@ -1450,7 +1440,7 @@ function initContents() {
     });
 }
 
-function findArticle(id) { return [...FEATURED, ...NEWS, ...GUIDES, ...BUILDS, ...STEAM_ARTICLES].find(a => a.id === id); }
+function findArticle(id) { return [...NEWS, ...GUIDES, ...BUILDS, ...STEAM_ARTICLES].find(a => a.id === id); }
 
 function openArticle(id) {
     const a = findArticle(id); if (!a) return;
@@ -1734,6 +1724,53 @@ function initElos() {
 const REGIOES_RANK = [['SAmerica', 'América do Sul'], ['NAmerica', 'América do Norte'], ['Europe', 'Europa'], ['Asia', 'Ásia'], ['Oceania', 'Oceania']];
 let rankRegiao = 'SAmerica';
 
+/* Janela do jogador do ranking: mostra o que a Valve manda (nome, posição e os
+   heróis mais jogados) e busca o perfil real dele no Steam pelo nome. */
+async function abrirRankJogador(nome, pos) {
+    const g = dadosJogo();
+    const rotulo = (REGIOES_RANK.filter(r => r[0] === rankRegiao)[0] || [rankRegiao])[1] || rankRegiao;
+    const linha = (((g || {}).ranking || {})[rankRegiao] || []).filter(p => String(p.n) === String(nome))[0] || {};
+    const herois = (linha.h || []).map(id => heroiPorApiId(id)).filter(Boolean);
+    const caixa = $('#contentModalBox');
+    caixa.innerHTML = `
+        <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="cm-body">
+            <div class="cm-meta"><span class="tag acc">#${esc(pos)}</span><span class="cm-date">${esc(rotulo)}</span><span class="news-src"><i class="fa-solid fa-trophy"></i> Ranking real</span></div>
+            <h2 class="cm-title">${esc(nome)}</h2>
+            <div class="cm-text"><p>Posição <b>#${esc(pos)}</b> no ranking da região <b>${esc(rotulo)}</b>, direto do jogo (dados da Valve via deadlock-api.com). O ranking traz o nome e os heróis mais jogados — o ID da conta não vem junto, por isso a busca abaixo é feita pelo nome.</p></div>
+            ${herois.length ? `<div class="pform-sec" style="margin:18px 0 10px">Heróis mais jogados</div>
+                <div class="rk-lista">${herois.map(h => `<span class="rk-heroi"><img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy"><b>${esc(h.name)}</b></span>`).join('')}</div>` : ''}
+            <div class="pform-sec" style="margin:22px 0 10px">Perfil de verdade no Steam</div>
+            <div id="rankAchados"><p class="muted-txt"><i class="fa-solid fa-spinner fa-spin"></i> Procurando pelo nome...</p></div>
+        </div>`;
+    openOverlay($('#contentModal'));
+
+    const alvo = $('#rankAchados');
+    let lista = [];
+    try {
+        const achados = await steamPedir('/players/steam-search?limit=6&search_query=' + encodeURIComponent(nome));
+        lista = Array.isArray(achados) ? achados : [];
+    } catch (e) { lista = []; }
+    if (!alvo || !document.body.contains(alvo)) return;   // já fecharam a janela
+    if (!lista.length) {
+        alvo.innerHTML = '<p class="muted-txt">O Steam não devolveu nenhuma conta com esse nome. Muitos jogadores usam um apelido diferente dentro do jogo.</p>';
+        return;
+    }
+    alvo.innerHTML = lista.map((j, i) => `<button type="button" class="steam-achado" data-rankachado="${i}">
+            <img src="${esc(j.avatarmedium || j.avatar || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><b>${esc(j.personaname || 'Jogador')}</b><small>${j.matches_played_last_30d ? j.matches_played_last_30d + ' partidas nos últimos 30 dias' : 'conta do Steam'}</small></span>
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>`).join('');
+    $$('[data-rankachado]', alvo).forEach(b => b.addEventListener('click', () => {
+        const j = lista[Number(b.dataset.rankachado)];
+        if (!j) return;
+        closeOverlay($('#contentModal'));
+        showSection('perfil');
+        steamCarregar(j.account_id, j.personaname, j.avatarfull || j.avatar, j.profileurl);
+        showToast('Abrindo o perfil real de ' + (j.personaname || 'jogador') + '...');
+    }));
+}
+
 function initRanking() {
     const tab = $('#rankTable');
     if (!tab) return;
@@ -1753,7 +1790,7 @@ function initRanking() {
     const comHerois = linhas.filter(p => (p.h || []).length).length > linhas.length / 2;
     const cls = comHerois ? ' com-herois' : '';
     tab.innerHTML = `<div class="ranking-head${cls}"><span>#</span><span>Jogador</span>${comHerois ? '<span>Heróis mais jogados</span>' : ''}</div>` +
-        linhas.map(p => `<div class="ranking-row${cls}">
+        linhas.map(p => `<div class="ranking-row${cls}" data-ranknome="${esc(p.n)}" data-rankpos="${p.r}" role="button" tabindex="0" title="Ver os detalhes deste jogador">
             <span class="rank-pos">${p.r}</span>
             <span class="rank-name">${esc(p.n)}</span>
             ${comHerois ? `<span class="rank-heroes">${(p.h || []).map(id => {
@@ -1761,6 +1798,13 @@ function initRanking() {
                 return h ? `<img src="assets/heroes/${esc(h.file)}" alt="${esc(h.name)}" title="${esc(h.name)}" loading="lazy" onerror="this.remove()">` : '';
             }).join('') || '<em>—</em>'}</span>` : ''}
         </div>`).join('');
+    // clicar em um jogador abre os detalhes dele (e busca o perfil real no Steam)
+    $$('.ranking-row', tab).forEach(l => {
+        l.addEventListener('click', () => abrirRankJogador(l.dataset.ranknome, l.dataset.rankpos));
+        l.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrirRankJogador(l.dataset.ranknome, l.dataset.rankpos); }
+        });
+    });
     const f = $('#rankFonte');
     if (f) f.innerHTML = `<i class="fa-solid fa-trophy"></i> Top ${linhas.length} jogadores da região · ranking real do jogo via deadlock-api.com · atualizado em ${esc(g.updated)}`;
 
@@ -1888,8 +1932,10 @@ function initHome() {
     // ---- últimas notícias ----
     const hn = $('#homeNews');
     if (hn) {
-        const lista = STEAM_ARTICLES.length ? STEAM_ARTICLES : (NEWS.length ? NEWS : FEATURED);
-        hn.innerHTML = lista.slice(0, 3).map(newsCardHTML).join('');
+        const lista = STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS;
+        hn.innerHTML = lista.length
+            ? lista.slice(0, 3).map(newsCardHTML).join('')
+            : '<p class="muted-txt">As notícias oficiais aparecem aqui assim que o robô do GitHub rodar pela primeira vez.</p>';
     }
 
     // ---- mini painel do meta ----
