@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-17b';
+const VERSAO = 'central-deadlock-2026-10-17c';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -19,6 +19,7 @@ const ESSENCIAIS = [
     './data/hero-history.js',
     './data/steam-news.js',
     './data/elos.js',
+    './data/guias.js',
     './manifest.webmanifest',
     './assets/brand/favicon.svg',
     './assets/brand/icon-192.png'

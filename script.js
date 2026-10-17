@@ -206,7 +206,11 @@ const NEWS = [
         body: ['O elenco cresceu de novo! Veja as habilidades, o papel e as primeiras impressões do novo herói.', 'Abra a aba Heróis para ver a ficha completa.']
     }
 ];
-const GUIDES = [
+/* Guias: o guia de CADA herói (43) é montado sozinho, com os números reais
+   das partidas, pelo script tools/gerar-guias.py — ele escreve data/guias.js.
+   Se esse arquivo não carregar por algum motivo, o site mostra os 3 guias de
+   exemplo abaixo, só para a aba nunca ficar vazia. */
+const GUIA_EXEMPLO = [
     {
         id: 'g1', cat: 'Guia', title: 'McGinnis - Guia Completo', img: 'McGinnis.png', date: '12 out 2026',
         desc: 'Build, habilidades e dicas de lane para dominar com a atiradora.',
@@ -223,6 +227,8 @@ const GUIDES = [
         body: ['Kelvin é o apoio que mantém o time vivo. Use o escudo de gelo para salvar aliados em apuros e a cura para sustentar as lutas longas.', 'Fique sempre atrás da linha de frente e acompanhe o minimapa para chegar a tempo.']
     }
 ];
+const GUIDES = (window.GUIAS && window.GUIAS.lista && window.GUIAS.lista.length) ? window.GUIAS.lista : GUIA_EXEMPLO;
+
 const MATCHES = [
     { id: 'm1', a: 'FURIA', b: 'LOUD', sa: '3', sb: '1', status: 'ao-vivo', statusLabel: 'Ao vivo', time: 'Hoje • 20:00', desc: 'Série melhor de cinco em andamento. A FURIA abriu vantagem no mapa central.' },
     { id: 'm2', a: 'paiN', b: 'INTZ', sa: '—', sb: '—', status: 'proximo', statusLabel: 'Próximo', time: 'Amanhã • 19:00', desc: 'Confronto agendado para amanhã à noite, com transmissão ao vivo.' },
@@ -1303,6 +1309,73 @@ function newsCardHTML(a) {
 
 const STEAM_ARTICLES = buildSteamArticles();
 
+/* ================= guias (um cartão para cada herói) =================
+   A lista vem do data/guias.js (gerado sozinho). Aqui só montamos os
+   cartões e deixamos filtrar por nome, papel ou tier — são 43 guias. */
+let guiaPapel = 'Todos';
+
+function guiaCardHTML(a) {
+    const titulo = a.heroPage
+        ? `<a href="${esc(a.heroPage)}">${esc(a.title)}</a>`
+        : esc(a.title);
+    const tier = a.tier ? `<em class="guia-tier t-${esc(String(a.tier).toLowerCase())}" title="Tier de hoje, calculada com partidas de verdade">${esc(a.tier)}</em>` : '';
+    return `<article class="guide-card" data-article="${a.id}">
+        <div class="guide-head"><img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy"><span>${esc(a.cat)}</span>${tier}</div>
+        <h3 class="news-title">${titulo}</h3>
+        <p class="news-desc">${esc(a.desc)}</p>
+        <span class="news-more">Ler guia <i class="fa-solid fa-arrow-right"></i></span>
+    </article>`;
+}
+
+function semAcento(texto) {
+    return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function guiasFiltrados() {
+    const campo = $('#guiasBusca');
+    const termo = semAcento(campo ? campo.value.trim() : '');
+    return GUIDES.filter(a => {
+        if (guiaPapel !== 'Todos' && a.role !== guiaPapel) return false;
+        if (!termo) return true;
+        return semAcento(a.title).indexOf(termo) >= 0
+            || semAcento(a.role).indexOf(termo) >= 0
+            || semAcento(a.tier).indexOf(termo) >= 0;
+    });
+}
+
+function pintarGuias() {
+    const grade = $('#guidesGrid');
+    if (!grade) return;
+    const lista = guiasFiltrados();
+    grade.innerHTML = lista.length
+        ? lista.map(a => guiaCardHTML(a)).join('')
+        : '<p class="items-count">Nenhum guia encontrado com esse filtro. Tente o nome do herói.</p>';
+    const contador = $('#guiasCount');
+    if (contador) {
+        contador.textContent = (lista.length === GUIDES.length)
+            ? `${GUIDES.length} guias — um para cada herói, com números reais`
+            : `${lista.length} de ${GUIDES.length} guias`;
+    }
+}
+
+function initGuias() {
+    const campo = $('#guiasBusca');
+    const caixa = $('#guiasPapeis');
+    if (caixa) {
+        const papeis = ['Todos'].concat([...new Set(GUIDES.map(a => a.role).filter(Boolean))]);
+        caixa.innerHTML = papeis.map(p => `<button type="button" class="pill ${p === 'Todos' ? 'on' : ''}" data-guiapapel="${esc(p)}">${esc(p)}</button>`).join('');
+        caixa.addEventListener('click', (ev) => {
+            const b = ev.target.closest('[data-guiapapel]');
+            if (!b) return;
+            guiaPapel = b.dataset.guiapapel;
+            $$('[data-guiapapel]', caixa).forEach(x => x.classList.toggle('on', x === b));
+            pintarGuias();
+        });
+    }
+    if (campo) campo.addEventListener('input', pintarGuias);
+    pintarGuias();
+}
+
 /* ================= conteúdos clicáveis ================= */
 function initContents() {
     const cardHTML = (a, type) => {
@@ -1321,7 +1394,7 @@ function initContents() {
     $('#homeGrid').innerHTML = FEATURED.map(a => cardHTML(a, 'news')).join('');
     const listaNoticias = STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS;
     $('#newsGrid').innerHTML = listaNoticias.map(a => cardHTML(a, 'news')).join('');
-    $('#guidesGrid').innerHTML = GUIDES.map(a => cardHTML(a, 'guide')).join('');
+    initGuias();                       // guias: um cartão para cada herói + filtro
 
     // aviso de "atualizado em" quando as notícias vêm da Steam
     const sub = $('#newsSub');
@@ -1413,6 +1486,10 @@ function openArticle(id) {
     const linkPagina = a.steam
         ? `<a class="cm-link" href="noticia/${esc(a.id)}.html"><i class="fa-solid fa-newspaper"></i> Abrir a página desta notícia</a>`
         : '';
+    // guias: link para a página completa do herói (atributos, builds e histórico)
+    const linkHeroi = a.heroPage
+        ? `<a class="cm-link" href="${esc(a.heroPage)}"><i class="fa-solid fa-id-card"></i> Abrir a página completa do herói</a>`
+        : '';
     $('#contentModalBox').innerHTML = `
         <button class="modal-close" data-close="contentModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
         ${cardImg(a, 'cm-img')}
@@ -1425,6 +1502,7 @@ function openArticle(id) {
             ${items}
             ${linkSteam}
             ${linkPagina}
+            ${linkHeroi}
         </div>`;
     openOverlay($('#contentModal'));
 }

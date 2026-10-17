@@ -31,6 +31,9 @@ meu-fansite/
 │   ├── game-data.js         # Itens, builds, contadores, ranking — GERADO sozinho
 │   ├── hero-extra.js        # Etiquetas, dificuldade, cor e história de cada herói — GERADO sozinho
 │   ├── hero-history.js      # Win rate semana a semana — GERADO sozinho
+│   ├── hero-analytics.js    # Ordem das habilidades, duplas e rota — GERADO sozinho
+│   ├── elos.js              # Brasões de elo oficiais + jogadores por elo — GERADO sozinho
+│   ├── guias.js             # O guia de cada herói, em português — GERADO sozinho
 │   ├── traducao-cache.json  # Memória das traduções das notícias — GERADO sozinho
 │   ├── traducao-jogo.json   # Memória das traduções do jogo — GERADO sozinho
 │   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
@@ -39,9 +42,12 @@ meu-fansite/
 │   ├── update-news.py       # Baixa e TRADUZ as notícias do Steam (texto completo)
 │   ├── update-stats.py      # Baixa as estatísticas reais dos heróis
 │   ├── update-game-data.py  # Baixa itens, builds, contadores, ban, ranking, etiquetas e história dos heróis
+│   ├── update-analytics.py  # Baixa a ordem das habilidades, as melhores duplas e os confrontos de rota
+│   ├── update-elos.py       # Baixa os brasões de elo e quantos jogadores há em cada elo
 │   ├── baixar-artes.py      # Baixa as artes dos heróis (carta, capa, letreiro e ícones das habilidades)
 │   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
 │   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
+│   ├── gerar-guias.py       # Escreve o guia de cada herói (com os números reais)
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
@@ -165,6 +171,7 @@ O que isso muda no site:
 | **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
 | **Instalar o app** | não existia | botão que instala o site como app no celular e no computador |
 | **Busca global** | não existia | **Ctrl + K** acha herói, item, notícia, guia, build, tela e termo do glossário num lugar só |
+| **Guias** | só 3 guias escritos à mão | **um guia para cada um dos 43 heróis**, montado sozinho com os números reais das partidas, com filtro por nome/papel/tier |
 | **Painel do Steam** (em Meu Perfil) | não existia | digite o seu nick e veja **as suas partidas de verdade**: win rate, KDA, elo, heróis mais jogados e os últimos 20 jogos |
 
 ### De onde sai cada arquivo
@@ -177,6 +184,7 @@ O que isso muda no site:
 | `data/hero-extra.js` | `tools/update-game-data.py` | etiquetas, dificuldade, cor e história de cada herói (usado nas páginas dos heróis) |
 | `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
 | `data/elos.js` | `tools/update-elos.py` | brasões de elo oficiais + quantos jogadores há em cada elo (usado na aba Estatísticas e no Ranking) |
+| `data/guias.js` | `tools/gerar-guias.py` | o guia de cada um dos 43 heróis, já escrito em português e com os números reais (usado na aba Guias e na busca) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
@@ -218,7 +226,32 @@ Para o Google achar o site mais rápido: entre no **[Google Search Console](http
 
 ## 📰 Conteúdo clicável (Notícias / Guias / Esports)
 
-Todos os cards da Home, Notícias, Guias e Esports agora são **clicáveis** e abrem uma **janela com o texto completo**. Para editar as matérias, procure no `script.js` os blocos `FEATURED`, `NEWS`, `GUIDES` e `MATCHES`.
+Todos os cards da Home, Notícias, Guias e Esports agora são **clicáveis** e abrem uma **janela com o texto completo**. Para editar as matérias, procure no `script.js` os blocos `FEATURED`, `NEWS`, `MATCHES` e `GUIA_EXEMPLO`.
+
+---
+
+## 📚 Guias — um para cada herói (43)
+
+A aba **Guias** tem **um guia para cada um dos 43 heróis** (antes eram só 3). Nada foi escrito à mão: cada guia é montado sozinho, com os **números reais das partidas**, pelo script `tools/gerar-guias.py`, que escreve o arquivo `data/guias.js`.
+
+Cada guia traz:
+
+- **Como o herói está hoje** — win rate, pick rate, KDA e a posição dele no elenco (tudo real)
+- **O papel dele** na partida
+- **O que upar primeiro** — a ordem das habilidades usada nas partidas de verdade
+- **Com quem jogar** — as melhores duplas e as combinações que derrubam o win rate
+- **Na rota** — contra quem ele sofre e contra quem ele vai bem (com a diferença de almas)
+- Um botão, no fim, que abre a **página completa do herói** (atributos, builds e histórico)
+
+**Para achar rápido:** use a caixa de busca (nome, papel ou tier) ou os botões de papel (**Tanque, Suporte, Carry, Controle, Assassino**). Os guias também aparecem na **busca global (Ctrl + K)**.
+
+Para atualizar os guias com os números de hoje:
+
+```powershell
+python tools/gerar-guias.py
+```
+
+(o robô do GitHub roda isso sozinho, todo dia, depois de atualizar as estatísticas)
 
 ---
 

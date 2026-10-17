@@ -664,6 +664,18 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
     font-family: var(--font-ui); font-weight: 700; font-size: 0.65rem;
     padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.8px;
 }
+.guia-tier {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--font-ui); font-weight: 800; font-style: normal; font-size: 0.72rem;
+    min-width: 26px; text-align: center; padding: 3px 7px; border-radius: 4px;
+    background: rgba(12, 12, 14, .78); color: #fff; border: 1px solid rgba(255, 255, 255, .18);
+    backdrop-filter: blur(2px);
+}
+.guia-tier.t-s { color: #b6f24a; border-color: rgba(182, 242, 74, .55); }
+.guia-tier.t-a { color: #8ee08e; border-color: rgba(142, 224, 142, .5); }
+.guia-tier.t-b { color: #ffd479; border-color: rgba(255, 212, 121, .5); }
+.guia-tier.t-c { color: #ff9f6b; border-color: rgba(255, 159, 107, .5); }
+.guia-tier.t-d { color: #ff7a8a; border-color: rgba(255, 122, 138, .5); }
 
 .match-card { padding: 20px; }
 .match-teams { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }

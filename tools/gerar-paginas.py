@@ -32,7 +32,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261017b"
+VERSAO_CSS = "20261017c"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
