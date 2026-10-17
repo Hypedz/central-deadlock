@@ -32,6 +32,9 @@ const HEROES_SOON = ["Nurse Harrow"];
 // Habilidades traduzidas automaticamente para portugues pelo script
 // tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
 // Ultima traducao: 17/10/2026 as 21:51
+// Habilidades traduzidas automaticamente para portugues pelo script
+// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
+// Ultima traducao: 17/10/2026 as 23:37
 const HEROES_DATA = [
   {
     "name": "Abrams",
