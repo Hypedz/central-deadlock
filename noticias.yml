@@ -1,0 +1,119 @@
+name: Notícias do Steam + Discord
+
+# Busca as notícias do Deadlock, posta as novidades no Discord e
+# manda o site se republicar com as notícias novas.
+#
+# Todo dia às 12:00 UTC (09:00 no horário de Brasília).
+#
+# Para rodar na mão: aba "Actions" > "Notícias do Steam + Discord" > "Run workflow".
+# Para só TESTAR o Discord: marque a caixinha "Mandar mensagem de teste" antes de rodar.
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      teste:
+        description: 'Mandar uma mensagem de TESTE no Discord (nao posta noticias)'
+        type: boolean
+        default: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # para salvar as notícias no repositório
+      actions: write    # para pedir a republicação do site
+    steps:
+      - name: Baixar o site
+        uses: actions/checkout@v4
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar as ferramentas de imagem (Pillow)
+        run: pip install pillow
+
+      - name: Buscar as notícias oficiais do Deadlock (e traduzir)
+        run: python tools/update-news.py
+
+      - name: Buscar as artes dos heróis (imagens nítidas)
+        run: python tools/baixar-artes.py
+        continue-on-error: true
+
+      - name: Buscar as estatísticas reais dos heróis
+        run: python tools/update-stats.py
+        continue-on-error: true
+
+      - name: Buscar itens, builds, contadores e ranking reais do jogo
+        run: python tools/update-game-data.py
+        continue-on-error: true
+
+      - name: Traduzir os nomes das habilidades novas
+        run: python tools/traduzir-jogo.py
+        continue-on-error: true
+
+      - name: Buscar a ordem das habilidades, as duplas e os confrontos de rota
+        run: python tools/update-analytics.py
+        continue-on-error: true
+
+      - name: Buscar os brasoes de elo e quantos jogadores ha em cada elo
+        run: python tools/update-elos.py
+        continue-on-error: true
+
+      - name: Escrever o guia de cada heroi (com os numeros reais)
+        run: python tools/gerar-guias.py
+        continue-on-error: true
+
+      - name: Escrever as builds mais usadas de cada heroi (dados reais)
+        run: python tools/gerar-builds.py
+        continue-on-error: true
+
+      - name: Buscar os torneios e resultados de esports (Liquipedia)
+        run: python tools/update-esports.py
+        continue-on-error: true
+
+      - name: Gerar a página de cada herói, a de cada notícia e o sitemap
+        run: python tools/gerar-paginas.py
+        continue-on-error: true
+
+      - name: Testar o Discord
+        if: inputs.teste
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK_PATCHES: ${{ secrets.DISCORD_WEBHOOK_PATCHES }}
+          DISCORD_CARGO: ${{ secrets.DISCORD_CARGO }}
+        run: python tools/discord-post.py --teste
+        continue-on-error: true
+
+      - name: Postar as novidades no Discord
+        if: ${{ !inputs.teste }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK_PATCHES: ${{ secrets.DISCORD_WEBHOOK_PATCHES }}
+          DISCORD_CARGO: ${{ secrets.DISCORD_CARGO }}
+        run: python tools/discord-post.py
+        continue-on-error: true
+
+      - name: Salvar as novidades e as estatísticas no repositório
+        id: salvar
+        run: |
+          git config user.name "Central Deadlock Bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/ heroi/ noticia/ assets/ sitemap.xml heroes-data.js
+          if git diff --staged --quiet; then
+            echo "Nada mudou desde a última vez."
+            echo "mudou=nao" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Notícias e estatísticas atualizadas automaticamente"
+            git push
+            echo "mudou=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Republicar o site com as novidades
+        if: steps.salvar.outputs.mudou == 'sim'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run "publicar-site.yml" --repo "${{ github.repository }}"
