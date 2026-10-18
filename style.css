@@ -607,6 +607,8 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .pen-ph { position: absolute; inset: 0; display: grid; place-items: start center; padding-top: 26%; }
 .pen-ph span { font-family: var(--font-ui); font-weight: 900; font-size: 34px; color: rgba(255,255,255,0.85); }
 .pen-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+/* imagem que não carregou nem depois das tentativas: fica o painel escuro, sem ícone de imagem quebrada */
+img.sem-foto { opacity: 0; }
 .pen-in::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 52%; background: linear-gradient(transparent, rgba(0,0,0,0.86)); z-index: 1; pointer-events: none; }
 .pen-name {
     position: absolute; left: 0; right: 0; bottom: 26%; z-index: 2;

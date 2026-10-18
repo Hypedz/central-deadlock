@@ -973,6 +973,25 @@ function initSections() {
     }
 }
 
+/* ================= imagens que falham ================= */
+/* Se uma imagem não carregar (internet oscilando, servidor reiniciando, etc.),
+   o navegador tentava uma vez só e o site apagava a imagem: ela "sumia" e não
+   voltava mais. Agora ele tenta mais duas vezes antes de desistir. */
+function socorroImagem(img, tentativas) {
+    const n = tentativas || 0;
+    if (n >= 2) {
+        img.onerror = null;
+        img.classList.add('sem-foto');
+        return;
+    }
+    img.onerror = null;
+    setTimeout(() => {
+        const base = String(img.getAttribute('src') || '').split('?')[0];
+        img.onerror = () => socorroImagem(img, n + 1);
+        img.src = base + '?tentativa=' + (n + 1); // tenta de novo, sem pegar a cópia guardada
+    }, 450 * (n + 1));
+}
+
 /* ================= estandartes ================= */
 function pennant(hero, w) {
     const file = 'assets/heroes/' + hero.file;
@@ -980,7 +999,7 @@ function pennant(hero, w) {
     const soon = hero.soon ? '<div class="pen-soon">EM BREVE</div>' : '';
     return `<div class="pen" style="--w:${w}px">
         <div class="pen-in">
-            <img class="pen-img" src="${file}" alt="${esc(hero.name)}" loading="lazy" onerror="this.remove()">
+            <img class="pen-img" src="${file}" alt="${esc(hero.name)}" loading="lazy" onerror="socorroImagem(this)">
             ${soon}
             <div class="pen-name">${words.map(t => `<span>${esc(t)}</span>`).join(' ')}</div>
         </div>
@@ -1107,7 +1126,7 @@ function openHero(name) {
 
 function miniHero(h) {
     return `<a class="hp-rel" href="#" data-hero-link="${esc(h.name)}">
-        <img src="assets/heroes/${h.file}" alt="" onerror="this.remove()">
+        <img src="assets/heroes/${h.file}" alt="" onerror="socorroImagem(this)">
         <span>${esc(h.name)}</span><span class="tag">${esc(h.role)}</span></a>`;
 }
 
@@ -1175,7 +1194,7 @@ function renderHeroModal() {
         const it = itemDe(id);
         if (!it) return '';
         return `<button type="button" class="build-item" data-item="${esc(id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">
-            ${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+            ${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="socorroImagem(this)">` : ''}
             <em>${esc(it.n)}</em></button>`;
     };
     const tabBuild = h.soon
@@ -1198,7 +1217,7 @@ function renderHeroModal() {
         const outro = heroiPorApiId(inimigoId);
         if (!outro) return '';
         return `<a class="hp-rel contador" href="#" data-hero-link="${esc(outro.name)}" title="${money(partidas)} partidas contra ${esc(outro.name)}">
-            <img src="assets/heroes/${esc(outro.file)}" alt="" onerror="this.remove()">
+            <img src="assets/heroes/${esc(outro.file)}" alt="" onerror="socorroImagem(this)">
             <span>${esc(outro.name)}</span><span class="tag ${ruim ? 'vio' : 'cy'}">${win}%</span></a>`;
     };
     const tabMatch = h.soon
@@ -1602,7 +1621,7 @@ function espTierTag(tier) {
 
 function espCartaoHTML(t, chave, i) {
     const logo = t.logo
-        ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.remove()">`
+        ? `<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="socorroImagem(this)">`
         : '<i class="fa-solid fa-trophy"></i>';
     const venceu = t.campeao && ['TBD', 'CANCELLED'].indexOf(String(t.campeao).toUpperCase()) < 0;
     const linha = venceu
@@ -1635,7 +1654,7 @@ function abrirEsporte(chave, i) {
         <div class="cm-body">
             <div class="cm-meta">${espTierTag(t.tier)}<span class="cm-date">${esc(t.data || '')}</span><span class="news-src"><i class="fa-solid fa-trophy"></i> Torneio real</span></div>
             <h2 class="cm-title">${esc(t.nome)}</h2>
-            ${t.logo ? `<img class="cm-logo${t.fundoClaro ? ' clara' : ''}" src="${esc(t.logo)}" alt="" onerror="this.remove()">` : ''}
+            ${t.logo ? `<img class="cm-logo${t.fundoClaro ? ' clara' : ''}" src="${esc(t.logo)}" alt="" onerror="socorroImagem(this)">` : ''}
             <div class="esp-ficha">${linhas.map(l => `<div class="esp-linha"><b>${esc(l[0])}</b><span>${esc(l[1])}</span></div>`).join('')}</div>
             <a class="cm-link" href="${esc(t.url || ((window.ESPORTS || {}).fonteUrl || ''))}" target="_blank" rel="noopener">Ver o torneio na Liquipedia <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>`;
@@ -1762,7 +1781,7 @@ function itensDaBuildHTML(lista) {
     return (lista || []).map(id => {
         const it = itemDe(id);
         if (!it) return '';
-        return `<button type="button" class="build-item" data-item="${esc(id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<em>${esc(it.n)}</em></button>`;
+        return `<button type="button" class="build-item" data-item="${esc(id)}" title="${esc(it.n)}${it.c ? ' — ' + money(it.c) + ' almas' : ''}">${it.i ? `<img src="${esc(it.i)}" alt="" loading="lazy" onerror="socorroImagem(this)">` : ''}<em>${esc(it.n)}</em></button>`;
     }).join('');
 }
 
@@ -1972,7 +1991,7 @@ function initRanking() {
             <span class="rank-name">${esc(p.n)}</span>
             ${comHerois ? `<span class="rank-heroes">${(p.h || []).map(id => {
                 const h = heroiPorApiId(id);
-                return h ? `<img src="assets/heroes/${esc(h.file)}" alt="${esc(h.name)}" title="${esc(h.name)}" loading="lazy" onerror="this.remove()">` : '';
+                return h ? `<img src="assets/heroes/${esc(h.file)}" alt="${esc(h.name)}" title="${esc(h.name)}" loading="lazy" onerror="socorroImagem(this)">` : '';
             }).join('') || '<em>—</em>'}</span>` : ''}
         </div>`).join('');
     // clicar em um jogador abre os detalhes dele (e busca o perfil real no Steam)
@@ -2069,7 +2088,7 @@ function renderHistorico() {
         const h = heroByName(nm);
         const u = ultimo(hist.herois[nm]);
         return `<button type="button" class="hist-leg" data-hero="${esc(nm)}"><i style="background:${CORES[k]}"></i>
-            <img src="assets/heroes/${esc(h.file)}" alt="" onerror="this.remove()"> ${esc(nm)} <b>${u}%</b></button>`;
+            <img src="assets/heroes/${esc(h.file)}" alt="" onerror="socorroImagem(this)"> ${esc(nm)} <b>${u}%</b></button>`;
     }).join('');
     caixa.innerHTML = `
         <div class="hist-box">
@@ -2149,7 +2168,7 @@ function initHome() {
 function miniStatRow(h, pos, ruim) {
     return `<div class="mini-row" data-hero="${esc(h.name)}" title="Ver ${esc(h.name)}">
         <span class="mini-pos">${pos}</span>
-        <img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="this.remove()">
+        <img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="socorroImagem(this)">
         <b>${esc(h.name)}</b>
         <span class="mini-win ${ruim ? 'ruim' : ''}">${h.win}%</span>
     </div>`;
@@ -2250,7 +2269,7 @@ function renderStats() {
         const cor = (+h.win) >= 52 ? 'ok' : ((+h.win) >= 50 ? 'warn' : 'bad');
         return `<div class="st-row" data-hero="${esc(h.name)}" title="Ver ${esc(h.name)}">
             <span class="st-pos">${i + 1}</span>
-            <span class="st-hero"><img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="this.remove()"><b>${esc(h.name)}</b></span>
+            <span class="st-hero"><img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy" onerror="socorroImagem(this)"><b>${esc(h.name)}</b></span>
             <span class="st-tier"><span class="tag ${tierClass(h.tier)}">${esc(h.tier)}</span></span>
             <span class="st-num">${money(h.partidas)}</span>
             <span class="st-win"><i class="${cor}" style="width:${largura}%"></i><em>${h.win}%</em></span>
@@ -2857,7 +2876,7 @@ function renderForm() {
     const mainsHTML = HEROES.map(h => {
         const i = p.mains.indexOf(h.name);
         return `<button type="button" class="mp ${i >= 0 ? 'on' : ''}" data-mh="${esc(h.name)}">
-            <img src="assets/heroes/${h.file}" alt="" onerror="this.remove()">
+            <img src="assets/heroes/${h.file}" alt="" onerror="socorroImagem(this)">
             <span>${esc(h.name)}</span>${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
     }).join('');
     let html = '';
