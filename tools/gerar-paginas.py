@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import unicodedata
+import urllib.parse
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://hypedz.github.io/central-deadlock/"
@@ -32,7 +33,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261017g"
+VERSAO_CSS = "20261017h"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -188,6 +189,81 @@ def topo(secao_url, secao_nome, atual):
         <a class="pg-busca" href="../index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
     </header>
 """
+
+
+# --------------------------- página 404 ---------------------------
+# O GitHub Pages mostra este arquivo quando alguém abre um endereço que não existe.
+# Ele aparece em qualquer profundidade (ex.: /heroi/nao-existe.html), por isso os
+# caminhos aqui são absolutos - resolvidos pela tag <base>, que aponta para a raiz
+# do site. É uma página parada (não usa JavaScript), então funciona sempre.
+
+ATALHOS_404 = [
+    ("index.html", "fa-house", "Início", "Notícias, destaques e atalhos do site"),
+    ("index.html#herois", "fa-masks-theater", "Heróis", "Os 44 heróis, com números reais"),
+    ("index.html#guias", "fa-book", "Guias", "Um guia pronto para cada herói"),
+    ("index.html#builds", "fa-screwdriver-wrench", "Builds", "As builds mais usadas no jogo"),
+    ("index.html#itens", "fa-store", "Itens", "Preço e efeito de todos os itens"),
+    ("index.html#noticias", "fa-newspaper", "Notícias", "As últimas notícias, em português"),
+]
+
+
+def pagina_404():
+    raiz = urllib.parse.urlparse(SITE).path or "/"
+
+    atalhos = "\n".join(
+        '                <a class="pg-atalho" href="{}"><i class="fa-solid {}"></i><b>{}</b><span>{}</span></a>'.format(
+            e(endereco), icone, e(titulo), e(texto))
+        for endereco, icone, titulo, texto in ATALHOS_404)
+
+    pagina = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="{e(raiz)}">
+<title>Página não encontrada (404) | Central Deadlock</title>
+<meta name="robots" content="noindex, follow">
+<meta name="description" content="Este endereço não existe no Central Deadlock. Use os atalhos para heróis, guias, builds, itens e notícias.">
+<meta name="theme-color" content="#b6f24a">
+<link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
+<link rel="apple-touch-icon" href="assets/brand/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css?v={VERSAO_CSS}">
+</head>
+<body class="pg-body pg-404">
+    <div class="pg-wrap">
+        <header class="pg-top">
+            <a class="pg-brand" href="index.html"><img src="assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
+            <nav class="pg-crumb"><a href="index.html">Início</a> › <b>Página não encontrada</b></nav>
+            <a class="pg-busca" href="index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
+        </header>
+        <main class="n404">
+            <div class="n404-num">404</div>
+            <h1>Essa página não existe (ou mudou de endereço)</h1>
+            <p>O endereço que você abriu não está no Central Deadlock. Escolha um dos atalhos abaixo ou use a busca
+            do site (atalho <b>Ctrl + K</b>) para achar o herói, item ou notícia que você quer.</p>
+            <div class="pg-atalhos">
+{atalhos}
+            </div>
+            <p class="n404-dica">Se você chegou aqui por um link de outro site, avise a gente no Discord:
+            a gente arruma o link quebrado.</p>
+        </main>
+        <footer class="pg-foot">
+            <p>Central Deadlock é um site de fãs. Deadlock e todos os personagens são marcas da Valve Corporation.
+            Este site não tem ligação com a Valve. Números reais de partidas, via <b>deadlock-api.com</b>;
+            torneios via <b>Liquipedia</b> (conteúdo sob licença CC BY-SA 3.0).</p>
+            <a class="btn btn-lime pg-cta" href="index.html"><i class="fa-solid fa-arrow-left"></i> Voltar para a Home</a>
+        </footer>
+    </div>
+</body>
+</html>
+"""
+
+    with open(os.path.join(BASE, "404.html"), "w", encoding="utf-8") as arquivo:
+        arquivo.write(pagina)
+    return True
 
 
 # --------------------------- páginas dos heróis ---------------------------
@@ -663,6 +739,9 @@ def main():
     print("   {} paginas de herois".format(len(paginas)))
     paginas_not = paginas_noticias(noticias)
     print("   {} paginas de noticias".format(len(paginas_not)))
+
+    pagina_404()
+    print("   404.html (pagina de endereco que nao existe)")
 
     total = escrever_sitemap(paginas + paginas_not)
     print("   sitemap.xml com {} enderecos".format(total))

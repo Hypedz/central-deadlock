@@ -14,7 +14,8 @@ meu-fansite/
 ├── script.js
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
 ├── sw.js                    # Guarda o site no navegador (abre mais rápido)
-├── sitemap.xml              # Mapa do site para o Google — GERADO sozinho
+├── sitemap.xml              # Mapa do site para o Google - GERADO sozinho
+├── 404.html                 # Página de "endereço não existe" - GERADO sozinho
 ├── robots.txt               # Regras para os buscadores
 ├── atualizar-noticias.bat   # 2 cliques = notícias + estatísticas + páginas
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
@@ -76,6 +77,8 @@ meu-fansite/
 >
 > 🖼️ Para atualizar as artes dos heróis (ou pegar a de um herói novo): `python tools/baixar-artes.py`. Ele baixa as quatro coisas de uma vez: a **carta** (`assets/heroes`), o **banner** (`assets/capas`), o **letreiro** com o nome (`assets/nomes`) e os **ícones das habilidades** (`assets/habilidades`).
 >
+> 📦 A **carta** é gravada em **WebP** (o navegador mostra igual e o arquivo pesa ~85% menos que o PNG antigo: as 44 cartas juntas caíram de 4,9 MB para 0,69 MB). O script também **atualiza sozinho** o campo `"file"` de cada herói no `heroes-data.js` e apaga as cartas antigas que ninguém mais usa. Se a biblioteca **Pillow** não estiver instalada, ele mantém o formato original.
+>
 > 🧩 O **banner** não é uma imagem solta: o programa junta a **arte de fundo do jogo** com o **personagem recortado** e grava um arquivo só (1920x600, bem leve). Quem monta isso é a biblioteca **Pillow** — se ela não estiver instalada, rode `pip install pillow` antes. Assim o personagem aparece de verdade e a imagem fica nítida.
 >
 > Para refazer todos os banners do zero (por exemplo, se você mudou o tamanho deles), use `python tools/baixar-artes.py --forcar`.
@@ -123,13 +126,15 @@ Os torneios e resultados vêm da **[Liquipedia](https://liquipedia.net/deadlock/
 - **Próximos torneios** — nome, logo, data, premiação, região e quantos times;
 - **Resultados recentes** — quem foi **campeão** e **vice**, com o prêmio e a data.
 
-Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a página do torneio na Liquipedia. Nada é inventado: os **logos são os oficiais** de cada torneio, e o conteúdo da Liquipedia é usado com o devido crédito no rodapé da aba.
+Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a página do torneio na Liquipedia. Nada é inventado: os **logos são os oficiais** de cada torneio, e o conteúdo da Liquipedia é usado com o crédito + licença (**CC BY-SA 3.0**) no rodapé da aba e no rodapé do site.
+
+> 🙏 **Uma visita por dia:** a Liquipedia é mantida por voluntários e pede poucas visitas. Por isso o `update-esports.py` só busca **uma vez por dia** (ele olha a data que ficou gravada no `data/esports.js`; o robô do GitHub roda de hora em hora, mas nas outras vezes ele para antes de visitar). Quando **você** roda o `atualizar-tudo.bat`, ele usa `--forcar` e busca na hora. Se a busca falhar, o arquivo antigo é mantido — nunca apagamos os torneios.
 
 ### Heróis (44)
 
 A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que você enviou:
 
-- 44 heróis com as **artes reais** (`assets/heroes`), incluindo **Abrams** (PNG)
+- 44 heróis com as **artes reais** (`assets/heroes`, em **WebP** — leves e nítidas)
 - **Busca** por nome, **filtro por função** (Tanque, Suporte, Carry, Controle, Assassino) e **ordenação** (A→Z, Z→A, tier, win rate, favoritos)
 - **Estrela ★** em cada estandarte para favoritar (aparece na aba **Favoritos** e no perfil)
 - **Clique em qualquer herói** para abrir a ficha completa, com abas:
@@ -227,13 +232,14 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 
 ## 🔎 Aparecer no Google
 
-- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **56 endereços** hoje)
+- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **55 endereços** hoje)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
 - **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de fundo do jogo **e o personagem recortado** por cima, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
   - 💡 **Passe o mouse (ou toque) no ícone de uma habilidade** no banner: abre uma caixinha com o **nome em português e inglês**, as etiquetas (**Suprema**, **Passiva**, **Recarga**) e a **descrição completa** — sem precisar rolar a página.
 
 > A **cor de cada herói** vem do próprio jogo (`data/hero-extra.js`) e pinta as etiquetas, a linha do banner e a barra de dificuldade. Se a cor for muito escura, o site clareia sozinho o que precisa e escolhe a cor do texto, para nada ficar ilegível.
 - **`noticia/<id>.html`** — **uma página para cada notícia**, com o resumo em português e o texto original
+- **`404.html`** — a página que aparece quando alguém abre um **endereço que não existe** (o GitHub usa ela sozinho). Tem a cara do site, o **404** em verde, atalhos para Heróis/Guias/Builds/Itens/Notícias e um botão para voltar. Ela não usa JavaScript, então funciona sempre — e os endereços dela são absolutos (tag `<base>`), porque ela pode aparecer em qualquer profundidade (ex.: `/heroi/nao-existe.html`). Ela fica **fora** do sitemap e com `noindex`.
 
 Essas páginas são geradas pelo `tools/gerar-paginas.py` (o robô do GitHub roda sozinho, todo dia). Os cards de notícia do site apontam para elas com links de verdade — quem clica abre a janela bonita aqui; os buscadores leem o texto completo.
 

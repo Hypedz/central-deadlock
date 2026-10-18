@@ -1691,7 +1691,7 @@ function initEsports() {
     }
 
     if (fonte) {
-        fonte.innerHTML = `<i class="fa-solid fa-trophy"></i> Torneios e resultados reais: <a href="${esc(dados.fonteUrl || '')}" target="_blank" rel="noopener">${esc(dados.fonte || 'Liquipedia')}</a> · atualizado em ${esc(dados.updated || '')}. O jogo não tem uma API de esports, então essa é a fonte pública que usamos.`;
+        fonte.innerHTML = `<i class="fa-solid fa-trophy"></i> Torneios e resultados reais: <a href="${esc(dados.fonteUrl || '')}" target="_blank" rel="noopener">${esc(dados.fonte || 'Liquipedia')}</a> · atualizado em ${esc(dados.updated || '')}. O jogo não tem uma API de esports, então essa é a fonte pública que usamos; o conteúdo dela é publicado sob a licença CC BY-SA 3.0.`;
     }
 }
 

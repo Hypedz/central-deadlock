@@ -1884,6 +1884,14 @@ body.compact .cards-grid { gap: 14px; }
 .pg-atalho b { font-family: var(--font-ui); color: var(--text); font-size: .92rem; }
 .pg-atalho span { color: var(--text-faint); font-size: .78rem; line-height: 1.35; }
 
+/* página 404 (endereço que não existe no site) */
+.pg-404 main { text-align: center; padding-top: 22px; }
+.n404-num { font-family: var(--font-ui); font-weight: 800; font-size: clamp(72px, 15vw, 138px); line-height: 1; color: var(--lime); text-shadow: 0 0 46px rgba(182, 242, 74, .22); }
+.pg-404 h1 { font-family: var(--font-ui); font-size: clamp(1.05rem, 3.2vw, 1.6rem); color: var(--text); margin: 4px 0 14px; }
+.pg-404 main p { color: var(--text-faint); line-height: 1.65; max-width: 620px; margin: 0 auto 16px; font-size: .92rem; }
+.pg-404 .pg-atalhos { text-align: left; margin-top: 24px; }
+.pg-404 .n404-dica { font-size: .8rem; margin-top: 26px; }
+
 /* ========================================
    AVISO DE NOVA VERSÃO (o site instalado avisa quando sai atualização)
    ======================================== */
