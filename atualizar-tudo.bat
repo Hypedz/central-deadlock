@@ -8,9 +8,11 @@ rem
 rem  RODAR NA MAO (para postar na hora): dois cliques aqui.
 rem
 rem  OBS: o trabalho do dia a dia agora e feito pelo GitHub,
-rem  sozinho, todo dia as 09:00 (horario de Brasilia) - nao
-rem  depende do seu PC estar ligado. Este arquivo aqui e so
-rem  para quando voce quiser atualizar/postar na hora.
+rem  sozinho, de hora em hora (e o GitHub so publica quando
+rem  muda alguma coisa) - nao depende do seu PC estar ligado.
+rem  Este arquivo aqui e so para quando voce quiser atualizar/
+rem  postar na hora. Os torneios da Liquipedia sao a excecao:
+rem  o robo busca so uma vez por dia (e aqui usamos --forcar).
 rem
 rem  Rodar sem janela:   atualizar-tudo.bat /q
 rem ============================================================
@@ -46,7 +48,7 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 %PY% "tools\update-elos.py" >> "%LOG%" 2>&1
 %PY% "tools\gerar-guias.py" >> "%LOG%" 2>&1
 %PY% "tools\gerar-builds.py" >> "%LOG%" 2>&1
-%PY% "tools\update-esports.py" >> "%LOG%" 2>&1
+%PY% "tools\update-esports.py" --forcar >> "%LOG%" 2>&1
 %PY% "tools\gerar-paginas.py" >> "%LOG%" 2>&1
 %PY% "tools\discord-post.py" >> "%LOG%" 2>&1
 

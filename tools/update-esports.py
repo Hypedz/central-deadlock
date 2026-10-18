@@ -9,15 +9,16 @@ De onde vêm os dados:
     a data, o prêmio, o país/região e quem venceu.
 
 O jogo não tem uma API de esports, então a Liquipedia é a fonte pública que
-usamos. Ela pede que a gente se identifique e não faça muitas visitas: aqui é
-uma única visita, e o robô do GitHub só roda isso uma vez por dia.
+usamos. Ela pede que a gente se identifique e não faça muitas visitas: por isso
+este script só visita a Liquipedia UMA VEZ POR DIA (ele olha a data que ficou
+gravada no data/esports.js). O robô do GitHub roda de hora em hora, mas nas
+outras vezes ele para aqui e nem chega a visitar a Liquipedia.
 
-Os logos dos torneios são BAIXADOS para a pasta assets/esports/ (a Liquipedia
-bloqueia quando a imagem é carregada direto de outro site - erro 403). Assim o
-logo é do nosso site: aparece para todo mundo, mesmo sem internet.
+Se a busca falhar, o arquivo antigo é mantido (nunca apagamos os torneios).
 
 Como usar:
-    python tools/update-esports.py
+    python tools/update-esports.py            busca (só se ainda não buscou hoje)
+    python tools/update-esports.py --forcar   busca de novo, mesmo se já buscou hoje
 
 É rodado sozinho pelo robô do GitHub.
 """
@@ -28,6 +29,7 @@ import json
 import os
 import re
 import ssl
+import sys
 import urllib.request
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -299,7 +301,35 @@ def conferir(celulas, bruto):
     }
 
 
+def ja_busquei_hoje():
+    """A Liquipedia é mantida por voluntários e pede poucas visitas: uma por dia basta.
+
+    A data da última busca fica gravada no próprio data/esports.js."""
+    if not os.path.exists(SAIDA):
+        return False
+    try:
+        with open(SAIDA, encoding="utf-8") as arquivo:
+            texto = arquivo.read()
+    except Exception:
+        return False
+
+    achado = re.search(r'"updated":"(\d{2})/(\d{2})/(\d{4})', texto)
+    if not achado:
+        return False
+
+    hoje = datetime.datetime.now()
+    return achado.group(3) == str(hoje.year) and achado.group(2) == "{:02d}".format(hoje.month) \
+        and achado.group(1) == "{:02d}".format(hoje.day)
+
+
 def main():
+    forcar = "--forcar" in sys.argv or "--refazer" in sys.argv
+
+    if not forcar and ja_busquei_hoje():
+        print("Ja busquei os torneios hoje na Liquipedia - ela pede poucas visitas, entao parei aqui.")
+        print("   (para buscar de novo agora: python tools/update-esports.py --forcar)")
+        return 0
+
     bruto = None
     try:
         bruto = json.loads(baixar(API))
@@ -353,6 +383,11 @@ def main():
     resultados = resultados[:MAX_RESULTADOS]
     for torneio in proximos + resultados:
         torneio.pop("ordem", None)
+
+    if not proximos and not resultados:
+        print("AVISO: a Liquipedia nao devolveu nenhum torneio desta vez.")
+        print("       O data/esports.js antigo foi mantido (nunca apagamos os torneios).")
+        return 1
 
     # baixa os logos para dentro do site (a Liquipedia bloqueia o uso direto)
     baixados = {}
