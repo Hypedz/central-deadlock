@@ -4,7 +4,8 @@ Baixa as IMAGENS dos heróis e MONTA o banner das páginas dos heróis.
 
 O que ele salva:
 
-    assets/heroes/<Nome>.png        carta do herói (280x380) - usada no site todo
+    assets/heroes/<Nome>.webp       carta do herói (280x380) - usada no site todo
+                                    (o WebP pesa ~85% menos que o PNG antigo)
     assets/capas/<nome>.webp        BANNER PRONTO (1920x600): a arte de fundo do
                                     jogo com o personagem recortado por cima
     assets/nomes/<nome>.svg         o nome do herói desenhado (letreiro)
@@ -46,6 +47,7 @@ ARQUIVO_HEROIS = os.path.join(BASE, "heroes-data.js")
 LARGURA_BANNER = 1920        # largura da imagem do banner
 ALTURA_BANNER = 600          # altura da imagem do banner
 QUALIDADE_BANNER = 80        # 0 a 100 (maior = mais nítido e mais pesado)
+QUALIDADE_CARTA = 82         # 0 a 100 (a carta do herói vira .webp com esta qualidade)
 FUNDO_COR = (9, 11, 14)      # a cor escura de trás (a mesma do site)
 ARTE_LARGURA = 0.36          # quanto da largura o desenho de fundo ocupa
 ARTE_POSICAO = 0.36          # onde ele começa (0 = na esquerda, 1 = na direita)
@@ -94,6 +96,63 @@ def salvar(caminho, dados):
     with open(caminho, "wb") as gravando:
         gravando.write(dados)
     return True
+
+
+def preparar_carta(arquivo_atual, bytes_origem):
+    """Devolve (nome do arquivo, bytes) da carta do herói.
+
+    Com a biblioteca Pillow instalada a carta vira .webp (pesa ~85% menos que o
+    PNG e o navegador mostra igual). Sem o Pillow, fica no formato original."""
+    if not TEM_PIL:
+        return arquivo_atual, bytes_origem
+    raiz = os.path.splitext(arquivo_atual)[0]
+    try:
+        desenho = Image.open(io.BytesIO(bytes_origem)).convert("RGBA")
+        saida = io.BytesIO()
+        desenho.save(saida, "WEBP", quality=QUALIDADE_CARTA, method=6)
+        return raiz + ".webp", saida.getvalue()
+    except Exception as erro:
+        print("   (aviso: nao consegui converter a carta para webp: {})".format(erro))
+        return arquivo_atual, bytes_origem
+
+
+def anotar_renomeacoes(trocas):
+    """Atualiza o campo "file" dos heróis no heroes-data.js (ex.: Abrams.png -> Abrams.webp).
+
+    Só mexe nos heróis que mudaram de nome de arquivo; o resto do arquivo fica igual."""
+    if not trocas:
+        return 0
+    try:
+        with open(ARQUIVO_HEROIS, encoding="utf-8") as arquivo:
+            texto = arquivo.read()
+    except Exception as erro:
+        print("   (aviso: nao consegui abrir o heroes-data.js: {})".format(erro))
+        return 0
+
+    quantos = 0
+    for nome, novo in trocas.items():
+        padrao = re.compile(r'(\{\s*\r?\n\s*"name":\s*"' + re.escape(nome)
+                            + r'",[\s\S]*?"file":\s*")[^"]*(")')
+        texto, trocados = padrao.subn(lambda m: m.group(1) + novo + m.group(2), texto, count=1)
+        quantos += trocados
+
+    if quantos:
+        with open(ARQUIVO_HEROIS, "w", encoding="utf-8", newline="") as arquivo:
+            arquivo.write(texto)
+    return quantos
+
+
+def limpar_cartas_antigas(usados):
+    """Apaga da pasta as cartas que ninguém mais usa (ex.: os .png antigos)."""
+    if not os.path.isdir(PASTA_ARTES):
+        return
+    for nome in sorted(os.listdir(PASTA_ARTES)):
+        if nome in usados:
+            continue
+        caminho = os.path.join(PASTA_ARTES, nome)
+        if os.path.isfile(caminho):
+            os.remove(caminho)
+            print("   removido (nao usado mais): {}".format(nome))
 
 
 def colar(lona, figura, x, y):
@@ -185,6 +244,7 @@ def main():
     herois = ler_herois()
     contas = {"carta": 0, "banner": 0, "nome": 0, "icone": 0}
     faltando, sem_personagem = [], []
+    usados, trocas = set(), {}
 
     for heroi in herois:
         nome = str(heroi.get("name") or "").strip()
@@ -193,17 +253,24 @@ def main():
         dados = api.get(nome.lower())
         if not arquivo or not dados:
             faltando.append(nome)
+            if arquivo:
+                usados.add(arquivo)   # nao apaga a arte de quem eu nao consegui conferir
             continue
         apelido = slug(nome)
 
         # 1) carta do heroi (usada no site todo)
+        arquivo_final = arquivo
         if dados["carta"]:
             try:
-                if salvar(os.path.join(PASTA_ARTES, arquivo), baixar(dados["carta"])):
+                arquivo_final, bytes_carta = preparar_carta(arquivo, baixar(dados["carta"]))
+                if salvar(os.path.join(PASTA_ARTES, arquivo_final), bytes_carta):
                     contas["carta"] += 1
-                    print("   carta    {} -> {}".format(nome, arquivo))
+                    print("   carta    {} -> {} ({:.0f} KB)".format(nome, arquivo_final, len(bytes_carta) / 1024))
             except Exception as erro:
                 print("   (aviso: carta de {} falhou: {})".format(nome, erro))
+        if arquivo_final != arquivo:
+            trocas[nome] = arquivo_final
+        usados.add(arquivo_final)
 
         # 2) banner da pagina do heroi (arte de fundo + personagem recortado)
         caminho_banner = os.path.join(PASTA_CAPAS, apelido + ".webp")
@@ -252,6 +319,11 @@ def main():
                     contas["icone"] += 1
             except Exception as erro:
                 print("   (aviso: icone de {} falhou: {})".format(nome, erro))
+
+    limpar_cartas_antigas(usados)
+    trocados = anotar_renomeacoes(trocas)
+    if trocados:
+        print("   heroes-data.js: {} heroi(s) agora usam o .webp".format(trocados))
 
     print()
     print("OK! {} cartas, {} banners, {} letreiros e {} icones atualizados".format(

@@ -20,7 +20,7 @@ const HEROES_SOON = ["Nurse Harrow"];
 const HEROES_DATA = [
   {
     "name": "Abrams",
-    "file": "Abrams.png",
+    "file": "Abrams.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 1,
@@ -69,7 +69,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Apollo",
-    "file": "Apollo.png",
+    "file": "Apollo.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 2,
@@ -118,7 +118,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Baba",
-    "file": "Baba.png",
+    "file": "Baba.webp",
     "arch": "—",
     "role": "Controle",
     "diff": 1,
@@ -168,7 +168,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Bebop",
-    "file": "Bebop.png",
+    "file": "Bebop.webp",
     "arch": "Lutador",
     "role": "Controle",
     "diff": 1,
@@ -217,7 +217,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Billy",
-    "file": "Billy.png",
+    "file": "Billy.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 1,
@@ -266,7 +266,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Calico",
-    "file": "Calico.png",
+    "file": "Calico.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 2,
@@ -315,7 +315,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Celeste",
-    "file": "Celeste.png",
+    "file": "Celeste.webp",
     "arch": "Místico",
     "role": "Suporte",
     "diff": 2,
@@ -364,7 +364,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Deadman Danny",
-    "file": "Danny.png",
+    "file": "Danny.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 2,
@@ -414,7 +414,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Drifter",
-    "file": "Drifter.png",
+    "file": "Drifter.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 1,
@@ -463,7 +463,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Dynamo",
-    "file": "Dynamo.png",
+    "file": "Dynamo.webp",
     "arch": "Místico",
     "role": "Suporte",
     "diff": 1,
@@ -512,7 +512,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Graves",
-    "file": "Graves.png",
+    "file": "Graves.webp",
     "arch": "Místico",
     "role": "Controle",
     "diff": 1,
@@ -561,7 +561,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Grey Talon",
-    "file": "GreyTalon.png",
+    "file": "GreyTalon.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 1,
@@ -610,7 +610,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Haze",
-    "file": "Haze.png",
+    "file": "Haze.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 1,
@@ -659,7 +659,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Holliday",
-    "file": "Holliday.png",
+    "file": "Holliday.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 2,
@@ -708,7 +708,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Infernus",
-    "file": "Infernus.png",
+    "file": "Infernus.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 1,
@@ -757,7 +757,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Ivy",
-    "file": "Ivy.png",
+    "file": "Ivy.webp",
     "arch": "—",
     "role": "Suporte",
     "diff": 2,
@@ -806,7 +806,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Kelvin",
-    "file": "Kelvin.png",
+    "file": "Kelvin.webp",
     "arch": "Lutador",
     "role": "Suporte",
     "diff": 1,
@@ -855,7 +855,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Lady Geist",
-    "file": "LadyGeist.png",
+    "file": "LadyGeist.webp",
     "arch": "Místico",
     "role": "Carry",
     "diff": 1,
@@ -904,7 +904,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Lash",
-    "file": "Lash.png",
+    "file": "Lash.webp",
     "arch": "Assassino",
     "role": "Controle",
     "diff": 2,
@@ -953,7 +953,7 @@ const HEROES_DATA = [
   },
   {
     "name": "McGinnis",
-    "file": "McGinnis.png",
+    "file": "McGinnis.webp",
     "arch": "Místico",
     "role": "Controle",
     "diff": 1,
@@ -1002,7 +1002,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Mina",
-    "file": "Mina.png",
+    "file": "Mina.webp",
     "arch": "—",
     "role": "Assassino",
     "diff": 2,
@@ -1051,7 +1051,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Mirage",
-    "file": "Mirage.png",
+    "file": "Mirage.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 2,
@@ -1100,7 +1100,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Mo & Krill",
-    "file": "MoKrill.png",
+    "file": "MoKrill.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 1,
@@ -1166,7 +1166,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Paige",
-    "file": "Paige.png",
+    "file": "Paige.webp",
     "arch": "Místico",
     "role": "Suporte",
     "diff": 1,
@@ -1215,7 +1215,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Paradox",
-    "file": "Paradox.png",
+    "file": "Paradox.webp",
     "arch": "—",
     "role": "Controle",
     "diff": 2,
@@ -1264,7 +1264,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Pocket",
-    "file": "Pocket.png",
+    "file": "Pocket.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 3,
@@ -1313,7 +1313,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Rat King",
-    "file": "RatKing.png",
+    "file": "RatKing.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 3,
@@ -1363,7 +1363,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Rem",
-    "file": "Rem.png",
+    "file": "Rem.webp",
     "arch": "Místico",
     "role": "Suporte",
     "diff": 1,
@@ -1412,7 +1412,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Seven",
-    "file": "Seven.png",
+    "file": "Seven.webp",
     "arch": "Místico",
     "role": "Carry",
     "diff": 1,
@@ -1461,7 +1461,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Shiv",
-    "file": "Shiv.png",
+    "file": "Shiv.webp",
     "arch": "Lutador",
     "role": "Assassino",
     "diff": 2,
@@ -1510,7 +1510,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Silver",
-    "file": "Silver.png",
+    "file": "Silver.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 2,
@@ -1559,7 +1559,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Sinclair",
-    "file": "Sinclair.png",
+    "file": "Sinclair.webp",
     "arch": "Místico",
     "role": "Controle",
     "diff": 3,
@@ -1608,7 +1608,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Solomon",
-    "file": "Solomon.png",
+    "file": "Solomon.webp",
     "arch": "Místico",
     "role": "Controle",
     "diff": 1,
@@ -1658,7 +1658,7 @@ const HEROES_DATA = [
   },
   {
     "name": "The Doorman",
-    "file": "Doorman.png",
+    "file": "Doorman.webp",
     "arch": "Místico",
     "role": "Suporte",
     "diff": 2,
@@ -1707,7 +1707,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Venator",
-    "file": "Venator.png",
+    "file": "Venator.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 1,
@@ -1756,7 +1756,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Victor",
-    "file": "Victor.png",
+    "file": "Victor.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 2,
@@ -1805,7 +1805,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Vindicta",
-    "file": "Vindicta.png",
+    "file": "Vindicta.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 2,
@@ -1854,7 +1854,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Violet",
-    "file": "Violet.png",
+    "file": "Violet.webp",
     "arch": "Místico",
     "role": "Carry",
     "diff": 1,
@@ -1904,7 +1904,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Viscous",
-    "file": "Viscous.png",
+    "file": "Viscous.webp",
     "arch": "Místico",
     "role": "Tanque",
     "diff": 1,
@@ -1953,7 +1953,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Vyper",
-    "file": "Vyper.png",
+    "file": "Vyper.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 1,
@@ -2002,7 +2002,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Warden",
-    "file": "Warden.png",
+    "file": "Warden.webp",
     "arch": "Lutador",
     "role": "Tanque",
     "diff": 1,
@@ -2051,7 +2051,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Wraith",
-    "file": "Wraith.png",
+    "file": "Wraith.webp",
     "arch": "—",
     "role": "Carry",
     "diff": 1,
@@ -2100,7 +2100,7 @@ const HEROES_DATA = [
   },
   {
     "name": "Yamato",
-    "file": "Yamato.png",
+    "file": "Yamato.webp",
     "arch": "Assassino",
     "role": "Assassino",
     "diff": 2,
