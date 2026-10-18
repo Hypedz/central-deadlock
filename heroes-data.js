@@ -16,43 +16,7 @@ const HEROES_SOON = ["Nurse Harrow"];
 
 // Habilidades traduzidas automaticamente para portugues pelo script
 // tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 16/10/2026 as 21:33
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 11:15
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 14:35
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 17:36
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 19:48
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 21:51
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 17/10/2026 as 23:37
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 01:58
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 06:55
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 11:54
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 15:03
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 18:21
-// Habilidades traduzidas automaticamente para portugues pelo script
-// tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 18/10/2026 as 21:10
+// Ultima traducao: 18/10/2026 as 18:41
 const HEROES_DATA = [
   {
     "name": "Abrams",
