@@ -714,6 +714,12 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .esp-linha span { font-weight: 600; }
 .cm-logo { width: 64px; height: 64px; object-fit: contain; margin: 4px 0 12px; }
 
+/* Alguns logos de torneio têm a arte escura (a Liquipedia chama de "lightmode"):
+   no tema escuro eles sumiriam. Nesses casos o gerador marca fundoClaro=true e
+   aqui colocamos uma plaquinha clara atrás do logo. */
+.esp-logo.clara { background: #eef1ea; border-color: rgba(255, 255, 255, .16); }
+.cm-logo.clara { background: #eef1ea; border-radius: 12px; padding: 7px; }
+
 .guide-card { padding: 16px; }
 .guide-head { position: relative; height: 150px; border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
 .guide-head img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }

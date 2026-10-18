@@ -980,7 +980,6 @@ function pennant(hero, w) {
     const soon = hero.soon ? '<div class="pen-soon">EM BREVE</div>' : '';
     return `<div class="pen" style="--w:${w}px">
         <div class="pen-in">
-            <div class="pen-ph"><span>${esc(initials(hero.name))}</span></div>
             <img class="pen-img" src="${file}" alt="${esc(hero.name)}" loading="lazy" onerror="this.remove()">
             ${soon}
             <div class="pen-name">${words.map(t => `<span>${esc(t)}</span>`).join(' ')}</div>
@@ -997,7 +996,7 @@ function pickTxt(p) {
 function heroCard(hero, w) {
     const tags = hero.soon
         ? '<span class="tag vio">Em breve</span>'
-        : `<span class="tag">${esc(hero.role)}</span><span class="tag ${tierClass(hero.tier)}">Tier ${hero.tier}</span>`;
+        : `<span class="tag">${esc(hero.role)}</span>`; // <--- Removido o Tier daqui
     return `<article class="hc" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
         <div class="hc-pen">
             ${pennant(hero, w)}
@@ -1610,7 +1609,7 @@ function espCartaoHTML(t, chave, i) {
         ? `Campeão: <b>${esc(t.campeao)}</b>${t.vice && t.vice.toUpperCase() !== 'TBD' ? ` · Vice: ${esc(t.vice)}` : ''}`
         : `${esc(t.premio || '')}${t.local ? ' · ' + esc(t.local) : ''}`;
     return `<button type="button" class="esp-card" data-esporte="${chave}:${i}">
-        <span class="esp-logo">${logo}</span>
+        <span class="esp-logo${t.fundoClaro ? ' clara' : ''}">${logo}</span>
         <span class="esp-info">
             <span class="esp-top">${espTierTag(t.tier)}<span class="esp-data">${esc(t.data || '')}</span></span>
             <span class="news-title">${esc(t.nome)}</span>
@@ -1636,7 +1635,7 @@ function abrirEsporte(chave, i) {
         <div class="cm-body">
             <div class="cm-meta">${espTierTag(t.tier)}<span class="cm-date">${esc(t.data || '')}</span><span class="news-src"><i class="fa-solid fa-trophy"></i> Torneio real</span></div>
             <h2 class="cm-title">${esc(t.nome)}</h2>
-            ${t.logo ? `<img class="cm-logo" src="${esc(t.logo)}" alt="" onerror="this.remove()">` : ''}
+            ${t.logo ? `<img class="cm-logo${t.fundoClaro ? ' clara' : ''}" src="${esc(t.logo)}" alt="" onerror="this.remove()">` : ''}
             <div class="esp-ficha">${linhas.map(l => `<div class="esp-linha"><b>${esc(l[0])}</b><span>${esc(l[1])}</span></div>`).join('')}</div>
             <a class="cm-link" href="${esc(t.url || ((window.ESPORTS || {}).fonteUrl || ''))}" target="_blank" rel="noopener">Ver o torneio na Liquipedia <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>`;

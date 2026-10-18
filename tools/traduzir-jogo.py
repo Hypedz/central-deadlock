@@ -88,6 +88,13 @@ def main():
     lista_inicio = texto.index("[", inicio)
     lista_fim = texto.rindex("]") + 1
     cabecalho = texto[:inicio]
+
+    # tira o aviso de tradução antigo (senão ele se repetiria a cada rodada)
+    cabecalho = re.sub(
+        r"// Habilidades traduzidas automaticamente para portugues pelo script\r?\n"
+        r"// tools/traduzir-jogo\.py[^\r\n]*\r?\n"
+        r"// Ultima traducao:[^\r\n]*\r?\n",
+        "", cabecalho)
     try:
         dados = json.loads(texto[lista_inicio:lista_fim])
     except Exception as erro:

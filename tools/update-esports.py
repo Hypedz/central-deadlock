@@ -12,6 +12,10 @@ O jogo não tem uma API de esports, então a Liquipedia é a fonte pública que
 usamos. Ela pede que a gente se identifique e não faça muitas visitas: aqui é
 uma única visita, e o robô do GitHub só roda isso uma vez por dia.
 
+Os logos dos torneios são BAIXADOS para a pasta assets/esports/ (a Liquipedia
+bloqueia quando a imagem é carregada direto de outro site - erro 403). Assim o
+logo é do nosso site: aparece para todo mundo, mesmo sem internet.
+
 Como usar:
     python tools/update-esports.py
 
@@ -28,6 +32,7 @@ import urllib.request
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAIDA = os.path.join(BASE, "data", "esports.js")
+PASTA_LOGOS = os.path.join(BASE, "assets", "esports")
 
 PAGINA = "Portal:Tournaments"
 API = "https://liquipedia.net/deadlock/api.php?action=parse&page=Portal:Tournaments&prop=text&format=json"
@@ -88,6 +93,111 @@ def baixar(url):
         sem_verificar.verify_mode = ssl.CERT_NONE
         with urllib.request.urlopen(pedido, timeout=60, context=sem_verificar) as resposta:
             return ler(resposta)
+
+
+def baixar_bytes(url):
+    """Baixa os bytes de uma imagem (o logo do torneio) para guardar aqui no site."""
+    pedido = urllib.request.Request(url, headers={"User-Agent": NAVEGADOR})
+    try:
+        with urllib.request.urlopen(pedido, timeout=60, context=contexto_seguro()) as resposta:
+            return resposta.read()
+    except Exception as erro:
+        if "CERTIFICATE" not in str(erro).upper():
+            raise
+        sem_verificar = ssl.create_default_context()
+        sem_verificar.check_hostname = False
+        sem_verificar.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(pedido, timeout=60, context=sem_verificar) as resposta:
+            return resposta.read()
+
+
+def nome_do_logo(url):
+    """'.../36px-DLNS_icon_allmode.png' -> 'DLNS_icon_allmode.png' (nome limpo)."""
+    nome = url.split("?")[0].rstrip("/").split("/")[-1]
+    nome = re.sub(r"^\d+px-", "", nome)                 # tira o tamanho do começo do nome
+    nome = re.sub(r"[^A-Za-z0-9._-]", "_", nome) or "logo.png"
+    return nome
+
+
+def logo_maior(url):
+    """As miniaturas da Liquipedia vêm pequenas (36/50px). Aqui pedimos uma
+    versão maior (120px) para o logo não ficar embaçado na tela."""
+    return re.sub(r"/\d+px-", "/120px-", url)
+
+
+def guardar_logo(url, ja_baixados):
+    """Copia o logo do torneio para assets/esports/ e devolve o caminho local.
+
+    Importante: a Liquipedia BLOQUEIA (erro 403) quando a imagem é carregada
+    direto de outro site. Baixando uma vez aqui, o logo passa a ser do nosso
+    site: aparece para todo mundo, abre rápido e funciona sem internet."""
+    if not url:
+        return ""
+    if url in ja_baixados:
+        return ja_baixados[url]
+
+    if "liquipedia.net" not in url:
+        ja_baixados[url] = url
+        return url
+
+    nome = nome_do_logo(url)
+    destino = os.path.join(PASTA_LOGOS, nome)
+    relativo = "assets/esports/" + nome
+
+    if os.path.exists(destino) and os.path.getsize(destino) > 0:
+        ja_baixados[url] = relativo
+        return relativo
+
+    for tentativa in (logo_maior(url), url):
+        try:
+            dados = baixar_bytes(tentativa)
+            if dados and len(dados) > 100:
+                os.makedirs(PASTA_LOGOS, exist_ok=True)
+                with open(destino, "wb") as arquivo:
+                    arquivo.write(dados)
+                print("   logo salvo: {} ({} KB)".format(nome, round(len(dados) / 1024, 1)))
+                ja_baixados[url] = relativo
+                return relativo
+        except Exception as erro:
+            print("   (aviso: nao consegui baixar o logo {}: {})".format(nome, erro))
+
+    # não deu: é melhor mostrar o emblema genérico do que uma imagem quebrada
+    ja_baixados[url] = ""
+    return ""
+
+
+def brilho_da_imagem(caminho):
+    """Quanto a arte do logo é clara (0 = escura, 255 = clara).
+
+    O site é escuro. Um logo com arte escura (ex.: a versão "lightmode" da
+    Liquipedia) sumiria no cartão. Nesse caso o site coloca uma plaquinha clara
+    atrás do logo. Sem o Pillow, assume que é claro (o fundo escuro serve)."""
+    try:
+        from PIL import Image
+    except Exception:
+        return 200
+    try:
+        imagem = Image.open(caminho).convert("RGBA")
+        pixels = [p for p in imagem.getdata() if p[3] > 40]
+        if not pixels:
+            return 200
+        return sum(0.299 * r + 0.587 * g + 0.114 * b for r, g, b, a in pixels) / len(pixels)
+    except Exception:
+        return 200
+
+
+def limpar_logos_antigos(usados):
+    """Apaga os logos de torneios que não aparecem mais (não deixa lixo no site)."""
+    if not os.path.isdir(PASTA_LOGOS):
+        return
+    for arquivo in os.listdir(PASTA_LOGOS):
+        if arquivo not in usados:
+            caminho = os.path.join(PASTA_LOGOS, arquivo)
+            try:
+                os.remove(caminho)
+                print("   logo antigo removido: {}".format(arquivo))
+            except Exception:
+                pass
 
 
 def limpar_html(texto):
@@ -243,6 +353,17 @@ def main():
     resultados = resultados[:MAX_RESULTADOS]
     for torneio in proximos + resultados:
         torneio.pop("ordem", None)
+
+    # baixa os logos para dentro do site (a Liquipedia bloqueia o uso direto)
+    baixados = {}
+    for torneio in proximos + resultados:
+        torneio["logo"] = guardar_logo(torneio.get("logo", ""), baixados)
+        # logo de arte escura? o site põe uma plaquinha clara atrás dele
+        torneio["fundoClaro"] = False
+        if torneio["logo"]:
+            caminho = os.path.join(BASE, torneio["logo"].replace("/", os.sep))
+            torneio["fundoClaro"] = brilho_da_imagem(caminho) < 95
+    limpar_logos_antigos({nome_do_logo(u) for u in baixados if baixados[u]})
 
     agora = datetime.datetime.now()
     atualizado = "{}/{}/{} as {:02d}:{:02d}".format(agora.day, agora.month, agora.year, agora.hour, agora.minute)
