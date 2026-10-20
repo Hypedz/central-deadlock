@@ -1,8 +1,8 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 20/10/2026 as 18:15 */
+   Ultima atualizacao: 20/10/2026 as 22:47 */
 window.STEAM_NEWS = {
- "updated": "20/10/2026 as 18:15",
+ "updated": "20/10/2026 as 22:47",
  "count": 10,
  "items": [
   {
@@ -19,7 +19,7 @@ window.STEAM_NEWS = {
    "desc_pt": "É difícil saber se o frio no ar é devido à brisa de outono que se aproxima ou ao olhar fulminante da enfermeira Harrow, que agora se junta a nós nas ruas de Manhattan. Para alguns, sua prática...",
    "lines": [
     "It's hard to know if that chill in the air is from the approaching fall breeze, or from the withering glare of Nurse Harrow, who now joins us on the streets of Manhattan. To some, her practices may seem unorthodox, her patients at the Marble Hill Possession Ward cannot say that the results aren't effective. With Leech Therapy , she throws a jar full of leeches that attach to oncoming enemies, draining their health and energy, before crawling back to deliver their haul. Cracking open one of her vials, she releases her Wretched Vapors , possessing her allies with a powerful boost of effectiveness - though subjects should be warned of the side effects when the vapors wear off. To efficiently keep her teammates fighting their best, she loads her syringe full of Healing Needles to inject medicine directly into their veins. And when her patience runs out, she opens her bag to release all the Lurking Terrors captured inside, making her adversaries run for cover. - \"Trust me, I know best.\"",
-    "With Nurse Harrow joining us today, that marks the end of of our City Never Sleeps releases. We want to thank everyone for participating in voting once again, and hope you've been enjoying all the new delights that NYC has to offer.",
+    "With Nurse Harrow joining us today, that marks the end of our City Never Sleeps releases. We want to thank everyone for participating in voting once again, and hope you've been enjoying all the new delights that NYC has to offer.",
     "City Never Sleeps Voting Stats:",
     "Big Turnout: Over 110 Million votes were cast over the course of the event.",
     "Narrow Victory: The closest contest was Baba vs Solomon, decided by a nearly 0.5% difference in votes.",
