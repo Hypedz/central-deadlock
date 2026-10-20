@@ -720,7 +720,21 @@ def limpar_paginas_antigas(pasta, manter):
 # --------------------------- sitemap ---------------------------
 
 def escrever_sitemap(paginas):
-    hoje = datetime.date.today().isoformat()
+    hoje = datetime.date.today()
+    # o robô do GitHub roda em UTC e você roda no horário de Brasília: perto da
+    # meia-noite a data local pode ser "mais velha" que a do sitemap. Nunca deixa
+    # a data andar para trás (senão o Google vê a página "rejuvenescendo").
+    caminho = os.path.join(BASE, "sitemap.xml")
+    try:
+        with open(caminho, encoding="utf-8") as arquivo:
+            antigas = re.findall(r"<lastmod>(\d{4}-\d{2}-\d{2})</lastmod>", arquivo.read())
+        if antigas:
+            maior = max(datetime.date.fromisoformat(d) for d in antigas)
+            if maior > hoje:
+                hoje = maior
+    except Exception:
+        pass
+    hoje = hoje.isoformat()
     urls = [SITE, f"{SITE}index.html"] + [p["url"] for p in paginas]
     vistos, linhas = set(), []
     for u in urls:
