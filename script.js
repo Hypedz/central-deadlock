@@ -1512,7 +1512,8 @@ function initContents() {
         const patches = STEAM_ARTICLES.filter(a => a.patch).slice(0, 6);
         if (patches.length) {
             pl.innerHTML = patches.map(a => {
-                const primeira = (a.body[0] || a.desc || '');
+                // usa o texto em português quando a tradução já existe
+                const primeira = (a.descPT || (a.bodyPT && a.bodyPT[0]) || (a.body && a.body[0]) || a.desc || '');
                 const resumo = primeira.slice(0, 210) + (primeira.length > 210 ? '...' : '');
                 return `<article class="patch-entry" data-article="${a.id}">
                     <div class="patch-head"><span class="patch-version">${esc(tituloPT(a))}</span><span class="patch-date">${esc(a.date)}</span></div>
