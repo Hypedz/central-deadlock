@@ -697,6 +697,26 @@ def paginas_noticias(noticias):
     return gerados
 
 
+def limpar_paginas_antigas(pasta, manter):
+    """Apaga as páginas geradas que sobraram (ex.: notícia que saiu da lista).
+
+    Só mexe em arquivos .html dessa pasta; nunca apaga outra coisa. Sem isso a
+    página antiga continuava no ar (e podia aparecer no Google) mesmo depois de
+    a notícia sair do site."""
+    if not os.path.isdir(pasta):
+        return []
+    apagadas = []
+    for nome in sorted(os.listdir(pasta)):
+        caminho = os.path.join(pasta, nome)
+        if not os.path.isfile(caminho) or not nome.lower().endswith(".html"):
+            continue
+        if nome[:-5] in manter:
+            continue
+        os.remove(caminho)
+        apagadas.append(nome)
+    return apagadas
+
+
 # --------------------------- sitemap ---------------------------
 
 def escrever_sitemap(paginas):
@@ -739,6 +759,13 @@ def main():
     print("   {} paginas de herois".format(len(paginas)))
     paginas_not = paginas_noticias(noticias)
     print("   {} paginas de noticias".format(len(paginas_not)))
+
+    # apaga as paginas que sobraram (noticia que saiu da lista, heroi renomeado...)
+    slugs_herois = {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas}
+    antigas = limpar_paginas_antigas(PASTA_HEROIS, slugs_herois)
+    antigas += limpar_paginas_antigas(PASTA_NOTICIAS, {str(n.get("id")) for n in noticias if n.get("id")})
+    if antigas:
+        print("   {} pagina(s) antiga(s) apagada(s): {}".format(len(antigas), ", ".join(antigas)))
 
     pagina_404()
     print("   404.html (pagina de endereco que nao existe)")
