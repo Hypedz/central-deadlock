@@ -779,7 +779,7 @@ def paginas_itens(jogo, builds, herois):
         pagina.append(topo("itens", "Itens", nome).rstrip("\n"))
         pagina.append('')
         pagina.append('            <div class="pg-item-top">')
-        pagina.append('                <div class="pg-item-ico"><img src="{}" alt="{}" width="96" height="96" loading="lazy"></div>'.format(e(imagem), e(nome)))
+        pagina.append('                <div class="pg-item-ico"><img src="{}" alt="{}" width="96" height="96"></div>'.format(e(imagem), e(nome)))
         pagina.append('                <div>')
         pagina.append('                    <h1>{}</h1>'.format(e(nome)))
         if ingles and ingles != nome:
