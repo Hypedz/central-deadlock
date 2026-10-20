@@ -1009,15 +1009,18 @@ function socorroImagem(img, tentativas) {
 }
 
 /* ================= estandartes ================= */
+function nomePartes(name) {
+    const words = name.split(/\s+/).reduce((a, t) => { if (t === '&' && a.length) a[a.length - 1] += ' &'; else a.push(t); return a; }, []);
+    return words.map(t => `<span>${esc(t)}</span>`).join(' ');
+}
 function pennant(hero, w) {
     const file = 'assets/heroes/' + hero.file;
-    const words = hero.name.split(/\s+/).reduce((a, t) => { if (t === '&' && a.length) a[a.length - 1] += ' &'; else a.push(t); return a; }, []);
     const soon = hero.soon ? '<div class="pen-soon">EM BREVE</div>' : '';
     return `<div class="pen" style="--w:${w}px">
         <div class="pen-in">
             <img class="pen-img" src="${file}" alt="${esc(hero.name)}" loading="lazy" onerror="socorroImagem(this)">
             ${soon}
-            <div class="pen-name">${words.map(t => `<span>${esc(t)}</span>`).join(' ')}</div>
+            <div class="pen-name">${nomePartes(hero.name)}</div>
         </div>
     </div>`;
 }
@@ -1042,15 +1045,28 @@ function heroCard(hero, w) {
             c.kda && hero.kda ? `<span class="tag cy">${esc(hero.kda)} KDA</span>` : '',
             c.diff && hero.diff != null ? `<span class="tag">Aprender: ${esc(DIFF_LABEL[hero.diff])}</span>` : ''
         ].filter(Boolean).join('');
-    return `<article class="hc" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
+    const fmt = c.formato || 'pen';
+    const art = 'assets/heroes/' + hero.file;
+    const fav = `<button class="fav ${favs.includes(hero.name) ? 'on' : ''}" data-fav="${esc(hero.name)}" title="Favoritar">★</button>`;
+    if (fmt === 'lista') {
+        return `<article class="hc hc-lista" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
+        <div class="hl-art"><img src="${art}" alt="${esc(hero.name)}" loading="lazy" onerror="socorroImagem(this)"></div>
+        <div class="hl-info">
+            <b class="hl-nome">${esc(hero.name)}</b>
+            <div class="hc-tags">${tags}</div>
+        </div>
+        ${fav}
+    </article>`;
+    }
+    return `<article class="hc${fmt === 'redondo' ? ' hc-redondo' : ''}" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
         <div class="hc-pen">
             ${pennant(hero, w)}
-            <button class="fav ${favs.includes(hero.name) ? 'on' : ''}" data-fav="${esc(hero.name)}" title="Favoritar">★</button>
+            ${fav}
         </div>
+        ${fmt === 'redondo' ? `<div class="hc-nome">${nomePartes(hero.name)}</div>` : ''}
         <div class="hc-tags">${tags}</div>
     </article>`;
 }
-
 /* ================= heróis ================= */
 let heroFilter = { q: '', role: 'Todos', sort: 'az' };
 let renderHeroesGrid = () => { };
@@ -3090,9 +3106,10 @@ function renderForm() {
             <div class="pform-sec">Cartões de herói</div>
             <p class="field-note">Formato</p>
             <div class="picker-row">
-                <button type="button" class="pill ${cards.formato === 'pen' ? 'on' : ''}" data-cardfmt="pen">Estandarte (atual)</button>
-                <button type="button" class="pill ${cards.formato === 'cartao' ? 'on' : ''}" data-cardfmt="cartao">Cartão</button>
+                ${[['pen', 'Estandarte'], ['cartao', 'Cartão'], ['quadrado', 'Quadrado'], ['redondo', 'Redondo'], ['lista', 'Lista']]
+                    .map(([k, n]) => `<button type="button" class="pill ${(cards.formato || 'pen') === k ? 'on' : ''}" data-cardfmt="${k}">${n}</button>`).join('')}
             </div>
+            <p class="field-note" style="margin-top:8px">Estandarte: bandeira com ponta. Cartão: retrato 3:4. Quadrado: arte 1:1. Redondo: avatar em círculo com o nome embaixo. Lista: uma linha por herói, com o nome e o que você escolheu embaixo.</p>
             <p class="field-note" style="margin-top:10px">Tamanho</p>
             <div class="picker-row">
                 ${[['compacto', 'Compacto'], ['padrao', 'Padrão'], ['grande', 'Grande']]
@@ -3951,7 +3968,11 @@ function applyProfile() {
     aplicarDestaque();
     aplicarFundo();
     aplicarMenu();
-    document.body.classList.toggle('cards-cartao', (profile.cards || {}).formato === 'cartao');
+    const fmt = (profile.cards || {}).formato || 'pen';
+    document.body.classList.toggle('cards-cartao', fmt === 'cartao');
+    document.body.classList.toggle('cards-quadrado', fmt === 'quadrado');
+    document.body.classList.toggle('cards-redondo', fmt === 'redondo');
+    document.body.classList.toggle('cards-lista', fmt === 'lista');
     const tam = (profile.cards || {}).tamanho || 'padrao';
     document.body.classList.toggle('cards-pequeno', tam === 'compacto');
     document.body.classList.toggle('cards-grande', tam === 'grande');
