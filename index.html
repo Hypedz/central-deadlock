@@ -35,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261020e">
+    <link rel="stylesheet" href="style.css?v=20261020f">
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -114,7 +114,7 @@
                 <a href="#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
                 <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
                 <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
-                <a href="guia-iniciante.html" class="nav-item"><i class="fa-solid fa-graduation-cap"></i> Começando</a>
+                <a href="#comecando" class="nav-item" data-section="comecando"><i class="fa-solid fa-graduation-cap"></i> Começando</a>
                 <a href="#builds" class="nav-item" data-section="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Builds</a>
                 <a href="#itens" class="nav-item" data-section="itens"><i class="fa-solid fa-gem"></i> Itens do Jogo</a>
                 <a href="#patch" class="nav-item" data-section="patch"><i class="fa-solid fa-code-branch"></i> Patch Notes</a>
@@ -294,6 +294,148 @@
                 <div class="cards-grid" id="guidesGrid"></div>
             </section>
 
+            <!-- ============ COMEÇANDO (GUIA PARA INICIANTES) ============ -->
+            <section id="comecando" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Começando</h1>
+                        <p class="page-sub">Primeira vez no Deadlock? Siga os <b>5 passos</b> abaixo e marque o que já aprendeu — o site guarda o seu progresso.</p>
+                    </div>
+                </div>
+
+                <div class="guia-hero card">
+                    <div class="guia-hero-txt">
+                        <span class="guia-selo"><i class="fa-solid fa-seedling"></i> Guia para iniciantes</span>
+                        <h2>Do zero à primeira partida</h2>
+                        <p>Sem decoreba: só o que você precisa saber para entrar, não morrer à toa e ajudar o time. Leva uns 5 minutos.</p>
+                    </div>
+                    <div class="guia-prog">
+                        <div class="guia-prog-topo"><b id="guiaPct">0%</b><span id="guiaConta">0 de 5 passos</span></div>
+                        <div class="guia-barra"><span id="guiaBarra"></span></div>
+                        <button type="button" class="btn btn-dark btn-sm" id="guiaReset"><i class="fa-solid fa-rotate-left"></i> Recomeçar</button>
+                    </div>
+                </div>
+
+                <div class="guia-passos">
+                    <article class="guia-passo card" data-passo="1">
+                        <div class="guia-passo-cab">
+                            <span class="guia-num">1</span>
+                            <div class="guia-passo-txt">
+                                <h3>Escolha um herói fácil</h3>
+                                <p>Comece pelos heróis com dificuldade <b>Fácil</b>: eles perdoam mais erros e deixam você aprender o mapa sem sofrer.</p>
+                            </div>
+                            <button type="button" class="guia-check" data-check="1" aria-pressed="false"><i class="fa-regular fa-circle-check"></i><span>Já entendi</span></button>
+                        </div>
+                        <div class="guia-herois" id="guiaHerois"></div>
+                        <div class="guia-passo-acao">
+                            <button type="button" class="btn btn-dark btn-sm" data-goto="herois"><i class="fa-solid fa-masks-theater"></i> Ver todos os heróis</button>
+                        </div>
+                    </article>
+
+                    <article class="guia-passo card" data-passo="2">
+                        <div class="guia-passo-cab">
+                            <span class="guia-num">2</span>
+                            <div class="guia-passo-txt">
+                                <h3>Copie uma build pronta</h3>
+                                <p>Cada herói tem builds com a <b>ordem real de compra</b> de quem joga bem com ele. No começo não invente: copie e depois adapte.</p>
+                            </div>
+                            <button type="button" class="guia-check" data-check="2" aria-pressed="false"><i class="fa-regular fa-circle-check"></i><span>Já entendi</span></button>
+                        </div>
+                        <div class="guia-passo-acao">
+                            <button type="button" class="btn btn-dark btn-sm" data-goto="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Ver as builds</button>
+                        </div>
+                    </article>
+
+                    <article class="guia-passo card" data-passo="3">
+                        <div class="guia-passo-cab">
+                            <span class="guia-num">3</span>
+                            <div class="guia-passo-txt">
+                                <h3>Entenda as almas e os itens</h3>
+                                <p>Almas compram itens. São três tipos: <b>Arma</b>, <b>Vitalidade</b> e <b>Espírito</b>. Se estiver morrendo demais, compre vitalidade primeiro.</p>
+                            </div>
+                            <button type="button" class="guia-check" data-check="3" aria-pressed="false"><i class="fa-regular fa-circle-check"></i><span>Já entendi</span></button>
+                        </div>
+                        <div class="guia-passo-acao">
+                            <button type="button" class="btn btn-dark btn-sm" data-goto="itens"><i class="fa-solid fa-gem"></i> Ver os itens</button>
+                            <button type="button" class="btn btn-dark btn-sm" data-goto="glossario"><i class="fa-solid fa-list"></i> Glossário</button>
+                        </div>
+                    </article>
+
+                    <article class="guia-passo card" data-passo="4">
+                        <div class="guia-passo-cab">
+                            <span class="guia-num">4</span>
+                            <div class="guia-passo-txt">
+                                <h3>Conheça o mapa</h3>
+                                <p>São <b>3 rotas</b> entre as duas bases. O <b>Mid Boss</b> fica no centro e dá vantagem para quem o derrota.</p>
+                            </div>
+                            <button type="button" class="guia-check" data-check="4" aria-pressed="false"><i class="fa-regular fa-circle-check"></i><span>Já entendi</span></button>
+                        </div>
+                        <div class="guia-passo-acao">
+                            <button type="button" class="btn btn-dark btn-sm" data-goto="mapa"><i class="fa-solid fa-map"></i> Abrir o mapa</button>
+                        </div>
+                    </article>
+
+                    <article class="guia-passo card" data-passo="5">
+                        <div class="guia-passo-cab">
+                            <span class="guia-num">5</span>
+                            <div class="guia-passo-txt">
+                                <h3>Jogue a primeira partida</h3>
+                                <p>Mate as tropas, <b>negue</b> as do inimigo, não morra sozinho e compre itens cedo. O resto vem com o tempo.</p>
+                            </div>
+                            <button type="button" class="guia-check" data-check="5" aria-pressed="false"><i class="fa-regular fa-circle-check"></i><span>Já entendi</span></button>
+                        </div>
+                        <div class="guia-passo-acao">
+                            <button type="button" class="btn btn-lime btn-sm" data-goto="guias"><i class="fa-solid fa-book"></i> Ler o guia do meu herói</button>
+                            <button type="button" class="btn btn-dark btn-sm" data-download><i class="fa-brands fa-steam"></i> Baixar Deadlock</button>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="guia-grid">
+                    <div class="guia-bloco card">
+                        <h3><i class="fa-solid fa-circle-info"></i> O que é Deadlock</h3>
+                        <p>Tiro em terceira pessoa + MOBA: <b>6 contra 6</b>, três rotas, heróis com <b>4 habilidades</b> e uma loja de itens comprada com <b>almas</b>. Vence quem derrubar o <b>Patron</b> da base inimiga.</p>
+                    </div>
+                    <div class="guia-bloco card">
+                        <h3><i class="fa-solid fa-users"></i> Funções do time</h3>
+                        <ul>
+                            <li><b>Tanque</b> — segura a linha de frente.</li>
+                            <li><b>Suporte</b> — cura e protege o time.</li>
+                            <li><b>Carry</b> — cresce e decide no fim.</li>
+                            <li><b>Controle</b> — domina a área da luta.</li>
+                            <li><b>Assassino</b> — mata um alvo e sai rápido.</li>
+                        </ul>
+                    </div>
+                    <div class="guia-bloco card">
+                        <h3><i class="fa-solid fa-bullseye"></i> Objetivos do mapa</h3>
+                        <ul>
+                            <li><b>Guardians e Walkers</b> — as torres; abrem caminho para a base.</li>
+                            <li><b>Mid Boss</b> — no centro; dá vantagem ao time que o derrota.</li>
+                            <li><b>Patron</b> — o objetivo final, no fundo de cada base.</li>
+                        </ul>
+                    </div>
+                    <div class="guia-bloco card">
+                        <h3><i class="fa-solid fa-triangle-exclamation"></i> Erros comuns</h3>
+                        <ul>
+                            <li>Comprar só dano e morrer para qualquer coisa.</li>
+                            <li>Ignorar as tropas e sair caçando herói.</li>
+                            <li>Entrar em luta 1 contra 3.</li>
+                            <li>Não olhar o mapa e ser pego girando de rota.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="guia-fim card">
+                    <div>
+                        <h3>Tudo pronto?</h3>
+                        <p>Escolha um herói, copie uma build e boa sorte na primeira partida.</p>
+                    </div>
+                    <button type="button" class="btn btn-lime" data-goto="herois"><i class="fa-solid fa-play"></i> Escolher meu herói</button>
+                </div>
+
+                <p class="guia-versao"><a href="guia-iniciante.html">Prefere ler em uma página só? Versão para compartilhar <i class="fa-solid fa-up-right-from-square"></i></a></p>
+            </section>
+
             <!-- ============ BUILDS ============ -->
             <section id="builds" class="section">
                 <div class="section-top">
@@ -433,11 +575,22 @@
                 <div class="section-top">
                     <div>
                         <h1 class="page-title">Mapa</h1>
-                        <p class="page-sub">Esquema simplificado e ilustrativo (não é o mapa oficial). Clique em uma área.</p>
+                        <p class="page-sub">Mapa ilustrativo (não é o mapa oficial): clique em uma rota, nas bases ou no Mid Boss para ver o que importa em cada lugar.</p>
                     </div>
                 </div>
                 <div class="map-wrap">
-                    <div class="map-svg-box" id="mapBox"></div>
+                    <div class="map-svg-box">
+                        <div class="map-dica"><i class="fa-solid fa-hand-pointer"></i> Toque em uma área do mapa</div>
+                        <div id="mapBox"></div>
+                        <div class="map-legend">
+                            <span><i class="fa-solid fa-circle" style="color:#b6f24a"></i>Rota Superior</span>
+                            <span><i class="fa-solid fa-circle" style="color:#22d3ee"></i>Rota do Meio</span>
+                            <span><i class="fa-solid fa-circle" style="color:#f472b6"></i>Rota Inferior</span>
+                            <span><i class="fa-solid fa-circle" style="color:#ffb74d"></i>Base Âmbar</span>
+                            <span><i class="fa-solid fa-circle" style="color:#4fc3f7"></i>Base Safira</span>
+                            <span><i class="fa-solid fa-circle" style="color:#a78bfa"></i>Mid Boss</span>
+                        </div>
+                    </div>
                     <div class="map-info card" id="mapInfo"></div>
                 </div>
             </section>
@@ -688,16 +841,16 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261020e"></script>
-    <script src="data/game-data.js?v=20261020e"></script>
-    <script src="data/hero-history.js?v=20261020e"></script>
-    <script src="data/hero-stats.js?v=20261020e"></script>
-    <script src="data/steam-news.js?v=20261020e"></script>
-    <script src="data/elos.js?v=20261020e"></script>
-    <script src="data/guias.js?v=20261020e"></script>
-    <script src="data/builds.js?v=20261020e"></script>
-    <script src="data/esports.js?v=20261020e"></script>
-<script src="data/top-jogadores.js?v=20261020e"></script>
-    <script src="script.js?v=20261020e"></script>
+    <script src="heroes-data.js?v=20261020f"></script>
+    <script src="data/game-data.js?v=20261020f"></script>
+    <script src="data/hero-history.js?v=20261020f"></script>
+    <script src="data/hero-stats.js?v=20261020f"></script>
+    <script src="data/steam-news.js?v=20261020f"></script>
+    <script src="data/elos.js?v=20261020f"></script>
+    <script src="data/guias.js?v=20261020f"></script>
+    <script src="data/builds.js?v=20261020f"></script>
+    <script src="data/esports.js?v=20261020f"></script>
+<script src="data/top-jogadores.js?v=20261020f"></script>
+    <script src="script.js?v=20261020f"></script>
 </body>
 </html>

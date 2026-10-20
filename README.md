@@ -113,7 +113,7 @@ meu-fansite/
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
 - **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
-- **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
+- **Mapa** — **mapa ilustrativo novo** (não é o mapa oficial): desenho próprio em SVG com as **3 rotas coloridas** (com animação de fluxo), as **duas bases** e o **Mid Boss** pulsando no centro, selva em volta e legenda. Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel ao lado.
 - **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
 - **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
@@ -173,13 +173,22 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 
 ## 🚀 Começando (guia para iniciantes)
 
-O menu tem o item **Começando**, que abre a página `guia-iniciante.html` — um resumo direto para a primeira partida:
-o que é o jogo, como funciona uma partida (rotas, almas, habilidades), o que fazer no começo, as funções do time,
-almas e itens, objetivos (Guardians, Walkers, Mid Boss, Rejuvenator, Patron), os erros mais comuns e os próximos passos
-(com atalhos para Heróis, Guias, Builds, Itens e Glossário).
+O menu tem a aba **Começando** (dentro do próprio site, sem sair da página): um guia curto para a primeira partida,
+dividido em **5 passos** que você pode marcar como concluídos — o progresso fica salvo no navegador (com barra de %).
+Cada passo tem um botão que leva direto para a parte do site que ele explica:
 
-> A página é **gerada** por `tools/gerar-paginas.py` (o texto fica na lista `SECOES_GUIA`, dentro desse script).
-> Ela também aparece no menu lateral e nas sugestões da página 404.
+1. **Escolha um herói fácil** — mostra 4 heróis de dificuldade **Fácil** (arte e papel reais); clique para abrir a ficha.
+2. **Copie uma build pronta** — leva para **Builds**.
+3. **Entenda as almas e os itens** — leva para **Itens** e para o **Glossário**.
+4. **Conheça o mapa** — leva para a aba **Mapa**.
+5. **Jogue a primeira partida** — leva para os **Guias** e para o botão de baixar o jogo.
+
+Abaixo dos passos vêm quatro cartões de consulta rápida (**O que é Deadlock**, **Funções do time**, **Objetivos do mapa**
+e **Erros comuns**) e um botão final "Escolher meu herói".
+
+> O texto dos passos e dos cartões fica no **`index.html`** (é só editar o texto entre as tags).
+> A versão em página única continua existindo em `guia-iniciante.html` (gerada por `tools/gerar-paginas.py`, com o texto na
+> lista `SECOES_GUIA`) — é o link discreto no fim da aba, útil para **compartilhar** e para o Google.
 
 ---
 

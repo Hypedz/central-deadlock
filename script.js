@@ -277,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHome();
     initGlossario();
     initItens();
+    initComecando();
     initRanking();
     renderHistorico();
     initMap();
@@ -2406,51 +2407,125 @@ function renderStats() {
 }
 
 /* ================= mapa ================= */
+/* Desenho próprio (SVG), só para orientar quem está começando: as 3 rotas
+   ligando as duas bases, a selva em volta e o Mid Boss no centro.
+   O traço de cada rota é uma curva; "lx/ly" é onde fica o nome dela. */
 const MAP_LANES = [
-    { id: 'top', label: 'Rota Superior', d: 'M150,400 C150,150 300,70 690,120', lx: 315, ly: 148 },
-    { id: 'mid', label: 'Rota do Meio', d: 'M150,400 L690,120', lx: 560, ly: 178 },
-    { id: 'bot', label: 'Rota Inferior', d: 'M150,400 C300,470 600,430 690,120', lx: 330, ly: 375 }
+    { id: 'top', label: 'ROTA SUPERIOR', d: 'M170,440 C170,200 330,122 730,120', lx: 400, ly: 96, cor: '#b6f24a' },
+    { id: 'mid', label: 'ROTA DO MEIO', d: 'M170,440 L730,120', lx: 452, ly: 200, cor: '#22d3ee' },
+    { id: 'bot', label: 'ROTA INFERIOR', d: 'M170,440 C330,486 610,430 730,120', lx: 420, ly: 490, cor: '#f472b6' }
 ];
-const MAP_MARKERS = [
-    { id: 'amber', label: 'Base Âmbar', color: '#ffb74d', x: 150, y: 400 },
-    { id: 'sapphire', label: 'Base Safira', color: '#4fc3f7', x: 690, y: 120 },
-    { id: 'midboss', label: 'Midboss', color: '#8b5cf6', x: 400, y: 252 }
+
+const MAP_BASES = [
+    { id: 'amber', nome: 'BASE ÂMBAR', cor: '#ffb74d', x: 170, y: 440, ly: 528 },
+    { id: 'sapphire', nome: 'BASE SAFIRA', cor: '#4fc3f7', x: 730, y: 120, ly: 42 }
 ];
+
 const MAP_INFO = {
-    top: { n: 'Rota Superior', d: 'Rota longa no topo do mapa. Boa para farmar com segurança, mas fique de olho nas tirolesas: os inimigos chegam rápido.' },
-    mid: { n: 'Rota do Meio', d: 'A rota mais curta e movimentada. Passa perto do Midboss e das runas, então acontecem muitas lutas por aqui.' },
-    bot: { n: 'Rota Inferior', d: 'Rota longa na parte de baixo do mapa. Muito espaço para farm e lutas frequentes perto do Midboss.' },
-    amber: { n: 'Base Âmbar', d: 'Uma das bases. Aqui ficam o Patron e a fonte de cura do time. Proteja-a a todo custo.' },
-    sapphire: { n: 'Base Safira', d: 'A base oposta, no outro canto do mapa. Destrua o Patron inimigo aqui para vencer a partida.' },
-    midboss: { n: 'Midboss', d: 'Chefe que aparece no centro do mapa. O time que o derrota ganha um bônus poderoso (exemplo ilustrativo).' }
+    top: {
+        n: 'Rota Superior', tag: 'Rota', ico: 'fa-route', cor: '#b6f24a',
+        d: 'Rota longa que contorna a parte de cima do mapa. Tem bastante espaço para farmar com segurança.',
+        dicas: ['Fique de olho nas tirolesas: o inimigo gira de rota rápido.', 'Avise o time quando alguém sumir da sua rota.']
+    },
+    mid: {
+        n: 'Rota do Meio', tag: 'Rota', ico: 'fa-route', cor: '#22d3ee',
+        d: 'A rota mais curta e movimentada. Passa colada no Mid Boss, então as lutas acontecem o tempo todo por aqui.',
+        dicas: ['Cuidado com emboscadas vindas da selva.', 'Quem controla o meio chega primeiro nos objetivos.']
+    },
+    bot: {
+        n: 'Rota Inferior', tag: 'Rota', ico: 'fa-route', cor: '#f472b6',
+        d: 'Rota longa na parte de baixo do mapa, com muito espaço para farm e rotações rápidas para o centro.',
+        dicas: ['Boa para juntar almas sem parar.', 'Fique perto do time quando o Mid Boss estiver para nascer.']
+    },
+    amber: {
+        n: 'Base Âmbar', tag: 'Base', ico: 'fa-house-chimney', cor: '#ffb74d',
+        d: 'Uma das duas bases. Aqui ficam o Patron e a fonte de cura do time.',
+        dicas: ['Use a fonte antes de voltar para a luta.', 'Defender a base é prioridade quando o inimigo chega.']
+    },
+    sapphire: {
+        n: 'Base Safira', tag: 'Base', ico: 'fa-house-chimney', cor: '#4fc3f7',
+        d: 'A base do outro time, no canto oposto do mapa. É aqui que a partida termina.',
+        dicas: ['Derrubar as estruturas do caminho abre a entrada.', 'Não entre sozinho: o Patron se defende.']
+    },
+    midboss: {
+        n: 'Mid Boss', tag: 'Objetivo', ico: 'fa-dragon', cor: '#a78bfa',
+        d: 'Chefe que fica no centro do mapa. O time que o derrota ganha uma vantagem importante para a partida.',
+        dicas: ['Dispute com visão e companhia: sozinho é presente para o outro time.', 'Controle o meio antes de começar a bater nele.']
+    }
 };
-const FONT = 'Poppins, system-ui, sans-serif';
-
 function initMap() {
-    const lanes = MAP_LANES.map(l => `
-        <g class="map-zone" data-area="${l.id}">
-            <path d="${l.d}" stroke="transparent" stroke-width="48" fill="none" pointer-events="stroke"></path>
-            <path class="zone-shape" style="stroke:var(--lime)" d="${l.d}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".75" pointer-events="none"></path>
-            <text x="${l.lx}" y="${l.ly}" fill="#cfd2dc" font-size="14" font-weight="700" text-anchor="middle" pointer-events="none" font-family="${FONT}">${l.label}</text>
-        </g>`).join('');
-    const markers = MAP_MARKERS.map(m => `
-        <g class="map-zone" data-area="${m.id}">
-            <circle cx="${m.x}" cy="${m.y}" r="26" fill="transparent" pointer-events="all"></circle>
-            <circle class="zone-shape" cx="${m.x}" cy="${m.y}" r="15" fill="${m.color}" stroke="#0c0c0e" stroke-width="3" pointer-events="none"></circle>
-            <text x="${m.x}" y="${m.y + 40}" fill="#cfd2dc" font-size="13" font-weight="700" text-anchor="middle" pointer-events="none" font-family="${FONT}">${m.label}</text>
+    const rotas = MAP_LANES.map(l => `
+        <g class="map-zone" data-area="${l.id}" role="button" tabindex="0" aria-label="${l.label}" style="color:${l.cor}">
+            <path d="${l.d}" fill="none" stroke="transparent" stroke-width="48" stroke-linecap="round"></path>
+            <path d="${l.d}" fill="none" stroke="#0a0a10" stroke-width="34" stroke-linecap="round" opacity=".92"></path>
+            <path class="mg-estrada" d="${l.d}" fill="none" stroke="${l.cor}" stroke-width="22" stroke-linecap="round"></path>
+            <path class="zone-shape mg-fluxo" d="${l.d}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="9 13" stroke-linecap="round" opacity=".9"></path>
+            <text x="${l.lx}" y="${l.ly}" class="mg-rotulo" text-anchor="middle">${l.label}</text>
         </g>`).join('');
 
-    $('#mapBox').innerHTML = `<svg viewBox="0 0 800 500" role="img" aria-label="Mapa esquemático do jogo">
-        <defs><linearGradient id="mapBg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#141420"></stop><stop offset="1" stop-color="#0b0b12"></stop>
-        </linearGradient></defs>
-        <rect width="800" height="500" rx="14" fill="url(#mapBg)"></rect>
-        <rect x="6" y="6" width="788" height="488" rx="12" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="2"></rect>
-        ${lanes}${markers}
+    const bases = MAP_BASES.map(b => `
+        <g class="map-zone" data-area="${b.id}" role="button" tabindex="0" aria-label="${b.nome}" style="color:${b.cor}">
+            <circle cx="${b.x}" cy="${b.y}" r="46" fill="${b.cor}" opacity=".18" filter="url(#mgBrilho)"></circle>
+            <circle class="map-halo" cx="${b.x}" cy="${b.y}" r="74" fill="${b.cor}"></circle>
+            <circle cx="${b.x}" cy="${b.y}" r="54" fill="${b.cor}" fill-opacity=".07" stroke="${b.cor}" stroke-opacity=".3" stroke-width="2"></circle>
+            <circle class="zone-shape" cx="${b.x}" cy="${b.y}" r="32" fill="${b.cor}" fill-opacity=".18" stroke="currentColor" stroke-width="2.5"></circle>
+            <path d="M${b.x} ${b.y - 14} L${b.x + 14} ${b.y} L${b.x} ${b.y + 14} L${b.x - 14} ${b.y} Z" fill="${b.cor}"></path>
+            <text x="${b.x}" y="${b.ly}" class="mg-rotulo" text-anchor="middle">${b.nome}</text>
+        </g>`).join('');
+
+    const selva = [[505, 172], [258, 306], [392, 366], [646, 314]].map(([x, y]) => `
+        <g class="mg-selva" transform="translate(${x} ${y})">
+            <path d="M0 -10 L8 3 H-8 Z" fill="#3f7a2a" opacity=".75"></path>
+            <path d="M0 -2 L10 13 H-10 Z" fill="#2f5c1f" opacity=".7"></path>
+            <rect x="-1.5" y="12" width="3" height="6" rx="1" fill="#2b4d1d" opacity=".8"></rect>
+        </g>`).join('');
+
+    $('#mapBox').innerHTML = `<svg viewBox="0 0 900 560" role="img" aria-label="Mapa ilustrativo do Deadlock: três rotas entre as bases Âmbar e Safira, com o Mid Boss no centro.">
+        <defs>
+            <radialGradient id="mgFundo" cx="50%" cy="45%" r="78%">
+                <stop offset="0" stop-color="#171822"></stop>
+                <stop offset="1" stop-color="#08080d"></stop>
+            </radialGradient>
+            <linearGradient id="mgArea" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#14151f"></stop>
+                <stop offset="1" stop-color="#0c0d14"></stop>
+            </linearGradient>
+            <filter id="mgBrilho" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="9" result="borrao"></feGaussianBlur>
+                <feMerge><feMergeNode in="borrao"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+        </defs>
+        <rect width="900" height="560" rx="18" fill="url(#mgFundo)"></rect>
+        <rect x="7.5" y="7.5" width="885" height="545" rx="15" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.5"></rect>
+
+        <!-- área jogável (losango de cantos cortados) -->
+        <path d="M180,60 H720 L840,180 V380 L720,500 H180 L60,380 V180 Z" fill="url(#mgArea)" stroke="rgba(182,242,74,.14)" stroke-width="2"></path>
+        <path d="M196,78 H704 L822,190 V370 L704,482 H196 L78,370 V190 Z" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1.5"></path>
+
+        ${selva}
+        ${rotas}
+        ${bases}
+
+        <!-- Mid Boss -->
+        <g class="map-zone" data-area="midboss" role="button" tabindex="0" aria-label="Mid Boss" style="color:#a78bfa">
+            <circle cx="450" cy="280" r="36" fill="#8b5cf6" opacity=".3" filter="url(#mgBrilho)"></circle>
+            <circle class="map-halo" cx="450" cy="280" r="88" fill="#8b5cf6"></circle>
+            <circle class="map-pulso" cx="450" cy="280" r="52" fill="none" stroke="#8b5cf6" stroke-opacity=".5" stroke-width="2" stroke-dasharray="3 9"></circle>
+            <circle class="zone-shape" cx="450" cy="280" r="30" fill="#8b5cf6" fill-opacity=".2" stroke="currentColor" stroke-width="2.5"></circle>
+            <path d="M450 266 l5.4 11 12.1 1.8 -8.8 8.5 2.1 12 -10.8 -5.7 -10.8 5.7 2.1 -12 -8.8 -8.5 12.1 -1.8 Z" fill="#c4b5fd"></path>
+            <text x="450" y="352" class="mg-rotulo" text-anchor="middle">MID BOSS</text>
+        </g>
     </svg>`;
 
-    $('#mapBox').addEventListener('click', (e) => {
+    const caixa = $('#mapBox');
+    caixa.addEventListener('click', (e) => {
         const z = e.target.closest('.map-zone'); if (!z) return;
+        setMapArea(z.dataset.area);
+    });
+    caixa.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const z = e.target.closest('.map-zone'); if (!z) return;
+        e.preventDefault();
         setMapArea(z.dataset.area);
     });
     setMapArea('mid');
@@ -2459,13 +2534,85 @@ function initMap() {
 function setMapArea(id) {
     document.querySelectorAll('#mapBox .map-zone').forEach(z => z.classList.toggle('active', z.dataset.area === id));
     const info = MAP_INFO[id]; if (!info) return;
-    $('#mapInfo').innerHTML = `<h3>${esc(info.n)}</h3><p>${esc(info.d)}</p>
-        <div class="map-legend">
-            <span><i class="fa-solid fa-circle" style="color:#b6f24a"></i>Rotas</span>
-            <span><i class="fa-solid fa-circle" style="color:#ffb74d"></i>Base Âmbar</span>
-            <span><i class="fa-solid fa-circle" style="color:#4fc3f7"></i>Base Safira</span>
-            <span><i class="fa-solid fa-circle" style="color:#8b5cf6"></i>Midboss</span>
-        </div>`;
+    const dicas = (info.dicas || []).map(d => `<li><i class="fa-solid fa-check"></i><span>${esc(d)}</span></li>`).join('');
+    $('#mapInfo').innerHTML = `
+        <div class="map-info-head">
+            <span class="map-info-ico" style="--c:${info.cor}"><i class="fa-solid ${info.ico}"></i></span>
+            <div>
+                <span class="map-info-tag" style="--c:${info.cor}">${esc(info.tag)}</span>
+                <h3>${esc(info.n)}</h3>
+            </div>
+        </div>
+        <p>${esc(info.d)}</p>
+        ${dicas ? `<ul class="map-info-dicas">${dicas}</ul>` : ''}
+        <p class="map-info-pe"><i class="fa-solid fa-hand-pointer"></i> Clique nas outras áreas do mapa para comparar.</p>`;
+}
+
+/* ================= começando (guia para iniciantes) =================
+   Os "passos" ficam no próprio index.html; aqui só cuidamos dos heróis
+   fáceis (com dados reais), do progresso salvo e dos botões de atalho. */
+function initComecando() {
+    const alvo = $('#guiaHerois');
+    if (alvo) {
+        const faceis = PLAYABLE.filter(h => h.diff === 1).slice(0, 4);
+        alvo.innerHTML = faceis.length
+            ? faceis.map(h => `<button type="button" class="guia-heroi" data-heroi="${esc(h.name)}">
+                <img src="assets/heroes/${esc(h.file)}" alt="${esc(h.name)}" loading="lazy">
+                <span><b>${esc(h.name)}</b><small>${esc(h.role)} · Fácil</small></span>
+              </button>`).join('')
+            : '<p class="muted-txt">Veja a lista completa na aba Heróis.</p>';
+        alvo.addEventListener('click', (e) => {
+            const b = e.target.closest('[data-heroi]'); if (!b) return;
+            openHero(b.dataset.heroi);
+        });
+    }
+
+    const chave = 'cdl_guia';
+    const ler = () => {
+        try {
+            const v = JSON.parse(localStorage.getItem(chave) || '[]');
+            return Array.isArray(v) ? v.map(String) : [];
+        } catch (e) { return []; }
+    };
+    const salvar = (v) => { try { localStorage.setItem(chave, JSON.stringify(v)); } catch (e) {} };
+    let feitos = ler();
+
+    const atualizar = () => {
+        const checks = $$('[data-check]');
+        checks.forEach(b => {
+            const on = feitos.includes(String(b.dataset.check));
+            b.classList.toggle('on', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            const rotulo = b.querySelector('span');
+            if (rotulo) rotulo.textContent = on ? 'Feito' : 'Já entendi';
+        });
+        $$('.guia-passo').forEach(p => p.classList.toggle('feito', feitos.includes(String(p.dataset.passo))));
+        const total = checks.length || 1;
+        const pct = Math.min(100, Math.round(feitos.length / total * 100));
+        if ($('#guiaPct')) $('#guiaPct').textContent = pct + '%';
+        if ($('#guiaConta')) $('#guiaConta').textContent = feitos.length + ' de ' + checks.length + ' passos';
+        if ($('#guiaBarra')) $('#guiaBarra').style.width = pct + '%';
+    };
+
+    document.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-check]'); if (!b) return;
+        const id = String(b.dataset.check);
+        feitos = feitos.includes(id) ? feitos.filter(x => x !== id) : feitos.concat(id);
+        salvar(feitos);
+        atualizar();
+    });
+
+    const reset = $('#guiaReset');
+    if (reset) reset.addEventListener('click', () => {
+        feitos = []; salvar(feitos); atualizar();
+        showToast('Progresso do guia reiniciado.');
+    });
+
+    $$('[data-download]').forEach(b => b.addEventListener('click', () => {
+        const modal = $('#downloadModal'); if (modal) openOverlay(modal);
+    }));
+
+    atualizar();
 }
 
 /* ================= eventos (datas reais) =================

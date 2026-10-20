@@ -34,7 +34,7 @@ PASTA_ITENS = os.path.join(BASE, "item")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261020e"
+VERSAO_CSS = "20261020f"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -205,7 +205,7 @@ ATALHOS_404 = [
     ("index.html", "fa-house", "Início", "Notícias, destaques e atalhos do site"),
     ("index.html#herois", "fa-masks-theater", "Heróis", "Os 44 heróis, com números reais"),
     ("index.html#guias", "fa-book", "Guias", "Um guia pronto para cada herói"),
-    ("guia-iniciante.html", "fa-graduation-cap", "Começando", "Guia rápido para a primeira partida"),
+    ("index.html#comecando", "fa-graduation-cap", "Começando", "Guia rápido para a primeira partida"),
     ("index.html#builds", "fa-screwdriver-wrench", "Builds", "As builds mais usadas no jogo"),
     ("index.html#itens", "fa-store", "Itens", "Preço e efeito de todos os itens"),
     ("index.html#noticias", "fa-newspaper", "Notícias", "As últimas notícias, em português"),
@@ -923,7 +923,7 @@ def pagina_guia(herois):
             e(endereco), icone, e(nome), e(texto)))
     pagina.append('                </div>')
     pagina.append('            </section>')
-    pagina.append(rodape("index.html", "Voltar para a Home", prefixo=""))
+    pagina.append(rodape("index.html#comecando", "Abrir o guia no site", prefixo=""))
     with open(os.path.join(BASE, "guia-iniciante.html"), "w", encoding="utf-8") as arquivo:
         arquivo.write("\n".join(pagina))
     return {"url": url, "img": imagem, "alt": "Guia para iniciantes"}
