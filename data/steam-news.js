@@ -1,10 +1,45 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 20/10/2026 as 19:43 */
+   Ultima atualizacao: 20/10/2026 as 18:15 */
 window.STEAM_NEWS = {
- "updated": "20/10/2026 as 19:43",
+ "updated": "20/10/2026 as 18:15",
  "count": 10,
  "items": [
+  {
+   "id": "s1846651706696737",
+   "title": "Shh... This Won't Hurt a Bit.",
+   "title_pt": "Shh... Isso não vai doer nem um pouco.",
+   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706696737",
+   "ts": 1792529993,
+   "date": "20 out 2026",
+   "cat": "Steam",
+   "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/11ea258a7732d9a48d1f0b679d4aaf7f51292230.png",
+   "desc": "It's hard to know if that chill in the air is from the approaching fall breeze, or from the withering glare of Nurse Harrow, who now joins us on the streets of Manhattan. To some, her practi...",
+   "desc_pt": "É difícil saber se o frio no ar é devido à brisa de outono que se aproxima ou ao olhar fulminante da enfermeira Harrow, que agora se junta a nós nas ruas de Manhattan. Para alguns, sua prática...",
+   "lines": [
+    "It's hard to know if that chill in the air is from the approaching fall breeze, or from the withering glare of Nurse Harrow, who now joins us on the streets of Manhattan. To some, her practices may seem unorthodox, her patients at the Marble Hill Possession Ward cannot say that the results aren't effective. With Leech Therapy , she throws a jar full of leeches that attach to oncoming enemies, draining their health and energy, before crawling back to deliver their haul. Cracking open one of her vials, she releases her Wretched Vapors , possessing her allies with a powerful boost of effectiveness - though subjects should be warned of the side effects when the vapors wear off. To efficiently keep her teammates fighting their best, she loads her syringe full of Healing Needles to inject medicine directly into their veins. And when her patience runs out, she opens her bag to release all the Lurking Terrors captured inside, making her adversaries run for cover. - \"Trust me, I know best.\"",
+    "With Nurse Harrow joining us today, that marks the end of of our City Never Sleeps releases. We want to thank everyone for participating in voting once again, and hope you've been enjoying all the new delights that NYC has to offer.",
+    "City Never Sleeps Voting Stats:",
+    "Big Turnout: Over 110 Million votes were cast over the course of the event.",
+    "Narrow Victory: The closest contest was Baba vs Solomon, decided by a nearly 0.5% difference in votes.",
+    "Oracle: Only 847 players voted in every round, and only voted for that round's eventual winner.",
+    "Unlucky: 36,236 players voted in every round, and never once picked that round's winner.",
+    "Dedication: 22,194 players exclusively voted for Nurse Harrow. One player cast exactly 1000 votes for her.",
+    "Highly Effective: Nurse Harrow voters consistently proved to have a higher win rate over all other hero voters."
+   ],
+   "lines_pt": [
+    "É difícil saber se o frio no ar é devido à brisa de outono que se aproxima ou ao olhar fulminante da enfermeira Harrow, que agora se junta a nós nas ruas de Manhattan. Para alguns, suas práticas podem parecer pouco ortodoxas, seus pacientes na Ala de Possessão de Marble Hill não podem dizer que os resultados não são eficazes. Com Leech Therapy, ela joga um pote cheio de sanguessugas que se prendem aos inimigos que se aproximam, drenando sua saúde e energia, antes de rastejar de volta para entregar o que eles carregam. Abrindo um de seus frascos, ela libera seus Vapores Miseráveis, dotando seus aliados de um poderoso aumento de eficácia - embora os indivíduos devam ser avisados ​​sobre os efeitos colaterais quando o efeito dos vapores passar. Para manter seus companheiros de equipe lutando com eficiência, ela carrega sua seringa cheia de Agulhas de Cura para injetar remédios diretamente em suas veias. E quando sua paciência acaba, ela abre sua bolsa para liberar todos os Terrores Espreitados capturados lá dentro, fazendo seus adversários correrem para se proteger. - \"Confie em mim, eu sei o que é melhor.\"",
+    "Com a enfermeira Harrow se juntando a nós hoje, isso marca o fim de nossos lançamentos de City Never Sleeps. Queremos agradecer a todos pela participação na votação mais uma vez e esperamos que vocês estejam aproveitando todas as novidades que Nova York tem a oferecer.",
+    "Estatísticas de votação da cidade nunca dorme:",
+    "Grande participação: Mais de 110 milhões de votos foram emitidos ao longo do evento.",
+    "Vitória estreita: A disputa mais acirrada foi Baba x Solomon, decidida por uma diferença de quase 0,5% nos votos.",
+    "Oracle: Apenas 847 jogadores votaram em cada rodada, e votaram apenas no eventual vencedor daquela rodada.",
+    "Azar: 36.236 jogadores votaram em todas as rodadas e nunca escolheram o vencedor daquela rodada.",
+    "Dedicação: 22.194 jogadores votaram exclusivamente na enfermeira Harrow. Um jogador deu exatamente 1.000 votos para ela.",
+    "Altamente eficaz: os eleitores da enfermeira Harrow provaram consistentemente ter uma taxa de vitória mais alta do que todos os outros eleitores heróis."
+   ]
+  },
   {
    "id": "s1846651706683085",
    "title": "Paint the Town",
@@ -250,25 +285,6 @@ window.STEAM_NEWS = {
    ],
    "lines_pt": [
     "\\[Geral] - Os valores máximos de resistência ao retorno do Rift instável agora aumentam ao longo do jogo. Anteriormente, os valores máximos eram de 35%. Agora é de 10% + 1% por minuto (cerca de ~20% para o primeiro), com limite superior de 40% em 30 minutos. - Removida uma quantidade fixa de almas bônus extras que você receberia por estar atrás, mesmo que por uma pequena quantidade de patrimônio líquido, tanto para recompensas de mortes de heróis quanto para recompensas de Rift Instável (isso teve um impacto maior no início e no meio do jogo) - Recompensas de retorno ligeiramente reduzidas em geral (isso é um acréscimo à mudança acima) - Uma parte das almas de retorno ganhas por jogadores acima do patrimônio líquido médio das equipes inimigas é distribuída através do sistema tick gold que é dado aos 2 jogadores mais baixos (70%) do valor extra de retorno vai para eles) - Recompensa do Guardião aumentada em 10% - Recompensa do Walker aumentada em 5% - Parcela da recompensa por objetivos para heróis próximos reduzida de 30% para 25% (o restante é dividido entre todos os 6 jogadores) - Tempo de respawn aos 20 minutos aumentado de 35s para 38s (não afeta os valores máximos mais tarde, apenas um pouco mais alto antes) - Usar aparar agora pausa a recarga - Aparar enquanto faz uma O avanço regular agora cancelará o avanço (e o impulso) e aparará no local - Ficar atordoado agora pausa sua recarga em vez de reiniciá-la - O tempo de spawn inicial dos itens quebráveis nos túneis subterrâneos aumentou de 3m para 5m - A taxa de reaparecimento dos itens quebráveis nos túneis subterrâneos aumentou de 3m para 5m - Todos os valores de lentidão de movimento foram reduzidos em ~20% globalmente - Todas as lentidão de avanço no solo foram reduzidas em ~10% globalmente - As lentidão agora também afetam a resistência ao ar em 35% do valor lento (convar citadel_enable_slows_affect_air_drag para ativar e desativar o comportamento de arrasto lento) - Dashes e ataques corpo a corpo leves não pausam mais o tempo de ciclo da sua arma (esta é uma mudança geral que afeta mais armas com tempo de ciclo alto, como Silver ou Abrams) \\[Itens] - Enfraquecimento do tiro na cabeça: Redução da resistência à bala reduzida de -13% para -12% - Ponta oca: resistência à bala Redução aumentada de 9% para 10% - Balas Tóxicas: Escala de Espírito aumentada de 0,005% para 0,006% - Shadow Weave: Agora construído a partir de Botas de Sprint - Shadow Weave: Velocidade de sprint aumentada de 1,5 para 2 - Shadow Weave: Tempo de recarga reduzido de 45s para 37s - Sacrifício de Cultista: Recompensa reduzida de 180% para 170% - Balística Encantamento: Duração aumentada de 14s para 20s - Estouro Espiritual: O acúmulo é 35% mais lento - Estouro Espiritual: Poder do Espírito no proc reduzido de 40 para 30 - Estouro Espiritual: Taxa de Fogo reduzida de 30% para 25% - Medalhão Restaurador: Cura por benefício reduzida de 0,5 para 0,45 - Medalhão Restaurador: Alcance de pilha reduzido de 35m para 32m - Colecionador de Troféus: Almas por minuto reduzidas de 18 para 16 - Veil Walker: Não é mais construído com Botas de Sprint - Veil Walker: Não concede mais +2 Sprint e +2 de Regeneração Fora de Combate (devido à perda de componente) - Veil Walker: O bônus de velocidade de movimento agora é removido quando a invisibilidade é removida - Veil Walker: Poder Espiritual reduzido de 10 para 6 - Fortitude: Regeneração máxima de Saúde aumentada de"
-   ]
-  },
-  {
-   "id": "s1841579228672283",
-   "title": "Minor Update - 08-22-2026",
-   "title_pt": "Atualização secundária - 22/08/2026",
-   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1841579228672283",
-   "ts": 1787434846,
-   "date": "22 ago 2026",
-   "cat": "Patch Notes",
-   "patch": true,
-   "image": "",
-   "desc": "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste...",
-   "desc_pt": "Regeneração Radiante: Cura ao lançar reduzida de 70 para 65 - Medalhão Restaurador: Resistência Espiritual reduzida de 10% para 8% - Celeste: Cooldown do Truque Deslumbrante aumentado de 32s para 34s - Celeste...",
-   "lines": [
-    "Radiant Regeneration: Heal on cast reduced from 70 to 65 - Restorative Locket: Spirit Resistance reduced from 10% to 8% - Celeste: Dazzling Trick cooldown increased from 32s to 34s - Celeste: Dazzling Trick T2 barrier rescaled from \"+80 and +0.7 scaling\" to \"+70 and +0.76\" - Celeste: Dazzling Trick T3 cooldown increased from -18s to -20s - Celeste: Dazzling Trick T3 reduced from +1.5s Silence to +1.25s - Celeste: Radiant Daggers Spirit Amp per stack reduced from +8% to +7% - Celeste: Radiant Daggers T3 Spirit Amp per stack increased from +3% to +4% - Celeste: Shining Wonder bounce range reduced from 17.5m to 16.5m - Celeste: Shining Wonder damage reduced from 165 to 140 - Celeste: Shining Wonder spirit scaling reduced from 0.9 to 0.6 - Celeste: Shining Wonder T2 now also increases spirit scaling by +0.45"
-   ],
-   "lines_pt": [
-    "Regeneração Radiante: Cura ao lançar reduzida de 70 para 65 - Medalhão Restaurador: Resistência ao Espírito reduzida de 10% para 8% - Celeste: Cooldown do Dazzling Trick aumentado de 32s para 34s - Celeste: Dazzling Trick T2 barreira redimensionada de \"+80 e +0,7 escalonamento\" para \"+70 e +0,76\" - Celeste: Dazzling Trick T3 cooldown aumentado de -18s a -20s - Celeste: Dazzling Trick T3 reduzido de +1,5s Silence para +1,25s - Celeste: Radiant Daggers Spirit Amp por stack reduzido de +8% para +7% - Celeste: Radiant Daggers T3 Spirit Amp por stack aumentado de +3% para +4% - Celeste: Shining Wonder alcance de salto reduzido de 17,5m para 16,5m - Celeste: Shining Wonder dano reduzido de 165 a 140 - Celeste: Shining Wonder escalonamento de espírito reduzido de 0,9 para 0,6 - Celeste: Shining Wonder T2 agora também aumenta o escalonamento de espírito em +0,45"
    ]
   }
  ]
