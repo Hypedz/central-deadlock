@@ -110,15 +110,25 @@ POLY.triangle = [[0, -1], [1, 0.92], [-1, 0.92]];
 POLY.hexflat = [[-1, 0], [-0.5, -0.866], [0.5, -0.866], [1, 0], [0.5, 0.866], [-0.5, 0.866]];
 POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17; const r = 0.87 + 0.13 * Math.cos(6 * a); return [r * Math.sin(a), -r * Math.cos(a)]; });
 
+const MAX_MAINS = 6;
+const LINK_LABELS = [
+    ['discord', 'Discord'], ['twitch', 'Twitch'], ['youtube', 'YouTube'],
+    ['x', 'X'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['steam', 'Steam']
+];
+function linksList(p) {
+    return LINK_LABELS.map(([k, n]) => [n, (p.links || {})[k]]).filter(x => x[1]);
+}
+
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
     nick: '', pronouns: '', status: '', bio: '', title: 'Jogador', region: 'Brasil',
-    mains: [], links: { discord: '', twitch: '', youtube: '' },
+    mains: [], links: { discord: '', twitch: '', youtube: '', x: '', instagram: '', tiktok: '', steam: '' },
+    lfg: false, avail: '',
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
     accent: 'auto',
     /* aparência do site (aba "Site") */
     fundo: 'padrao', fundoHeroi: '', fundoCor: '#141419', menuOculto: [],
-    cards: { formato: 'pen', papel: true, tier: false, win: false, pick: false },
+    cards: { formato: 'pen', papel: true, tier: false, win: false, pick: false, partidas: false, kda: false, diff: false, tamanho: 'padrao' },
     av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50, c1: '', c2: '' },
     theme: 'dark', lang: 'pt-BR', compact: false
 };
@@ -131,7 +141,7 @@ let profile = (() => {
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
         cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
         menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
-        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, 3) : []
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
     };
 })();
 const saveProfile = () => store.set('cdl_profile', profile);
@@ -256,6 +266,7 @@ const BUILDS = (window.BUILDS_REAIS && window.BUILDS_REAIS.lista && window.BUILD
 /* ================= início ================= */
 document.addEventListener('DOMContentLoaded', () => {
     applyProfile();
+    updateFavCount();
     initSections();
     initHeroes();
     initContents();
@@ -1026,7 +1037,10 @@ function heroCard(hero, w) {
             c.papel ? `<span class="tag">${esc(hero.role)}</span>` : '',
             c.tier && hero.tier ? `<span class="tag ${tierClass(hero.tier)}">Tier ${esc(hero.tier)}</span>` : '',
             c.win && hero.win != null ? `<span class="tag cy">${esc(hero.win)}% win</span>` : '',
-            c.pick && hero.pick != null ? `<span class="tag">${esc(hero.pick)}% pick</span>` : ''
+            c.pick && hero.pick != null ? `<span class="tag">${esc(hero.pick)}% pick</span>` : '',
+            c.partidas && hero.partidas ? `<span class="tag">${Number(hero.partidas).toLocaleString('pt-BR')} partidas</span>` : '',
+            c.kda && hero.kda ? `<span class="tag cy">${esc(hero.kda)} KDA</span>` : '',
+            c.diff && hero.diff != null ? `<span class="tag">Aprender: ${esc(DIFF_LABEL[hero.diff])}</span>` : ''
         ].filter(Boolean).join('');
     return `<article class="hc" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
         <div class="hc-pen">
@@ -1103,15 +1117,25 @@ function initHeroes() {
 function toggleFav(name) {
     favs = favs.includes(name) ? favs.filter(x => x !== name) : [...favs, name];
     store.set('cdl_favs', favs);
+    updateFavCount();
     $$(`[data-fav="${CSS.escape(name)}"]`).forEach(b => b.classList.toggle('on', favs.includes(name)));
     if ($('#favoritos').classList.contains('active')) renderFavs();
     renderProfileUI();
     showToast(favs.includes(name) ? name + ' adicionado aos favoritos ★' : name + ' removido dos favoritos');
 }
 
+function favCountHTML() {
+    const n = favs.filter(n => heroByName(n)).length;
+    return '(' + n + ')';
+}
+function updateFavCount() {
+    const el = $('#favCount');
+    if (el) el.textContent = favCountHTML();
+}
 function renderFavs() {
     const grid = $('#favGrid');
     const list = favs.map(heroByName).filter(Boolean);
+    updateFavCount();
     grid.innerHTML = list.length
         ? list.map(h => heroCard(h, 138)).join('')
         : '<p style="color:var(--text-faint);grid-column:1/-1;text-align:center;padding:40px 0;">Você ainda não favoritou nenhum herói. Clique na ★ de um estandarte.</p>';
@@ -2749,7 +2773,7 @@ function renderPTabs() {
 function profileCardHTML(p) {
     const mains = p.mains.map(heroByName).filter(Boolean);
     const lv = level();
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]].filter(x => x[1]);
+    const lk = linksList(p);
     return `<div class="pcard">
         <div class="pban" style="${bannerStyle(p)}"></div>
         <div class="pbody">
@@ -2761,6 +2785,7 @@ function profileCardHTML(p) {
                 <span class="tag acc">${esc(p.title || 'Jogador')}</span>
                 <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
                 ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
+                ${p.lfg ? '<span class="tag vio">Procurando time</span>' : ''}
             </div>
             <p class="pbio">${esc(p.bio || 'Escreva uma bio para aparecer aqui.')}</p>
             ${mains.length ? `<div class="pmains">${mains.map((h, i) => `<div class="pm">${pennant(h, 74)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>` : ''}
@@ -2775,7 +2800,7 @@ function renderSideCard() { $('#pprev').innerHTML = profileCardHTML(profile); }
 function renderProfileView() {
     const p = profile, lv = level();
     const mains = p.mains.map(heroByName).filter(Boolean);
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]].filter(x => x[1]);
+    const lk = linksList(p);
     const done = ACH.filter(x => x.p() >= x.max).length;
     const seen = stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length;
     const tile = (n, l) => `<div class="pv-t"><b>${n}</b><span>${l}</span></div>`;
@@ -2788,6 +2813,7 @@ function renderProfileView() {
             <span class="tag acc">${esc(p.title || 'Jogador')}</span>
             <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
             ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
+            ${p.lfg ? '<span class="tag vio">Procurando time</span>' : ''}
         </div>
         ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}`;
     $('#pvGrid').innerHTML = `
@@ -2795,6 +2821,7 @@ function renderProfileView() {
             <section class="card pv-sec">
                 <h2>Sobre</h2>
                 <p class="muted-txt">${esc(p.bio || 'Sem bio ainda.')}</p>
+                ${p.avail ? `<p class="muted-txt" style="font-size:13px">Disponível: <b style="color:var(--text)">${esc(p.avail)}</b></p>` : ''}
                 ${lk.length ? `<div class="plinks">${lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
             </section>
             <section class="card pv-sec">
@@ -2886,7 +2913,7 @@ function updateMeter() {
     const p = profile;
     const checks = [
         !!p.nick, !!p.bio, !!p.status, p.title !== 'Jogador', p.mains.length > 0,
-        !!(p.links.discord || p.links.twitch || p.links.youtube), !!p.av.img,
+        !!(linksList(p).length), !!p.av.img,
         (p.banner !== 'lima' || p.pattern !== 'none' || !!p.bannerImg), p.accent !== 'auto'
     ];
     const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
@@ -2930,14 +2957,20 @@ function renderForm() {
             <label class="field span2">Bio<textarea data-f="bio" maxlength="140" placeholder="Conte algo sobre você (até 140 caracteres)">${esc(p.bio)}</textarea></label>
             <label class="field">Título<select data-f="title">${sel(TITLES, p.title)}</select></label>
             <label class="field">Região<select data-f="region">${sel(REGIONS, p.region)}</select></label>
+            <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
+            <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
             <div class="pform-sec">Redes sociais</div>
             <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
             <label class="field">Twitch<input data-f="l_twitch" maxlength="30" value="${esc(p.links.twitch)}" placeholder="canal"></label>
-            <label class="field span2">YouTube<input data-f="l_youtube" maxlength="30" value="${esc(p.links.youtube)}" placeholder="canal"></label>`;
+            <label class="field">YouTube<input data-f="l_youtube" maxlength="30" value="${esc(p.links.youtube)}" placeholder="canal"></label>
+            <label class="field">X (Twitter)<input data-f="l_x" maxlength="30" value="${esc(p.links.x || '')}" placeholder="@usuario"></label>
+            <label class="field">Instagram<input data-f="l_instagram" maxlength="30" value="${esc(p.links.instagram || '')}" placeholder="@usuario"></label>
+            <label class="field">TikTok<input data-f="l_tiktok" maxlength="30" value="${esc(p.links.tiktok || '')}" placeholder="@usuario"></label>
+            <label class="field">Steam<input data-f="l_steam" maxlength="40" value="${esc(p.links.steam || '')}" placeholder="link ou nome"></label>`;
     } else if (pTab === 'game') {
         html = `
-            <div class="pform-sec">Heróis principais (até 3)</div>
-            <p class="field-note">Escolha até 3 heróis. Eles aparecem no seu cartão e na sua lista de destaques.</p>
+            <div class="pform-sec">Heróis principais (até ${MAX_MAINS})</div>
+            <p class="field-note">Escolha até ${MAX_MAINS} heróis. Eles aparecem no seu cartão e na sua lista de destaques.</p>
             <input id="mainsSearch" placeholder="Buscar herói..." style="width:100%;margin:10px 0;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;padding:10px 12px;color:var(--text)">
             <div class="mp-pick" id="mpPick">${mainsHTML}</div>`;
     } else if (pTab === 'avatar') {
@@ -3055,13 +3088,20 @@ function renderForm() {
             <button type="button" class="btn btn-dark btn-sm" data-act="menu-all" style="margin-top:10px"><i class="fa-solid fa-eye"></i> Mostrar todas as abas</button>
 
             <div class="pform-sec">Cartões de herói</div>
+            <p class="field-note">Formato</p>
             <div class="picker-row">
                 <button type="button" class="pill ${cards.formato === 'pen' ? 'on' : ''}" data-cardfmt="pen">Estandarte (atual)</button>
                 <button type="button" class="pill ${cards.formato === 'cartao' ? 'on' : ''}" data-cardfmt="cartao">Cartão</button>
             </div>
+            <p class="field-note" style="margin-top:10px">Tamanho</p>
+            <div class="picker-row">
+                ${[['compacto', 'Compacto'], ['padrao', 'Padrão'], ['grande', 'Grande']]
+                    .map(([k, n]) => `<button type="button" class="pill ${(cards.tamanho || 'padrao') === k ? 'on' : ''}" data-cardsize="${k}">${n}</button>`).join('')}
+            </div>
             <p class="field-note" style="margin-top:10px">O que aparece embaixo da arte:</p>
             <div class="menu-pick">
-                ${[['papel', 'Papel (Tanque, Carry...)'], ['tier', 'Tier'], ['win', 'Win rate'], ['pick', 'Pick rate']]
+                ${[['papel', 'Papel (Tanque, Carry...)'], ['tier', 'Tier'], ['win', 'Win rate'], ['pick', 'Pick rate'],
+                    ['partidas', 'Partidas'], ['kda', 'KDA'], ['diff', 'Dificuldade']]
                     .map(([k, n]) => `<label class="chk"><input type="checkbox" data-cardbadge="${k}" ${cards[k] ? 'checked' : ''}> ${n}</label>`).join('')}
             </div>
 
@@ -3109,7 +3149,7 @@ function initProfile() {
         if (f) {
             setField(f, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
             saveProfile(); applyProfile();
-            if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'l_discord', 'l_twitch', 'l_youtube'].includes(f)) touch('id_' + f);
+            if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'avail', 'lfg', 'l_discord', 'l_twitch', 'l_youtube', 'l_x', 'l_instagram', 'l_tiktok', 'l_steam'].includes(f)) touch('id_' + f);
             renderSideCard(); renderProfileView(); updateChip(); updateMeter();
             return;
         }
@@ -3162,6 +3202,7 @@ function initProfile() {
         const ac = e.target.closest('[data-ac]'); if (ac) { profile.accent = ac.dataset.ac; touch('accent'); commit(); return; }
         const fd = e.target.closest('[data-fundo]'); if (fd) { profile.fundo = fd.dataset.fundo; touch('fundo'); commit(); return; }
         const cf = e.target.closest('[data-cardfmt]'); if (cf) { profile.cards.formato = cf.dataset.cardfmt; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
+        const cs = e.target.closest('[data-cardsize]'); if (cs) { profile.cards.tamanho = cs.dataset.cardsize; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
         const dl = e.target.closest('[data-dl]'); if (dl) { downloadCard(dl.dataset.dl); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
         const act = e.target.closest('[data-act]');
@@ -3212,10 +3253,8 @@ function initProfile() {
 }
 
 function setField(f, v) {
-    if (f === 'l_discord') profile.links.discord = v;
-    else if (f === 'l_twitch') profile.links.twitch = v;
-    else if (f === 'l_youtube') profile.links.youtube = v;
-    else if (f === 'compact') profile.compact = !!v;
+    if (f.startsWith('l_')) profile.links[f.slice(2)] = v;
+    else if (f === 'compact' || f === 'lfg') profile[f] = !!v;
     else profile[f] = v;
 }
 
@@ -3225,7 +3264,7 @@ function commitLight() { saveProfile(); applyProfile(); renderSideCard(); render
 function toggleMain(name) {
     const i = profile.mains.indexOf(name);
     if (i >= 0) profile.mains.splice(i, 1);
-    else { if (profile.mains.length >= 3) profile.mains.shift(); profile.mains.push(name); }
+    else { if (profile.mains.length >= MAX_MAINS) profile.mains.shift(); profile.mains.push(name); }
     touch('mains');
     commit();
 }
@@ -3303,13 +3342,14 @@ function randomizeProfile() {
 function cardText(p) {
     const lv = level();
     const mains = p.mains.map(heroByName).filter(Boolean).map(h => h.name).join(', ');
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
-        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join(' · ');
     return [
         `${p.nick || 'Jogador'} — Central Deadlock`,
         p.title ? `Título: ${p.title}` : '',
         p.region ? `Região: ${p.region}` : '',
         p.status ? `Status: ${p.status}` : '',
+        p.lfg ? 'Procurando time: sim' : '',
+        p.avail ? `Disponível: ${p.avail}` : '',
         p.bio ? `Bio: ${p.bio}` : '',
         mains ? `Heróis favoritos: ${mains}` : '',
         lk,
@@ -3361,7 +3401,7 @@ function importData(file) {
                     av: { ...PROFILE_DEF.av, ...(d.profile.av || {}) },
                     cards: { ...PROFILE_DEF.cards, ...(d.profile.cards || {}) },
                     menuOculto: Array.isArray(d.profile.menuOculto) ? d.profile.menuOculto.filter(x => typeof x === 'string') : [],
-                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, 3) : []
+                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
                 });
                 saveProfile();
             }
@@ -3375,6 +3415,13 @@ function importData(file) {
 }
 
 /* ---------- exportar o cartão como imagem (canvas) ---------- */
+/* corta um texto com "…" sem passar da largura disponível (usado nos cartões em PNG) */
+function cortarTexto(ctx, texto, largura) {
+    if (!texto || ctx.measureText(texto).width <= largura) return texto;
+    let t = texto;
+    while (t.length > 3 && ctx.measureText(t + '…').width > largura) t = t.slice(0, -1);
+    return t.trim() + '…';
+}
 function roundRectPath(ctx, x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -3557,35 +3604,34 @@ async function downloadCard(formato) {
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 16px ${font}`;
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', tx, by + bh + 190, W - tx - 40, 22, 2);
 
-    // heróis principais
+    // heróis principais (até 6, numa linha, embaixo da bio)
     const mains = p.mains.map(heroByName).filter(Boolean);
     if (mains.length) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 13px ${font}`;
-        ctx.fillText('HERÓIS PRINCIPAIS', 66, 414);
-        let cx = 66; const cy = 430;
-        mains.forEach((h) => {
+        ctx.fillText('HERÓIS PRINCIPAIS', 66, 456);
+        let cx = 66; const cy = 466, cw = 120, chh = 40;
+        mains.slice(0, MAX_MAINS).forEach((h) => {
             ctx.fillStyle = 'rgba(255,255,255,.07)';
-            roundRectPath(ctx, cx, cy, 150, 46, 10); ctx.fill();
-            ctx.fillStyle = lime; roundRectPath(ctx, cx + 6, cy + 6, 34, 34, 8); ctx.fill();
-            ctx.fillStyle = '#0c0c0e'; ctx.font = `800 15px ${font}`; ctx.textAlign = 'center';
-            ctx.fillText(initials(h.name), cx + 23, cy + 28);
+            roundRectPath(ctx, cx, cy, cw, chh, 10); ctx.fill();
+            ctx.fillStyle = lime; roundRectPath(ctx, cx + 6, cy + 6, 28, 28, 8); ctx.fill();
+            ctx.fillStyle = '#0c0c0e'; ctx.font = `800 12px ${font}`; ctx.textAlign = 'center';
+            ctx.fillText(initials(h.name), cx + 20, cy + 25);
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#fff'; ctx.font = `700 14px ${font}`;
-            ctx.fillText(h.name.slice(0, 13), cx + 48, cy + 22);
-            ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 11px ${font}`;
-            ctx.fillText(h.role || '', cx + 48, cy + 37);
-            cx += 158;
+            ctx.fillStyle = '#fff'; ctx.font = `700 12px ${font}`;
+            ctx.fillText(h.name.slice(0, 11), cx + 40, cy + 19);
+            ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 10px ${font}`;
+            ctx.fillText(h.role || '', cx + 40, cy + 32);
+            cx += cw + 8;
         });
     }
 
     // rodapé
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
-        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
-    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(lk.slice(0, 72), 66, 516); }
+    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 850), 66, 524); }
     ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
-    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 544);
+    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 552);
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 13px ${font}`;
-    ctx.fillText(`ID ${p.id}`, 66, 570);
+    ctx.fillText(`ID ${p.id}`, 66, 578);
 
     try {
         const url = c.toDataURL('image/png');
@@ -3638,10 +3684,9 @@ async function cartaoAvatar(ctx, p, x, y, tamanho, acento) {
     ctx.restore();
 }
 
-function cartaoPrincipais(ctx, p, x, y, largura, altura, acento, font) {
-    const mains = p.mains.map(heroByName).filter(Boolean);
+function cartaoPrincipais(ctx, lista, x, y, largura, altura, acento, font) {
     let cx = x;
-    mains.forEach((h) => {
+    lista.forEach((h) => {
         ctx.fillStyle = 'rgba(255,255,255,.07)';
         roundRectPath(ctx, cx, y, largura, altura, 12); ctx.fill();
         const lado = altura - 16;
@@ -3702,23 +3747,28 @@ async function baixarCartaoStory(p) {
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 26px ${font}`;
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 30, 860, 38, 3);
 
-    if (p.mains.filter(n => heroByName(n)).length) {
+    const mains = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
+    let yLinks = 1600;
+    if (mains.length) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
         ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 1400);
-        const largura = 300, altura = 96;
-        const quantos = p.mains.filter(n => heroByName(n)).length;
-        const total = quantos * largura + (quantos - 1) * 12;
-        cartaoPrincipais(ctx, p, (W - total) / 2, 1435, largura, altura, acento, font);
+        const largura = 300, altura = 96, porLinha = 3;
+        for (let i = 0; i < mains.length; i += porLinha) {
+            const linha = mains.slice(i, i + porLinha);
+            const total = linha.length * largura + (linha.length - 1) * 12;
+            cartaoPrincipais(ctx, linha, (W - total) / 2, 1435 + (i / porLinha) * (altura + 12), largura, altura, acento, font);
+        }
         ctx.textAlign = 'center';
+        const linhas = Math.ceil(mains.length / porLinha);
+        yLinks = Math.max(1600, 1435 + linhas * (altura + 12) + 50);
     }
 
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
-        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
-    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(lk.slice(0, 70), W / 2, 1600); }
+    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yLinks); }
     ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
-    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, 1670);
+    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yLinks + 70);
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 21px ${font}`;
-    ctx.fillText(`ID ${p.id}`, W / 2, 1710);
+    ctx.fillText(`ID ${p.id}`, W / 2, yLinks + 106);
 
     ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 19px ${font}`;
     ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1845);
@@ -3755,19 +3805,20 @@ async function baixarCartaoBanner(p) {
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 18px ${font}`;
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282, 1040, 24, 2);
 
-    if (p.mains.filter(n => heroByName(n)).length) {
-        cartaoPrincipais(ctx, p, x, 340, 220, 64, acento, font);
+    const mainsBanner = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
+    if (mainsBanner.length) {
+        const largura = mainsBanner.length > 4 ? 170 : 220;
+        cartaoPrincipais(ctx, mainsBanner, x, 340, largura, 64, acento, font);
     }
 
-    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
-        .filter(v => v[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
     ctx.textAlign = 'right';
     ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
     ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
     ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `500 16px ${font}`;
     ctx.fillText(`ID ${p.id}`, W - 48, 478);
     ctx.textAlign = 'left';
-    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 15px ${font}`; ctx.fillText(lk.slice(0, 48), x, 470); }
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 730), x, 470); }
     ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.font = `600 14px ${font}`;
     ctx.fillText('hypedz.github.io/central-deadlock', 48, 478);
 
@@ -3784,7 +3835,7 @@ function checkSharedCard() {
     const p = Object.assign({}, PROFILE_DEF, raw, {
         links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
-        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, 3) : []
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
     });
     const box = $('#shareModalBox'); if (!box) return;
     box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
@@ -3901,6 +3952,9 @@ function applyProfile() {
     aplicarFundo();
     aplicarMenu();
     document.body.classList.toggle('cards-cartao', (profile.cards || {}).formato === 'cartao');
+    const tam = (profile.cards || {}).tamanho || 'padrao';
+    document.body.classList.toggle('cards-pequeno', tam === 'compacto');
+    document.body.classList.toggle('cards-grande', tam === 'grande');
 }
 
 function updateChip() {

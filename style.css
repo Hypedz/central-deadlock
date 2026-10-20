@@ -521,6 +521,9 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 
 .page-sub { color: var(--text-soft); font-size: 0.98rem; margin-top: 4px; }
 
+/* contador ao lado do título (ex.: Favoritos (14)) */
+.page-count { font-size: 0.5em; font-weight: 800; color: var(--text-faint); letter-spacing: 0; vertical-align: middle; }
+
 /* ===== BOTÕES ===== */
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -648,6 +651,12 @@ body.cards-cartao .heroes-grid .pen-in { inset: 3px; clip-path: none; border-rad
 body.cards-cartao .heroes-grid .pen-in::after { height: 62%; }
 body.cards-cartao .heroes-grid .pen-name { bottom: 10px; font-size: .92rem; }
 body.cards-cartao .heroes-grid .pen-soon { top: 0; }
+
+/* tamanho dos cartões (Compacto / Padrão / Grande) */
+body.cards-pequeno .heroes-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 16px 12px; }
+body.cards-pequeno:not(.cards-cartao) .heroes-grid .pen { width: 102px; }
+body.cards-grande .heroes-grid { grid-template-columns: repeat(auto-fill, minmax(186px, 1fr)); gap: 24px 18px; }
+body.cards-grande:not(.cards-cartao) .heroes-grid .pen { width: 168px; }
 
 /* fundo do site com a arte de um herói (o script aplica a imagem no body) */
 body.fundo-heroi .sidebar {
@@ -933,7 +942,7 @@ body.compact .cards-grid { gap: 14px; }
 .pcard .pstatus-txt { color: var(--text-soft); font-size: 0.86rem; font-style: italic; margin-bottom: 8px; }
 .pcard .prow { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .pcard .pbio { color: var(--text-soft); font-size: 0.9rem; }
-.pmains { display: flex; gap: 14px; align-items: flex-end; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.pmains { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 .pmains .pm { text-align: center; }
 .pmains .pm small { display: block; margin-top: 5px; font-size: 11px; color: var(--text-faint); }
 .plinks { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12.5px; color: var(--text-soft); }
@@ -974,11 +983,11 @@ body.compact .cards-grid { gap: 14px; }
 .pv-t span { font-size: 11.5px; color: var(--text-faint); }
 
 /* conquistas do perfil grande (medalhas) */
-.pv-ach { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 10px; margin-top: 14px; }
+.pv-ach { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 12px; margin-top: 14px; }
 .ach-b {
     position: relative;
-    display: flex; flex-direction: column; align-items: center; gap: 7px;
-    padding: 15px 8px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 9px;
+    padding: 18px 10px 14px;
     border: 1px solid var(--border);
     border-radius: 14px;
     background: var(--card-2);
@@ -989,30 +998,30 @@ body.compact .cards-grid { gap: 14px; }
 .ach-b:hover { transform: translateY(-3px); opacity: .75; }
 .ach-medal {
     position: relative;
-    width: 46px; height: 46px;
+    width: 64px; height: 64px;
     display: grid; place-items: center;
     border-radius: 50%;
-    font-size: 18px;
+    font-size: 27px;
     color: var(--text-faint);
     background: radial-gradient(circle at 50% 28%, rgba(255, 255, 255, .10), rgba(255, 255, 255, 0) 68%), var(--card);
     border: 2px solid var(--border-2);
 }
 .ach-medal::after {
     content: '';
-    position: absolute; inset: -6px;
+    position: absolute; inset: -8px;
     border-radius: 50%;
     border: 1px dashed var(--border-2);
 }
-.ach-name { font-family: var(--font-ui); font-weight: 800; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-faint); line-height: 1.15; }
-.ach-prog { font-size: 10px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.ach-name { font-family: var(--font-ui); font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-faint); line-height: 1.15; }
+.ach-prog { font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .ach-track { display: block; width: 100%; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .09); overflow: hidden; }
 .ach-track i { display: block; height: 100%; border-radius: 99px; background: var(--lime); transition: width .3s ease; }
 .ach-badge {
-    position: absolute; top: 7px; right: 7px;
-    width: 18px; height: 18px;
+    position: absolute; top: 8px; right: 8px;
+    width: 22px; height: 22px;
     display: grid; place-items: center;
     border-radius: 50%;
-    font-size: 8px;
+    font-size: 10px;
     background: var(--card); color: var(--text-faint);
     border: 1px solid var(--border);
 }
@@ -1046,9 +1055,9 @@ body.compact .cards-grid { gap: 14px; }
 .ach:hover { opacity: .75; }
 .ach.on { opacity: 1; border-color: var(--lime); background: linear-gradient(90deg, var(--lime-dim), var(--card-2) 62%); }
 .ach .ic {
-    width: 40px; height: 40px; border-radius: 50%; flex: none;
+    width: 54px; height: 54px; border-radius: 50%; flex: none;
     background: var(--card); border: 1px solid var(--border);
-    display: grid; place-items: center; font-size: 15px; color: var(--text-faint);
+    display: grid; place-items: center; font-size: 22px; color: var(--text-faint);
 }
 .ach.on .ic { background: linear-gradient(160deg, var(--lime), var(--lime-hover)); color: var(--on-lime); border-color: var(--lime); box-shadow: 0 0 16px -6px var(--lime); }
 .ach-info { flex: 1; min-width: 0; }

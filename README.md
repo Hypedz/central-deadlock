@@ -140,7 +140,7 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 
 - 44 heróis com as **artes reais** (`assets/heroes`, em **WebP** — leves e nítidas)
 - **Busca** por nome, **filtro por função** (Tanque, Suporte, Carry, Controle, Assassino) e **ordenação** (A→Z, Z→A, tier, win rate, favoritos)
-- **Estrela ★** em cada estandarte para favoritar (aparece na aba **Favoritos** e no perfil)
+- **Estrela ★** em cada estandarte para favoritar (o herói aparece na aba **Favoritos** e no perfil; a aba mostra o total, como **Favoritos (14)**)
 - **Clique em qualquer herói** para abrir a ficha completa, com abas:
   - **Visão geral** — papel, arquétipo, dificuldade, tier, atributos, win rate, pick rate, KDA, **taxa de banimento**, o **histórico de win rate** (gráfico semana a semana) e os **melhores jogadores daquele herói** em cada região (ranking do próprio jogo)
   - **Habilidades** — as 4 habilidades com descrição e recarga; o nome aparece **em português** e o original em inglês fica logo abaixo, em cinza
@@ -466,11 +466,11 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 1. **Perfil grande (topo)** — banner grande, **avatar grande**, nome, tags, status e os botões **Editar perfil**, **Copiar link** e **Baixar cartão**. Embaixo vêm os cards **Sobre**, **Heróis principais**, **Nível/XP**, **Atividade** e **Conquistas** — igual à página de perfil do protótipo.
 2. **Editor (abaixo)** — o cartão de pré-visualização fica fixo à esquerda (com os botões Alterar foto, Surpreenda-me, Baixar, Copiar link e Copiar texto) e, à direita, as **abas arredondadas com ícones**:
 
-- **Identidade** — apelido, pronomes, status, bio, título, região e redes (Discord, Twitch, YouTube), em duas colunas
-- **Jogo** — heróis principais (até 3), que aparecem como estandartes no cartão
+- **Identidade** — apelido, pronomes, status, bio, título, região, **disponibilidade** (ex.: "depois das 20h") e a opção **"Estou procurando time"** (mostra um selo **LFG** no perfil e no cartão); redes **Discord, Twitch, YouTube, X (Twitter), Instagram, TikTok e Steam**, em duas colunas
+- **Jogo** — heróis principais (**até 6**), que aparecem como estandartes no cartão
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
 - **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
-- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (formato **estandarte** ou **cartão**, e o que aparece embaixo: papel, tier, win rate e pick rate), tema escuro/claro, idioma e modo compacto
+- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (formato **estandarte** ou **cartão**, **tamanho compacto/padrão/grande** e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), tema escuro/claro, idioma e modo compacto
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
 
