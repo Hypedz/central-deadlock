@@ -14,6 +14,7 @@ meu-fansite/
 ├── heroes-data.js           # Ficha dos heróis (nomes, atributos, habilidades)
 ├── script.js
 ├── pwa.js                   # Liga o "app instalável" nas páginas geradas
+├── tema.js                  # Botão de tema claro/escuro (canto direito superior)
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
 ├── sw.js                    # Guarda o site no navegador (abre mais rápido)
 ├── sitemap.xml              # Mapa do site para o Google - GERADO sozinho
@@ -113,7 +114,8 @@ meu-fansite/
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
 - **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
-- **Mapa** — **mapa ilustrativo novo** (não é o mapa oficial): desenho próprio em SVG com as **3 rotas coloridas** (com animação de fluxo), as **duas bases** e o **Mid Boss** pulsando no centro, selva em volta e legenda. Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel ao lado.
+- **Mapa** — **mapa esquemático do jogo** (não é o mapa oficial): desenho próprio em SVG montado a partir do mapa real, na posição do minimapa do time Âmbar — as **3 rotas de verdade** (**York/amarela**, **Broadway/azul** no meio e **Greenwich/verde**), as **duas bases** (Âmbar embaixo, Safira em cima), **Guardians e Walkers** marcados em cada rota, o **Midboss** no centro (no esgoto, embaixo da Broadway) e os **4 distritos** da selva (**Praça**, **Teatro**, **Lote Assombrado** e **Chinatown**). Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel. Abaixo do mapa, o cartão **Confrontos de rota — dados reais** mostra os piores duelos de rota do momento (números de verdade da deadlock-api.com).
+- **Tema claro / escuro** — botão no **canto direito superior** (em todas as páginas, inclusive nas de herói, item e notícia): troca a cor do site na hora e **fica salvo** no navegador. Se você nunca mexeu, o site segue o tema do seu sistema.
 - **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
 - **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
@@ -512,6 +514,7 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
 - **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
 - **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
+  - Dica: o tema também tem um **botão no canto direito superior** (em todas as páginas do site), que troca a cor na hora e salva a escolha — é o mesmo ajuste desta aba.
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
 

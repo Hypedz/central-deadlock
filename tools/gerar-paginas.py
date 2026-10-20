@@ -34,7 +34,7 @@ PASTA_ITENS = os.path.join(BASE, "item")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261020f"
+VERSAO_CSS = "20261020g"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -166,6 +166,7 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{prefixo}style.css?v={VERSAO_CSS}">
+<script src="{prefixo}tema.js?v={VERSAO_CSS}"></script>
 </head>
 <body class="pg-body {classe}"{estilo}>"""
 
@@ -191,6 +192,7 @@ def topo(secao_url, secao_nome, atual, prefixo="../"):
         <a class="pg-brand" href="{prefixo}index.html"><img src="{prefixo}assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
         <nav class="pg-crumb"><a href="{prefixo}index.html">Início</a>{meio} › <b>{e(atual)}</b></nav>
         <a class="pg-busca" href="{prefixo}index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
+        <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
     </header>
 """
 
@@ -236,6 +238,7 @@ def pagina_404():
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="style.css?v={VERSAO_CSS}">
+<script src="tema.js?v={VERSAO_CSS}"></script>
 </head>
 <body class="pg-body pg-404">
     <div class="pg-wrap">
@@ -243,6 +246,7 @@ def pagina_404():
             <a class="pg-brand" href="index.html"><img src="assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
             <nav class="pg-crumb"><a href="index.html">Início</a> › <b>Página não encontrada</b></nav>
             <a class="pg-busca" href="index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
+            <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
         </header>
         <main class="n404">
             <div class="n404-num">404</div>
@@ -650,7 +654,7 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
                 '<li><span class="pg-top-pos">{}º</span> {}</li>'.format(int(p[1]), e(str(p[0])))
                 for p in lista[:3])
             linhas_top.append(
-                '                <div class="pg-top-reg"><div class="pg-top-tit">{}</div><ol class="pg-top">{}</ol></div>'.format(
+                '                <div class="pg-top-reg"><div class="pg-top-tit">{}</div><ol class="pg-top-lista">{}</ol></div>'.format(
                     e(top_regioes.get(codigo, codigo)), itens_top))
         if linhas_top:
             pagina.append('            <div class="pg-card">')

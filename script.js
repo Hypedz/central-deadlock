@@ -147,6 +147,16 @@ let profile = (() => {
 })();
 const saveProfile = () => store.set('cdl_profile', profile);
 
+/* o botão de tema (tema.js) troca a cor por fora do perfil; aqui a gente
+   acompanha para o perfil não salvar a cor antiga depois */
+document.addEventListener('cdl-tema', (e) => {
+    const tema = e.detail && e.detail.tema;
+    if (!tema) return;
+    profile.theme = tema;
+    const sel = document.querySelector('select[data-f="theme"]');
+    if (sel) sel.value = tema;
+});
+
 const ACH = [
     { n: 'Novato', d: 'Escolha um apelido para o perfil.', p: () => profile.nick ? 1 : 0, max: 1 },
     { n: 'Explorador', d: 'Visite 8 páginas diferentes.', p: () => Object.keys(stats.visited).length, max: 8 },
@@ -2407,117 +2417,202 @@ function renderStats() {
 }
 
 /* ================= mapa ================= */
-/* Desenho próprio (SVG), só para orientar quem está começando: as 3 rotas
-   ligando as duas bases, a selva em volta e o Mid Boss no centro.
-   O traço de cada rota é uma curva; "lx/ly" é onde fica o nome dela. */
-const MAP_LANES = [
-    { id: 'top', label: 'ROTA SUPERIOR', d: 'M170,440 C170,200 330,122 730,120', lx: 400, ly: 96, cor: '#b6f24a' },
-    { id: 'mid', label: 'ROTA DO MEIO', d: 'M170,440 L730,120', lx: 452, ly: 200, cor: '#22d3ee' },
-    { id: 'bot', label: 'ROTA INFERIOR', d: 'M170,440 C330,486 610,430 730,120', lx: 420, ly: 490, cor: '#f472b6' }
+/* Desenho esquemático montado a partir do mapa real (The Cursed Apple),
+   na posição do minimapa de quem joga no time Âmbar: a sua base embaixo,
+   a inimiga em cima e as 3 rotas do jogo no meio —
+     York (amarela, lateral) · Broadway (azul, meio) · Greenwich (verde, lateral)
+   Em volta ficam os 4 distritos (a "selva") e, no centro, o Midboss.
+   Não é o mapa oficial: é um desenho para orientar quem está começando. */
+const MAP_CORES = {
+    york: '#f5c84c',
+    broadway: '#4b9fe8',
+    greenwich: '#4ed17a',
+    amber: '#ff9f43',
+    sapphire: '#58b6ff',
+    midboss: '#b388ff',
+    selva: '#6f9457'
+};
+
+const MAP_ROTAS = [
+    {
+        id: 'york', nome: 'YORK · AMARELA', cor: MAP_CORES.york,
+        d: 'M395,560 C280,560 225,480 225,325 C225,170 280,85 395,85',
+        lx: 225, ly: 325, giro: -90
+    },
+    {
+        id: 'broadway', nome: 'BROADWAY · AZUL', cor: MAP_CORES.broadway,
+        d: 'M450,560 L450,85',
+        lx: 450, ly: 124, giro: 0
+    },
+    {
+        id: 'greenwich', nome: 'GREENWICH · VERDE', cor: MAP_CORES.greenwich,
+        d: 'M505,560 C620,560 675,480 675,325 C675,170 620,85 505,85',
+        lx: 675, ly: 325, giro: -90
+    }
+];
+
+/* guardiões e walkers ficam nos mesmos lugares em toda rota: 2 perto da
+   sua base (âmbar) e 2 perto da base inimiga (safira) */
+const MAP_MARCAS = [
+    { f: 0.16, tipo: 'walker', lado: 'amber' },
+    { f: 0.30, tipo: 'guardian', lado: 'amber' },
+    { f: 0.70, tipo: 'guardian', lado: 'sapphire' },
+    { f: 0.84, tipo: 'walker', lado: 'sapphire' }
 ];
 
 const MAP_BASES = [
-    { id: 'amber', nome: 'BASE ÂMBAR', cor: '#ffb74d', x: 170, y: 440, ly: 528 },
-    { id: 'sapphire', nome: 'BASE SAFIRA', cor: '#4fc3f7', x: 730, y: 120, ly: 42 }
+    { id: 'amber', nome: 'BASE ÂMBAR', cor: MAP_CORES.amber, x: 450, y: 585, ly: 648 },
+    { id: 'sapphire', nome: 'BASE SAFIRA', cor: MAP_CORES.sapphire, x: 450, y: 65, ly: 18 }
+];
+
+const MAP_DISTRITOS = [
+    { x: 330, y: 202, n: 'PRAÇA' },
+    { x: 575, y: 202, n: 'TEATRO' },
+    { x: 330, y: 450, n: 'LOTE ASSOMBRADO' },
+    { x: 575, y: 450, n: 'CHINATOWN' }
 ];
 
 const MAP_INFO = {
-    top: {
-        n: 'Rota Superior', tag: 'Rota', ico: 'fa-route', cor: '#b6f24a',
-        d: 'Rota longa que contorna a parte de cima do mapa. Tem bastante espaço para farmar com segurança.',
-        dicas: ['Fique de olho nas tirolesas: o inimigo gira de rota rápido.', 'Avise o time quando alguém sumir da sua rota.']
+    york: {
+        n: 'York — rota amarela', tag: 'Rota lateral', ico: 'fa-route', cor: MAP_CORES.york,
+        d: 'A rota da esquerda (no minimapa do time Âmbar). Zona industrial, com docas, fábricas e a Bolsa. São 3 trechos: Stock Exchange, Shipyard Docks e Fairfax Factories.',
+        dicas: ['A Soul Urn nasce primeiro nesta rota.', 'O Unstable Rift (evento de captura) também pode cair aqui.'],
+        ir: { secao: 'herois', texto: 'Ver heróis' }
     },
-    mid: {
-        n: 'Rota do Meio', tag: 'Rota', ico: 'fa-route', cor: '#22d3ee',
-        d: 'A rota mais curta e movimentada. Passa colada no Mid Boss, então as lutas acontecem o tempo todo por aqui.',
-        dicas: ['Cuidado com emboscadas vindas da selva.', 'Quem controla o meio chega primeiro nos objetivos.']
+    broadway: {
+        n: 'Broadway — rota azul', tag: 'Rota do meio', ico: 'fa-route', cor: MAP_CORES.broadway,
+        d: 'A rota do meio e a mais curta: caminho direto entre as bases. Passa pela Times Square e o Midboss fica no esgoto logo abaixo dela.',
+        dicas: ['Quem domina o meio chega primeiro nos objetivos.', 'É a rota mais disputada do jogo — espere companhia.'],
+        ir: { secao: 'herois', texto: 'Ver heróis' }
     },
-    bot: {
-        n: 'Rota Inferior', tag: 'Rota', ico: 'fa-route', cor: '#f472b6',
-        d: 'Rota longa na parte de baixo do mapa, com muito espaço para farm e rotações rápidas para o centro.',
-        dicas: ['Boa para juntar almas sem parar.', 'Fique perto do time quando o Mid Boss estiver para nascer.']
+    greenwich: {
+        n: 'Greenwich — rota verde', tag: 'Rota lateral', ico: 'fa-route', cor: MAP_CORES.greenwich,
+        d: 'A rota da direita (também chamada de Park). Tomada por plantas, com a Umbria University e o Central Park. Também tem 3 trechos.',
+        dicas: ['O Unstable Rift pode nascer aqui.', 'A Soul Urn que nasce na York tem que ser entregue aqui.'],
+        ir: { secao: 'herois', texto: 'Ver heróis' }
     },
     amber: {
-        n: 'Base Âmbar', tag: 'Base', ico: 'fa-house-chimney', cor: '#ffb74d',
-        d: 'Uma das duas bases. Aqui ficam o Patron e a fonte de cura do time.',
-        dicas: ['Use a fonte antes de voltar para a luta.', 'Defender a base é prioridade quando o inimigo chega.']
+        n: 'Base Âmbar', tag: 'Sua base', ico: 'fa-house-chimney', cor: MAP_CORES.amber,
+        d: 'Base do time laranja (The Hidden King). Aqui ficam o Patron, 2 Shrines, 6 Base Guardians e a sala de respawn, com loja e fonte de cura.',
+        dicas: ['Derrube as 2 Shrines antes de atacar o Patron.', 'A fonte cura 6% da vida + 60 por segundo.'],
+        ir: { secao: 'guias', texto: 'Ver guias' }
     },
     sapphire: {
-        n: 'Base Safira', tag: 'Base', ico: 'fa-house-chimney', cor: '#4fc3f7',
-        d: 'A base do outro time, no canto oposto do mapa. É aqui que a partida termina.',
-        dicas: ['Derrubar as estruturas do caminho abre a entrada.', 'Não entre sozinho: o Patron se defende.']
+        n: 'Base Safira', tag: 'Base inimiga', ico: 'fa-house-chimney', cor: MAP_CORES.sapphire,
+        d: 'Base do time azul (The Archmother). Derrubar o Patron dela é o que encerra a partida (The Ritual).',
+        dicas: ['Os Base Guardians protegem a entrada.', 'Na sala de respawn há 4 torres: não entre sozinho.'],
+        ir: { secao: 'guias', texto: 'Ver guias' }
     },
     midboss: {
-        n: 'Mid Boss', tag: 'Objetivo', ico: 'fa-dragon', cor: '#a78bfa',
-        d: 'Chefe que fica no centro do mapa. O time que o derrota ganha uma vantagem importante para a partida.',
-        dicas: ['Dispute com visão e companhia: sozinho é presente para o outro time.', 'Controle o meio antes de começar a bater nele.']
+        n: 'Midboss', tag: 'Objetivo central', ico: 'fa-dragon', cor: MAP_CORES.midboss,
+        d: 'Fica no esgoto no centro do mapa, embaixo da Broadway. Ao morrer deixa o Rejuvenator: quem pega ganha 3 cargas que ressuscitam aliados.',
+        dicas: ['Ele tem escudo que regenera e um laser que machuca muito.', 'Ressurge 7, 6 e depois 5 minutos após cada morte.'],
+        ir: { secao: 'estatisticas', texto: 'Ver estatísticas' }
+    },
+    selva: {
+        n: 'Selva e distritos', tag: 'Jungle', ico: 'fa-tree', cor: MAP_CORES.selva,
+        d: 'Os 4 distritos entre as rotas: Lote Assombrado e Chinatown (lado Âmbar), Praça e Teatro (lado Safira). Sem torres e sem tropas — só Haunts (neutros) e saque.',
+        dicas: ['São 4 acampamentos fáceis, 22 médios e 12 difíceis.', '4 teleporters ligados em pares atravessam o mapa.'],
+        ir: { secao: 'guias', texto: 'Ver guias' }
     }
 };
 function initMap() {
-    const rotas = MAP_LANES.map(l => `
-        <g class="map-zone" data-area="${l.id}" role="button" tabindex="0" aria-label="${l.label}" style="color:${l.cor}">
-            <path d="${l.d}" fill="none" stroke="transparent" stroke-width="48" stroke-linecap="round"></path>
-            <path d="${l.d}" fill="none" stroke="#0a0a10" stroke-width="34" stroke-linecap="round" opacity=".92"></path>
-            <path class="mg-estrada" d="${l.d}" fill="none" stroke="${l.cor}" stroke-width="22" stroke-linecap="round"></path>
-            <path class="zone-shape mg-fluxo" d="${l.d}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="9 13" stroke-linecap="round" opacity=".9"></path>
-            <text x="${l.lx}" y="${l.ly}" class="mg-rotulo" text-anchor="middle">${l.label}</text>
+    const rotas = MAP_ROTAS.map(r => `
+        <g class="map-zone mg-rota" data-area="${r.id}" role="button" tabindex="0" aria-label="${r.nome}">
+            <path d="${r.d}" fill="none" stroke="transparent" stroke-width="46" stroke-linecap="round"></path>
+            <path d="${r.d}" fill="none" stroke="#0a0a10" stroke-width="34" stroke-linecap="round"></path>
+            <path class="mg-estrada" data-rota="${r.id}" d="${r.d}" fill="none" stroke="${r.cor}" stroke-width="22" stroke-linecap="round"></path>
+            <path class="zone-shape mg-fluxo" d="${r.d}" fill="none" stroke="${r.cor}" stroke-width="2.5" stroke-dasharray="9 13" stroke-linecap="round"></path>
+            <text x="${r.lx}" y="${r.ly}" class="mg-rotulo" text-anchor="middle"${r.giro ? ` transform="rotate(${r.giro} ${r.lx} ${r.ly})"` : ''}>${r.nome}</text>
+            <g class="mg-objetivos" data-rota="${r.id}"></g>
         </g>`).join('');
 
     const bases = MAP_BASES.map(b => `
         <g class="map-zone" data-area="${b.id}" role="button" tabindex="0" aria-label="${b.nome}" style="color:${b.cor}">
-            <circle cx="${b.x}" cy="${b.y}" r="46" fill="${b.cor}" opacity=".18" filter="url(#mgBrilho)"></circle>
-            <circle class="map-halo" cx="${b.x}" cy="${b.y}" r="74" fill="${b.cor}"></circle>
-            <circle cx="${b.x}" cy="${b.y}" r="54" fill="${b.cor}" fill-opacity=".07" stroke="${b.cor}" stroke-opacity=".3" stroke-width="2"></circle>
-            <circle class="zone-shape" cx="${b.x}" cy="${b.y}" r="32" fill="${b.cor}" fill-opacity=".18" stroke="currentColor" stroke-width="2.5"></circle>
-            <path d="M${b.x} ${b.y - 14} L${b.x + 14} ${b.y} L${b.x} ${b.y + 14} L${b.x - 14} ${b.y} Z" fill="${b.cor}"></path>
+            <rect x="${b.x - 95}" y="${b.y - 40}" width="190" height="80" rx="18" fill="#0c0d14" fill-opacity=".9" stroke="${b.cor}" stroke-opacity=".45" stroke-width="2"></rect>
+            <rect x="${b.x - 52}" y="${b.y - 8}" width="16" height="16" rx="4" fill="#0b0b12" stroke="${b.cor}" stroke-opacity=".8" stroke-width="2"></rect>
+            <rect x="${b.x + 36}" y="${b.y - 8}" width="16" height="16" rx="4" fill="#0b0b12" stroke="${b.cor}" stroke-opacity=".8" stroke-width="2"></rect>
+            <rect class="zone-shape" x="${b.x - 15}" y="${b.y - 15}" width="30" height="30" rx="8" fill="${b.cor}" fill-opacity=".22" stroke="currentColor" stroke-width="2.5" transform="rotate(45 ${b.x} ${b.y})"></rect>
             <text x="${b.x}" y="${b.ly}" class="mg-rotulo" text-anchor="middle">${b.nome}</text>
         </g>`).join('');
 
-    const selva = [[505, 172], [258, 306], [392, 366], [646, 314]].map(([x, y]) => `
-        <g class="mg-selva" transform="translate(${x} ${y})">
-            <path d="M0 -10 L8 3 H-8 Z" fill="#3f7a2a" opacity=".75"></path>
-            <path d="M0 -2 L10 13 H-10 Z" fill="#2f5c1f" opacity=".7"></path>
-            <rect x="-1.5" y="12" width="3" height="6" rx="1" fill="#2b4d1d" opacity=".8"></rect>
-        </g>`).join('');
+    const selva = `
+        <g class="map-zone mg-selva-zona" data-area="selva" role="button" tabindex="0" aria-label="Selva e distritos">
+            <circle cx="450" cy="325" r="247" fill="#0a0a10" fill-opacity=".001"></circle>
+            ${MAP_DISTRITOS.map(d => `
+                <g class="mg-distrito">
+                    <path d="M${d.x} ${d.y - 32} l6 10 h-12 z" fill="${MAP_CORES.selva}" opacity=".8"></path>
+                    <rect x="${d.x - 1.5}" y="${d.y - 23}" width="3" height="5" rx="1" fill="${MAP_CORES.selva}" opacity=".6"></rect>
+                    <text x="${d.x}" y="${d.y}" class="mg-rotulo-2" text-anchor="middle">${d.n}</text>
+                </g>`).join('')}
+        </g>`;
 
-    $('#mapBox').innerHTML = `<svg viewBox="0 0 900 560" role="img" aria-label="Mapa ilustrativo do Deadlock: três rotas entre as bases Âmbar e Safira, com o Mid Boss no centro.">
+    $('#mapBox').innerHTML = `<svg viewBox="0 0 900 660" role="img" aria-label="Mapa esquemático do Deadlock na visão do time Âmbar: as rotas York (amarela), Broadway (azul) e Greenwich (verde) ligando as duas bases, a selva em volta e o Midboss no centro.">
         <defs>
-            <radialGradient id="mgFundo" cx="50%" cy="45%" r="78%">
-                <stop offset="0" stop-color="#171822"></stop>
-                <stop offset="1" stop-color="#08080d"></stop>
+            <radialGradient id="mgFundo" cx="50%" cy="46%" r="75%">
+                <stop offset="0" stop-color="#16171f"></stop>
+                <stop offset="1" stop-color="#07070c"></stop>
             </radialGradient>
-            <linearGradient id="mgArea" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#14151f"></stop>
-                <stop offset="1" stop-color="#0c0d14"></stop>
+            <linearGradient id="mgArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#14151e"></stop>
+                <stop offset="1" stop-color="#0b0c12"></stop>
             </linearGradient>
+            <pattern id="mgCidade" width="46" height="46" patternUnits="userSpaceOnUse">
+                <rect x="6" y="8" width="14" height="10" rx="2" fill="#ffffff" opacity=".05"></rect>
+                <rect x="27" y="24" width="10" height="12" rx="2" fill="#ffffff" opacity=".04"></rect>
+                <rect x="40" y="6" width="8" height="8" rx="2" fill="#ffffff" opacity=".035"></rect>
+                <rect x="14" y="31" width="9" height="7" rx="2" fill="#ffffff" opacity=".035"></rect>
+            </pattern>
             <filter id="mgBrilho" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="9" result="borrao"></feGaussianBlur>
                 <feMerge><feMergeNode in="borrao"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
             </filter>
         </defs>
-        <rect width="900" height="560" rx="18" fill="url(#mgFundo)"></rect>
-        <rect x="7.5" y="7.5" width="885" height="545" rx="15" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.5"></rect>
 
-        <!-- área jogável (losango de cantos cortados) -->
-        <path d="M180,60 H720 L840,180 V380 L720,500 H180 L60,380 V180 Z" fill="url(#mgArea)" stroke="rgba(182,242,74,.14)" stroke-width="2"></path>
-        <path d="M196,78 H704 L822,190 V370 L704,482 H196 L78,370 V190 Z" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1.5"></path>
+        <rect width="900" height="660" rx="18" fill="url(#mgFundo)"></rect>
+        <rect x="7.5" y="7.5" width="885" height="645" rx="15" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.5"></rect>
+
+        <!-- a ilha (The Cursed Apple) -->
+        <circle cx="450" cy="325" r="250" fill="url(#mgArea)" stroke="rgba(255,255,255,.09)" stroke-width="2"></circle>
+        <circle cx="450" cy="325" r="250" fill="url(#mgCidade)"></circle>
+        <circle cx="450" cy="325" r="240" fill="none" stroke="rgba(255,255,255,.035)" stroke-width="1.5"></circle>
 
         ${selva}
         ${rotas}
-        ${bases}
 
-        <!-- Mid Boss -->
-        <g class="map-zone" data-area="midboss" role="button" tabindex="0" aria-label="Mid Boss" style="color:#a78bfa">
-            <circle cx="450" cy="280" r="36" fill="#8b5cf6" opacity=".3" filter="url(#mgBrilho)"></circle>
-            <circle class="map-halo" cx="450" cy="280" r="88" fill="#8b5cf6"></circle>
-            <circle class="map-pulso" cx="450" cy="280" r="52" fill="none" stroke="#8b5cf6" stroke-opacity=".5" stroke-width="2" stroke-dasharray="3 9"></circle>
-            <circle class="zone-shape" cx="450" cy="280" r="30" fill="#8b5cf6" fill-opacity=".2" stroke="currentColor" stroke-width="2.5"></circle>
-            <path d="M450 266 l5.4 11 12.1 1.8 -8.8 8.5 2.1 12 -10.8 -5.7 -10.8 5.7 2.1 -12 -8.8 -8.5 12.1 -1.8 Z" fill="#c4b5fd"></path>
-            <text x="450" y="352" class="mg-rotulo" text-anchor="middle">MID BOSS</text>
+        <!-- Midboss, no esgoto embaixo da Broadway -->
+        <g class="map-zone" data-area="midboss" role="button" tabindex="0" aria-label="Midboss" style="color:${MAP_CORES.midboss}">
+            <circle cx="450" cy="325" r="42" fill="#8b5cf6" opacity=".26" filter="url(#mgBrilho)"></circle>
+            <circle class="map-halo" cx="450" cy="325" r="72" fill="#8b5cf6"></circle>
+            <circle class="map-pulso" cx="450" cy="325" r="48" fill="none" stroke="#8b5cf6" stroke-opacity=".5" stroke-width="2" stroke-dasharray="3 9"></circle>
+            <circle class="zone-shape" cx="450" cy="325" r="34" fill="#0b0b12" fill-opacity=".94" stroke="currentColor" stroke-width="2.5"></circle>
+            <path d="M450 311 l5.4 11 12.1 1.8 -8.8 8.5 2.1 12 -10.8 -5.7 -10.8 5.7 2.1 -12 -8.8 -8.5 12.1 -1.8 Z" fill="#c4b5fd"></path>
+            <text x="450" y="398" class="mg-rotulo" text-anchor="middle">MIDBOSS</text>
         </g>
+
+        ${bases}
     </svg>`;
 
     const caixa = $('#mapBox');
+
+    /* guardiões (losango) e walkers (quadrado) de cada lado, calculados
+       em cima do próprio traço da rota para ficarem sempre na pista */
+    caixa.querySelectorAll('.mg-rota').forEach(g => {
+        const caminho = g.querySelector('.mg-estrada');
+        const alvo = g.querySelector('.mg-objetivos');
+        const L = caminho.getTotalLength();
+        alvo.innerHTML = MAP_MARCAS.map(m => {
+            const pt = caminho.getPointAtLength(L * m.f);
+            const c = m.lado === 'amber' ? MAP_CORES.amber : MAP_CORES.sapphire;
+            const x = Math.round(pt.x * 10) / 10;
+            const y = Math.round(pt.y * 10) / 10;
+            const dentro = m.tipo === 'guardian'
+                ? `<path d="M${x} ${y - 4.5} L${x + 4.5} ${y} L${x} ${y + 4.5} L${x - 4.5} ${y} Z" fill="${c}"></path>`
+                : `<path d="M${x - 3.5} ${y - 3.5} h7 v7 h-7 Z" fill="${c}"></path>`;
+            return `<g class="mg-marca"><circle cx="${x}" cy="${y}" r="9.5" fill="#0b0b12" fill-opacity=".92" stroke="${c}" stroke-width="2"></circle>${dentro}</g>`;
+        }).join('');
+    });
+
     caixa.addEventListener('click', (e) => {
         const z = e.target.closest('.map-zone'); if (!z) return;
         setMapArea(z.dataset.area);
@@ -2528,13 +2623,51 @@ function initMap() {
         e.preventDefault();
         setMapArea(z.dataset.area);
     });
-    setMapArea('mid');
+
+    renderDuelosRota();
+    setMapArea('broadway');
+}
+
+/* números reais do site (data/hero-analytics.js): o confronto de rota mais
+   difícil de cada herói — a lista "rota" vem do pior para o melhor duelo */
+function renderDuelosRota() {
+    const alvo = $('#mapDuelos'); if (!alvo) return;
+    const dados = window.HERO_ANALYTICS;
+    if (!dados || !dados.herois) { alvo.innerHTML = ''; return; }
+    const lista = [];
+    Object.keys(dados.herois).forEach(slug => {
+        const linhas = (dados.herois[slug] || {}).rota || [];
+        if (!linhas.length) return;
+        const hero = HEROES.find(h => slugJS(h.name) === slug);
+        const pior = linhas[0];
+        const inimigo = heroiPorApiId(pior[0]);
+        const partidas = Number(pior[2]) || 0;
+        if (!hero || !inimigo || partidas < 800) return;
+        lista.push({ hero, inimigo, pct: Number(pior[1]) || 0, partidas });
+    });
+    lista.sort((a, b) => a.pct - b.pct);
+    alvo.innerHTML = lista.slice(0, 5).map(d => `
+        <button type="button" class="map-duelo" data-heroi="${esc(d.hero.name)}">
+            <img src="assets/heroes/${esc(d.hero.file)}" alt="${esc(d.hero.name)}" loading="lazy">
+            <span>
+                <b>${esc(d.hero.name)}</b>
+                <small>${d.pct.toFixed(1).replace('.', ',')}% vs ${esc(d.inimigo.name)}</small>
+                <small class="map-duelo-n">${d.partidas.toLocaleString('pt-BR')} duelos de rota</small>
+            </span>
+        </button>`).join('');
+    alvo.onclick = (e) => {
+        const b = e.target.closest('[data-heroi]'); if (!b) return;
+        openHero(b.dataset.heroi);
+    };
 }
 
 function setMapArea(id) {
     document.querySelectorAll('#mapBox .map-zone').forEach(z => z.classList.toggle('active', z.dataset.area === id));
     const info = MAP_INFO[id]; if (!info) return;
     const dicas = (info.dicas || []).map(d => `<li><i class="fa-solid fa-check"></i><span>${esc(d)}</span></li>`).join('');
+    const botao = info.ir
+        ? `<button type="button" class="btn btn-dark btn-sm" data-goto="${esc(info.ir.secao)}"><i class="fa-solid fa-arrow-right"></i> ${esc(info.ir.texto)}</button>`
+        : '';
     $('#mapInfo').innerHTML = `
         <div class="map-info-head">
             <span class="map-info-ico" style="--c:${info.cor}"><i class="fa-solid ${info.ico}"></i></span>
@@ -2545,6 +2678,7 @@ function setMapArea(id) {
         </div>
         <p>${esc(info.d)}</p>
         ${dicas ? `<ul class="map-info-dicas">${dicas}</ul>` : ''}
+        ${botao}
         <p class="map-info-pe"><i class="fa-solid fa-hand-pointer"></i> Clique nas outras áreas do mapa para comparar.</p>`;
 }
 
@@ -4171,7 +4305,8 @@ function aplicarMenu() {
 }
 
 function applyProfile() {
-    document.documentElement.setAttribute('data-theme', profile.theme);
+    if (window.aplicarTema) window.aplicarTema(profile.theme);
+    else document.documentElement.setAttribute('data-theme', profile.theme);
     document.body.classList.toggle('compact', !!profile.compact);
     // tamanho do texto: muda a base do site inteiro (todas as medidas em rem acompanham)
     const tamTexto = { pequeno: '15px', padrao: '16px', grande: '18px' }[profile.texto] || '16px';

@@ -35,7 +35,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261020f">
+    <link rel="stylesheet" href="style.css?v=20261020g">
+    <script src="tema.js?v=20261020g"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -151,6 +152,13 @@
 
         <!-- CONTEÚDO -->
         <main class="content" id="conteudo">
+
+        <!-- ===== TROCA DE TEMA (claro / escuro) ===== -->
+        <div class="topo-acoes">
+            <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro">
+                <i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span>
+            </button>
+        </div>
 
             <!-- ============ HERÓIS ============ -->
             <section id="herois" class="section">
@@ -575,7 +583,7 @@
                 <div class="section-top">
                     <div>
                         <h1 class="page-title">Mapa</h1>
-                        <p class="page-sub">Mapa ilustrativo (não é o mapa oficial): clique em uma rota, nas bases ou no Mid Boss para ver o que importa em cada lugar.</p>
+                        <p class="page-sub">Mapa esquemático (não é o mapa oficial), do jeito que aparece para quem joga no time Âmbar: toque em uma rota, nas bases, no Midboss ou na selva para ver o que importa em cada lugar.</p>
                     </div>
                 </div>
                 <div class="map-wrap">
@@ -583,15 +591,26 @@
                         <div class="map-dica"><i class="fa-solid fa-hand-pointer"></i> Toque em uma área do mapa</div>
                         <div id="mapBox"></div>
                         <div class="map-legend">
-                            <span><i class="fa-solid fa-circle" style="color:#b6f24a"></i>Rota Superior</span>
-                            <span><i class="fa-solid fa-circle" style="color:#22d3ee"></i>Rota do Meio</span>
-                            <span><i class="fa-solid fa-circle" style="color:#f472b6"></i>Rota Inferior</span>
-                            <span><i class="fa-solid fa-circle" style="color:#ffb74d"></i>Base Âmbar</span>
-                            <span><i class="fa-solid fa-circle" style="color:#4fc3f7"></i>Base Safira</span>
-                            <span><i class="fa-solid fa-circle" style="color:#a78bfa"></i>Mid Boss</span>
+                            <span><i class="fa-solid fa-circle" style="color:#f5c84c"></i>York (amarela)</span>
+                            <span><i class="fa-solid fa-circle" style="color:#4b9fe8"></i>Broadway (azul)</span>
+                            <span><i class="fa-solid fa-circle" style="color:#4ed17a"></i>Greenwich (verde)</span>
+                            <span><i class="fa-solid fa-circle" style="color:#ff9f43"></i>Base Âmbar</span>
+                            <span><i class="fa-solid fa-circle" style="color:#58b6ff"></i>Base Safira</span>
+                            <span><i class="fa-solid fa-circle" style="color:#b388ff"></i>Midboss</span>
+                            <span><i class="fa-solid fa-tree" style="color:#6f9457"></i>Selva</span>
+                            <span><i class="fa-solid fa-diamond" style="color:#c9ccd6"></i>Guardian</span>
+                            <span><i class="fa-solid fa-square" style="color:#c9ccd6"></i>Walker</span>
                         </div>
                     </div>
                     <div class="map-info card" id="mapInfo"></div>
+                </div>
+                <div class="map-dados card">
+                    <div class="map-dados-cab">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Confrontos de rota — dados reais</h3>
+                        <span class="map-dados-fonte">deadlock-api.com</span>
+                    </div>
+                    <p>Os confrontos de rota mais duros do momento: o pior duelo de cada herói, com pelo menos 800 partidas registradas no site. Toque para abrir a ficha de quem sofre.</p>
+                    <div class="map-duelos" id="mapDuelos"></div>
                 </div>
             </section>
 
@@ -841,16 +860,17 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261020f"></script>
-    <script src="data/game-data.js?v=20261020f"></script>
-    <script src="data/hero-history.js?v=20261020f"></script>
-    <script src="data/hero-stats.js?v=20261020f"></script>
-    <script src="data/steam-news.js?v=20261020f"></script>
-    <script src="data/elos.js?v=20261020f"></script>
-    <script src="data/guias.js?v=20261020f"></script>
-    <script src="data/builds.js?v=20261020f"></script>
-    <script src="data/esports.js?v=20261020f"></script>
-<script src="data/top-jogadores.js?v=20261020f"></script>
-    <script src="script.js?v=20261020f"></script>
+    <script src="heroes-data.js?v=20261020g"></script>
+    <script src="data/game-data.js?v=20261020g"></script>
+    <script src="data/hero-history.js?v=20261020g"></script>
+    <script src="data/hero-stats.js?v=20261020g"></script>
+    <script src="data/steam-news.js?v=20261020g"></script>
+    <script src="data/elos.js?v=20261020g"></script>
+    <script src="data/guias.js?v=20261020g"></script>
+    <script src="data/builds.js?v=20261020g"></script>
+    <script src="data/esports.js?v=20261020g"></script>
+<script src="data/top-jogadores.js?v=20261020g"></script>
+    <script src="data/hero-analytics.js?v=20261020g"></script>
+    <script src="script.js?v=20261020g"></script>
 </body>
 </html>

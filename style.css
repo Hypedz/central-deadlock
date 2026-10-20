@@ -156,6 +156,17 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .topbar-logo span { color: var(--lime); margin-left: 3px; }
 .topbar-mark { width: 26px; height: 26px; }
 
+/* ===== TROCA DE TEMA (canto direito superior) ===== */
+.topo-acoes { display: flex; justify-content: flex-end; margin: -14px 0 10px; }
+.tema-btn { gap: 8px; }
+.tema-btn i { font-size: .8rem; }
+.pg-top .pg-busca { margin-left: auto; }
+.pg-top .tema-btn { flex: none; }
+@media (max-width: 720px) {
+    .pg-top .tema-btn span { display: none; }
+    .pg-top .tema-btn { padding: 8px 11px; }
+}
+
 /* ===== APP / LAYOUT ===== */
 .app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
@@ -1356,24 +1367,32 @@ body.compact .cards-grid { gap: 14px; }
 .tier-heroes .hc { width: auto; }
 
 /* ===== MAPA ===== */
-.map-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+.map-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+/* em telas bem grandes o painel fica ao lado; antes disso o mapa ocupa a
+   largura toda (é o que deixa os nomes das rotas legíveis) */
+@media (min-width: 1500px) {
+    .map-wrap { grid-template-columns: minmax(0, 1fr) 340px; }
+}
 .map-svg-box { position: relative; background: #0a0a10; border: 1px solid var(--border); border-radius: 18px; padding: 10px 10px 6px; }
 #mapBox svg { width: 100%; height: auto; display: block; border-radius: 12px; }
 .map-dica { position: absolute; top: 20px; left: 20px; z-index: 2; display: inline-flex; align-items: center; gap: 7px; font-size: .72rem; font-weight: 700; color: #dfe2ea; background: rgba(12,12,16,.74); border: 1px solid rgba(255,255,255,.1); padding: 5px 10px; border-radius: 999px; pointer-events: none; }
 .map-zone { cursor: pointer; outline: none; }
 .map-zone .zone-shape { transition: filter .18s ease, opacity .18s ease; }
-.map-zone .mg-estrada { stroke-opacity: .22; transition: stroke-opacity .18s ease; }
-.map-zone:hover .mg-estrada { stroke-opacity: .36; }
+.map-zone .mg-estrada { stroke-opacity: .3; transition: stroke-opacity .18s ease; }
+.map-zone:hover .mg-estrada { stroke-opacity: .46; }
 .map-zone:hover .zone-shape { filter: brightness(1.2); }
-.map-zone.active .mg-estrada { stroke-opacity: .5; }
+.map-zone.active .mg-estrada { stroke-opacity: .62; }
 .map-zone.active .zone-shape { filter: brightness(1.3) drop-shadow(0 0 9px currentColor); }
 .map-zone:focus-visible .zone-shape { filter: drop-shadow(0 0 10px currentColor); }
 .map-halo { opacity: 0; transition: opacity .22s ease; pointer-events: none; }
 .map-zone:hover .map-halo { opacity: .18; }
 .map-zone.active .map-halo { opacity: .32; }
-.mg-rotulo { font-family: var(--font-ui); font-size: 12px; font-weight: 800; letter-spacing: .09em; fill: #98a0b3; stroke: #08080d; stroke-width: 4; paint-order: stroke; transition: fill .18s ease; }
+.mg-rotulo { font-family: var(--font-ui); font-size: 15px; font-weight: 800; letter-spacing: .08em; fill: #a6adbf; stroke: #08080d; stroke-width: 5; paint-order: stroke; transition: fill .18s ease; }
 .map-zone:hover .mg-rotulo, .map-zone.active .mg-rotulo { fill: #ffffff; }
-.mg-selva { pointer-events: none; }
+.mg-rotulo-2 { font-family: var(--font-ui); font-size: 12px; font-weight: 700; letter-spacing: .14em; fill: #7e8f78; stroke: #08080d; stroke-width: 3.5; paint-order: stroke; transition: fill .18s ease; }
+.mg-distrito { pointer-events: none; }
+.mg-selva-zona:hover .mg-rotulo-2, .mg-selva-zona.active .mg-rotulo-2 { fill: #cfe0c6; }
+.mg-marca { pointer-events: none; }
 .mg-fluxo { animation: mgFluxo 3s linear infinite; }
 @keyframes mgFluxo { to { stroke-dashoffset: -44; } }
 .map-pulso { transform-box: fill-box; transform-origin: center; animation: mgPulso 3.6s ease-in-out infinite; }
@@ -1387,11 +1406,37 @@ body.compact .cards-grid { gap: 14px; }
 .map-info-ico { width: 46px; height: 46px; flex: none; border-radius: 13px; display: grid; place-items: center; font-size: 1.15rem; color: var(--c, var(--lime)); background: color-mix(in srgb, var(--c, var(--lime)) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c, var(--lime)) 32%, transparent); }
 .map-info-tag { display: inline-block; font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--c, var(--lime)); margin-bottom: 2px; }
 .map-info h3 { font-family: var(--font-ui); font-weight: 800; font-size: 1.2rem; line-height: 1.2; }
-.map-info p { color: var(--text-soft); font-size: .9rem; }
-.map-info-dicas { display: grid; gap: 8px; margin: 14px 0; }
+.map-info p { color: var(--text-soft); font-size: .9rem; max-width: 760px; }
+.map-info-dicas { display: grid; gap: 8px; margin: 14px 0; max-width: 760px; }
 .map-info-dicas li { display: flex; gap: 9px; align-items: flex-start; font-size: .86rem; color: var(--text-soft); }
 .map-info-dicas i { color: var(--lime); font-size: .7rem; margin-top: 5px; }
 .map-info .map-info-pe { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; font-size: .76rem; color: var(--text-faint); display: flex; align-items: center; gap: 7px; }
+.map-info .btn { margin-top: 4px; }
+
+.map-dados { margin-top: 18px; padding: 18px 20px; }
+.map-dados-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.map-dados-cab h3 { font-family: var(--font-ui); font-weight: 800; font-size: 1.02rem; display: flex; align-items: center; gap: 9px; }
+.map-dados-cab h3 i { color: var(--lime); font-size: .85rem; }
+.map-dados-fonte { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); background: var(--card-2); border: 1px solid var(--border); padding: 4px 9px; border-radius: 999px; }
+.map-dados > p { color: var(--text-soft); font-size: .84rem; margin-bottom: 14px; }
+.map-duelos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.map-duelo { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--card-2); text-align: left; cursor: pointer; transition: border-color .18s ease, transform .18s ease; }
+.map-duelo:hover { border-color: color-mix(in srgb, var(--lime) 45%, transparent); transform: translateY(-2px); }
+.map-duelo img { width: 38px; height: 38px; flex: none; border-radius: 10px; object-fit: cover; background: #15161d; }
+.map-duelo span { display: grid; gap: 1px; min-width: 0; }
+.map-duelo b { font-family: var(--font-ui); font-size: .86rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-duelo small { color: var(--text-soft); font-size: .73rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-duelo .map-duelo-n { color: var(--text-faint); font-size: .68rem; }
+
+/* no celular o mapa rola para o lado em vez de encolher: os nomes das rotas
+   continuam legíveis (é melhor do que um desenho minúsculo e ilegível) */
+@media (max-width: 760px) {
+    .map-svg-box { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+    #mapBox { min-width: 620px; }
+    .map-dica { top: 16px; left: 16px; font-size: .66rem; }
+    .map-legend { gap: 10px 14px; font-size: 11px; }
+    .map-info { padding: 16px; }
+}
 
 /* ===== COMEÇANDO (guia para iniciantes) ===== */
 .guia-hero { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: center; padding: 22px; margin-bottom: 18px; }
@@ -2113,8 +2158,8 @@ body.compact .cards-grid { gap: 14px; }
 /* o mesmo top, nas páginas estáticas dos heróis */
 .pg-top-reg + .pg-top-reg { margin-top: 11px; }
 .pg-top-tit { font-family: var(--font-ui); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
-.pg-top { list-style: none; margin: 5px 0 0; padding: 0; display: grid; gap: 3px; }
-.pg-top li { font-size: .82rem; color: var(--text-soft); line-height: 1.4; }
+.pg-top-lista { list-style: none; margin: 5px 0 0; padding: 0; display: grid; gap: 3px; }
+.pg-top-lista li { font-size: .82rem; color: var(--text-soft); line-height: 1.4; }
 .pg-top-pos { color: var(--lime); font-family: var(--font-ui); margin-right: 3px; }
 .pg-top-fonte { margin-top: 12px; font-size: .72rem; }
 

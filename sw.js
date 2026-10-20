@@ -7,12 +7,13 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-20f';
+const VERSAO = 'central-deadlock-2026-10-20g';
 const ESSENCIAIS = [
     './',
     './index.html',
     './style.css',
     './script.js',
+    './tema.js',
     './heroes-data.js',
     './data/hero-stats.js',
     './data/game-data.js',
@@ -23,6 +24,7 @@ const ESSENCIAIS = [
     './data/builds.js',
     './data/esports.js',
     './data/top-jogadores.js',
+    './data/hero-analytics.js',
     './manifest.webmanifest',
     './assets/brand/favicon.svg',
     './assets/brand/icon-192.png'
