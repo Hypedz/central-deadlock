@@ -58,6 +58,7 @@
     --text-soft: #5c5c68;
     --text-faint: #9a9aa6;
     --lime: #86c81f;
+    --lime-rgb: 134, 200, 31;
     --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
     --lime-dim: color-mix(in srgb, var(--lime) 14%, transparent);
     --shadow: 0 10px 30px rgba(0,0,0,0.08);
