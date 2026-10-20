@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-20d';
+const VERSAO = 'central-deadlock-2026-10-20e';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -51,7 +51,9 @@ self.addEventListener('message', (evento) => {
 });
 
 function guardar(pedido, resposta) {
-    if (!resposta || !resposta.ok || resposta.type === 'opaque') return resposta;
+    // respostas "opaque" (de outros sites, sem permissão de leitura) também podem
+    // ser guardadas: é assim que as fontes e os ícones ficam disponíveis offline.
+    if (!resposta || (resposta.type !== 'opaque' && !resposta.ok)) return resposta;
     const copia = resposta.clone();
     caches.open(VERSAO).then((cache) => cache.put(pedido, copia)).catch(() => {});
     return resposta;
@@ -64,8 +66,19 @@ self.addEventListener('fetch', (evento) => {
     let url;
     try { url = new URL(pedido.url); } catch (e) { return; }
 
-    // outras origens (Steam, fontes do Google, Font Awesome): não mexemos
-    if (url.origin !== self.location.origin) return;
+    // outras origens: guardamos fontes e ícones (Google Fonts e Font Awesome)
+    // para o site continuar bonito e legível mesmo sem internet.
+    if (url.origin !== self.location.origin) {
+        const externas = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com'];
+        if (externas.indexOf(url.hostname) === -1) return;
+        evento.respondWith(
+            caches.match(pedido).then((guardada) => {
+                const daRede = fetch(pedido).then((resposta) => guardar(pedido, resposta)).catch(() => guardada);
+                return guardada || daRede;
+            })
+        );
+        return;
+    }
 
     const muda = /\.(html?|js|css|json|webmanifest|xml|txt)$/i.test(url.pathname) || url.pathname.endsWith('/');
 

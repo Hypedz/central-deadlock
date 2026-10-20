@@ -59,4 +59,22 @@
         };
         document.getElementById('avisoFechar').onclick = function () { cx.parentNode.removeChild(cx); };
     }
+
+    /* Aviso de "sem internet": aparece em qualquer página do site. */
+    function avisarOffline() {
+        var barra = document.getElementById('barraOffline');
+        if (!barra) {
+            barra = document.createElement('div');
+            barra.id = 'barraOffline';
+            barra.className = 'offline-bar';
+            barra.setAttribute('role', 'status');
+            barra.innerHTML = '<i class="fa-solid fa-wifi"></i><span>Você está sem internet. Mostrando o que já foi baixado.</span>';
+            document.body.appendChild(barra);
+        }
+        document.body.classList.toggle('offline', navigator.onLine === false);
+    }
+    window.addEventListener('online', avisarOffline);
+    window.addEventListener('offline', avisarOffline);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', avisarOffline);
+    else avisarOffline();
 })();

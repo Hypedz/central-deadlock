@@ -35,9 +35,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261020d">
+    <link rel="stylesheet" href="style.css?v=20261020e">
 </head>
 <body data-theme="dark">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
     <!-- ===== LOGO (emblema próprio: art déco + chifres) ===== -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -113,6 +114,7 @@
                 <a href="#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
                 <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
                 <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
+                <a href="guia-iniciante.html" class="nav-item"><i class="fa-solid fa-graduation-cap"></i> Começando</a>
                 <a href="#builds" class="nav-item" data-section="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Builds</a>
                 <a href="#itens" class="nav-item" data-section="itens"><i class="fa-solid fa-gem"></i> Itens do Jogo</a>
                 <a href="#patch" class="nav-item" data-section="patch"><i class="fa-solid fa-code-branch"></i> Patch Notes</a>
@@ -148,7 +150,7 @@
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- CONTEÚDO -->
-        <main class="content">
+        <main class="content" id="conteudo">
 
             <!-- ============ HERÓIS ============ -->
             <section id="herois" class="section">
@@ -562,6 +564,7 @@
                         <div class="pv-act">
                             <button type="button" class="btn btn-lime" id="pvEdit"><i class="fa-solid fa-pen"></i> Editar perfil</button>
                             <button type="button" class="btn btn-dark" id="pvLink"><i class="fa-solid fa-link"></i> Copiar link</button>
+                            <button type="button" class="btn btn-dark" id="pvShare"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
                             <button type="button" class="btn btn-dark" id="pvDl"><i class="fa-solid fa-download"></i> Baixar cartão</button>
                         </div>
                     </div>
@@ -580,6 +583,7 @@
                         <div class="pprev-actions">
                             <button type="button" class="btn btn-dark" id="pdl"><i class="fa-solid fa-download"></i> Baixar</button>
                             <button type="button" class="btn btn-dark" id="plink"><i class="fa-solid fa-link"></i> Copiar link</button>
+                            <button type="button" class="btn btn-dark" id="pshare"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
                             <button type="button" class="btn btn-dark" id="pcp"><i class="fa-solid fa-copy"></i> Copiar texto</button>
                         </div>
                         <p class="pprev-hint">Dica: arraste uma imagem sobre o cartão para trocar a foto.</p>
@@ -684,16 +688,16 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261020d"></script>
-    <script src="data/game-data.js?v=20261020d"></script>
-    <script src="data/hero-history.js?v=20261020d"></script>
-    <script src="data/hero-stats.js?v=20261020d"></script>
-    <script src="data/steam-news.js?v=20261020d"></script>
-    <script src="data/elos.js?v=20261020d"></script>
-    <script src="data/guias.js?v=20261020d"></script>
-    <script src="data/builds.js?v=20261020d"></script>
-    <script src="data/esports.js?v=20261020d"></script>
-<script src="data/top-jogadores.js?v=20261020d"></script>
-    <script src="script.js?v=20261020d"></script>
+    <script src="heroes-data.js?v=20261020e"></script>
+    <script src="data/game-data.js?v=20261020e"></script>
+    <script src="data/hero-history.js?v=20261020e"></script>
+    <script src="data/hero-stats.js?v=20261020e"></script>
+    <script src="data/steam-news.js?v=20261020e"></script>
+    <script src="data/elos.js?v=20261020e"></script>
+    <script src="data/guias.js?v=20261020e"></script>
+    <script src="data/builds.js?v=20261020e"></script>
+    <script src="data/esports.js?v=20261020e"></script>
+<script src="data/top-jogadores.js?v=20261020e"></script>
+    <script src="script.js?v=20261020e"></script>
 </body>
 </html>

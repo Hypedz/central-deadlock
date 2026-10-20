@@ -29,11 +29,12 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://hypedz.github.io/central-deadlock/"
 PASTA_HEROIS = os.path.join(BASE, "heroi")
 PASTA_NOTICIAS = os.path.join(BASE, "noticia")
+PASTA_ITENS = os.path.join(BASE, "item")
 
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261020d"
+VERSAO_CSS = "20261020e"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -134,7 +135,7 @@ def estilo_da_cor(cor):
 
 # --------------------------- moldura da página ---------------------------
 
-def cabecalho(titulo, descricao, url, imagem, classe="", estilo=""):
+def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../"):
     return f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -154,39 +155,42 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo=""):
 <meta name="twitter:description" content="{e(descricao)}">
 <meta name="twitter:image" content="{e(imagem)}">
 <meta name="theme-color" content="#b6f24a">
-<link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
-<link rel="apple-touch-icon" href="../assets/brand/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="{prefixo}assets/brand/favicon.svg">
+<link rel="apple-touch-icon" href="{prefixo}assets/brand/icon-192.png">
 <!-- deixa esta página também "instalável" no celular (igual à Home) -->
-<link rel="manifest" href="../manifest.webmanifest">
+<link rel="manifest" href="{prefixo}manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Central Deadlock">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="../style.css?v={VERSAO_CSS}">
+<link rel="stylesheet" href="{prefixo}style.css?v={VERSAO_CSS}">
 </head>
 <body class="pg-body {classe}"{estilo}>"""
 
 
-def rodape(voltar_para, voltar_nome):
+def rodape(voltar_para, voltar_nome, prefixo="../"):
     return f"""    <footer class="pg-foot">
         <a class="btn btn-lime pg-cta" href="{e(voltar_para)}"><i class="fa-solid fa-arrow-left"></i> {e(voltar_nome)}</a>
         <p>Central Deadlock é um site de fãs. Deadlock e todos os personagens são marcas da Valve Corporation.
         Este site não tem ligação com a Valve. Números reais de partidas, via <b>deadlock-api.com</b>.</p>
     </footer>
 </div>
-<script src="../pwa.js?v={VERSAO_CSS}" defer></script>
+<script src="{prefixo}pwa.js?v={VERSAO_CSS}" defer></script>
 </body>
 </html>
 """
 
 
-def topo(secao_url, secao_nome, atual):
+def topo(secao_url, secao_nome, atual, prefixo="../"):
+    meio = ''
+    if secao_url and secao_nome:
+        meio = ' › <a href="{0}index.html#{1}">{2}</a>'.format(prefixo, e(secao_url), e(secao_nome))
     return f"""    <header class="pg-top">
-        <a class="pg-brand" href="../index.html"><img src="../assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
-        <nav class="pg-crumb"><a href="../index.html">Início</a> › <a href="../index.html#{e(secao_url)}">{e(secao_nome)}</a> › <b>{e(atual)}</b></nav>
-        <a class="pg-busca" href="../index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
+        <a class="pg-brand" href="{prefixo}index.html"><img src="{prefixo}assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
+        <nav class="pg-crumb"><a href="{prefixo}index.html">Início</a>{meio} › <b>{e(atual)}</b></nav>
+        <a class="pg-busca" href="{prefixo}index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
     </header>
 """
 
@@ -201,6 +205,7 @@ ATALHOS_404 = [
     ("index.html", "fa-house", "Início", "Notícias, destaques e atalhos do site"),
     ("index.html#herois", "fa-masks-theater", "Heróis", "Os 44 heróis, com números reais"),
     ("index.html#guias", "fa-book", "Guias", "Um guia pronto para cada herói"),
+    ("guia-iniciante.html", "fa-graduation-cap", "Começando", "Guia rápido para a primeira partida"),
     ("index.html#builds", "fa-screwdriver-wrench", "Builds", "As builds mais usadas no jogo"),
     ("index.html#itens", "fa-store", "Itens", "Preço e efeito de todos os itens"),
     ("index.html#noticias", "fa-newspaper", "Notícias", "As últimas notícias, em português"),
@@ -722,6 +727,208 @@ def paginas_noticias(noticias):
     return gerados
 
 
+# --------------------------- páginas dos itens ---------------------------
+
+NOME_TIPO = {"weapon": "Arma", "vitality": "Vitalidade", "spirit": "Espírito"}
+ICONE_TIPO = {"weapon": "fa-gun", "vitality": "fa-heart-pulse", "spirit": "fa-hat-wizard"}
+TEXTO_TIPO = {
+    "weapon": "Itens de arma melhoram o tiro: dano, cadência, alcance e efeitos nos disparos.",
+    "vitality": "Itens de vitalidade deixam o herói mais resistente: vida, cura, escudos e defesa.",
+    "spirit": "Itens de espírito fortalecem as habilidades: dano mágico, recarga e utilidade.",
+}
+
+
+def paginas_itens(jogo, builds, herois):
+    """Uma página própria para cada item da loja (preço, efeito, números reais
+    e em quais heróis ele aparece nas builds mais usadas)."""
+    os.makedirs(PASTA_ITENS, exist_ok=True)
+    itens = jogo.get("itens") or {}
+    por_arquivo = {h.get("file"): h for h in herois}
+
+    # item -> heróis que usam esse item em pelo menos uma build
+    usos = {}
+    for entrada in builds.get("lista") or []:
+        heroi = por_arquivo.get(entrada.get("img"))
+        if not heroi or heroi.get("soon"):
+            continue
+        for b in entrada.get("builds") or []:
+            for ident in b.get("itens") or []:
+                usos.setdefault(str(ident), set()).add(heroi["name"])
+
+    gerados, usados = [], set()
+    for ident, it in itens.items():
+        nome = it.get("n") or "Item"
+        ingles = it.get("en") or ""
+        apelido = slug(ingles or nome)
+        if apelido in usados:
+            apelido = "{}-{}".format(apelido, ident)
+        usados.add(apelido)
+
+        tipo = NOME_TIPO.get(it.get("s"), "Item")
+        icone_tipo = ICONE_TIPO.get(it.get("s"), "fa-gem")
+        custo = moeda(it.get("c")) if it.get("c") else "grátis"
+        url = "{}item/{}.html".format(SITE, apelido)
+        imagem = it.get("i") or "{}assets/brand/icon-192.png".format(SITE)
+        descricao = (it.get("d") or TEXTO_TIPO.get(it.get("s"), ""))[:180]
+        titulo = "{} — item de Deadlock ({} almas) | Central Deadlock".format(nome, custo)
+
+        pagina = [cabecalho(titulo, "{}: {} Tier {} — {} almas. Veja o efeito, os números reais e em quais heróis ele aparece.".format(
+            nome, tipo, it.get("t", "?"), custo), url, imagem, "pg-item")]
+
+        pagina.append('        <div class="pg-wrap pg-wrap-item">')
+        pagina.append(topo("itens", "Itens", nome).rstrip("\n"))
+        pagina.append('')
+        pagina.append('            <div class="pg-item-top">')
+        pagina.append('                <div class="pg-item-ico"><img src="{}" alt="{}" width="96" height="96" loading="lazy"></div>'.format(e(imagem), e(nome)))
+        pagina.append('                <div>')
+        pagina.append('                    <h1>{}</h1>'.format(e(nome)))
+        if ingles and ingles != nome:
+            pagina.append('                    <p class="pg-en">{}</p>'.format(e(ingles)))
+        pagina.append('                    <div class="pg-item-tags">')
+        pagina.append('                        <span class="tag"><i class="fa-solid {}"></i> {}</span>'.format(icone_tipo, e(tipo)))
+        pagina.append('                        <span class="tag cy">Tier {}</span>'.format(e(it.get("t", "?"))))
+        pagina.append('                        <span class="tag warn">{} almas</span>'.format(e(custo)))
+        if it.get("a"):
+            pagina.append('                        <span class="tag acc">Item ativo</span>')
+        pagina.append('                    </div>')
+        pagina.append('                </div>')
+        pagina.append('            </div>')
+
+        if it.get("win") is not None or it.get("x"):
+            pagina.append('            <div class="pg-stats">')
+            if it.get("win") is not None:
+                pagina.append('                <div class="pg-stat"><b>{}%</b><small>win rate quando comprado</small></div>'.format(e(it.get("win"))))
+            if it.get("x"):
+                pagina.append('                <div class="pg-stat"><b>{}</b><small>compras registradas</small></div>'.format(moeda(it.get("x"))))
+            pagina.append('                <div class="pg-stat"><b>{}</b><small>custo em almas</small></div>'.format(e(custo)))
+            pagina.append('                <div class="pg-stat"><b>{}</b><small>tier</small></div>'.format(e(it.get("t", "?"))))
+            pagina.append('            </div>')
+
+        pagina.append('            <p class="pg-item-desc">{}</p>'.format(
+            e(it.get("d") or "A loja do jogo ainda não tem a descrição deste item em português.")))
+        if not it.get("d"):
+            pagina.append('            <p class="pg-note">{}</p>'.format(e(TEXTO_TIPO.get(it.get("s"), ""))))
+
+        nomes = sorted(usos.get(str(ident), set()))
+        pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-users"></i> Em quais heróis ele aparece</h2>')
+        if nomes:
+            pagina.append('            <div class="pg-builds">')
+            for nome_heroi in nomes[:10]:
+                h = next((x for x in herois if x["name"] == nome_heroi), None)
+                if not h:
+                    continue
+                pagina.append('                <a class="pg-build" href="../heroi/{}.html"><img src="../assets/heroes/{}" alt="{}" loading="lazy"><span><b>{}</b> — ver guia</span></a>'.format(
+                    e(slug(nome_heroi)), e(h.get("file")), e(nome_heroi), e(nome_heroi)))
+            pagina.append('            </div>')
+            pagina.append('            <p class="pg-note">Baseado nas builds mais usadas que o site baixou do jogo.</p>')
+        else:
+            pagina.append('            <p class="pg-desc">Este item ainda não aparece nas builds que o site baixou.</p>')
+
+        pagina.append('            <p class="pg-note">Números reais de partidas, via <b>deadlock-api.com</b>.</p>')
+        pagina.append(rodape("../index.html#itens", "Ver todos os itens no site"))
+        with open(os.path.join(PASTA_ITENS, apelido + ".html"), "w", encoding="utf-8") as arquivo:
+            arquivo.write("\n".join(pagina))
+        gerados.append({"url": url, "img": imagem, "alt": nome})
+    return gerados
+
+
+# --------------------------- guia para iniciantes ---------------------------
+
+SECOES_GUIA = [
+    ("fa-gamepad", "O que é Deadlock", [
+        "Deadlock é um jogo da Valve que mistura <b>tiro em terceira pessoa</b> com <b>MOBA</b>: dois times de 6 jogadores, "
+        "heróis com habilidades e uma loja de itens comprada com <b>almas</b>.",
+        "O objetivo é derrubar o <b>Patron</b> da base inimiga. Para chegar lá, o time precisa ganhar terreno, "
+        "derrubar estruturas e ficar mais forte comprando itens.",
+    ]),
+    ("fa-map", "Como funciona uma partida", [
+        "São <b>três rotas</b> (esquerdas, meio e direita) e uma selva entre elas. Cada jogador escolhe um herói e uma rota.",
+        "Você ganha <b>almas</b> matando tropas, heróis, estruturas e objetivos. Tropas inimigas também podem ser <b>negadas</b> "
+        "(o último tiro nelas tira a alma do adversário).",
+        "Cada herói tem <b>4 habilidades</b>: três normais e uma <b>suprema</b>. Elas ficam mais fortes conforme você sobe de nível.",
+        "No mapa existem <b>Guardians</b> e <b>Walkers</b> (as torres), o <b>Mid Boss</b>, o <b>Rejuvenator</b> e o <b>Patron</b> de cada base.",
+    ]),
+    ("fa-clock", "O que fazer no começo", [
+        "Fique na sua rota e <b>mate as tropas</b> para juntar almas. Não fique parado esperando a sorte.",
+        "<b>Negue</b> as tropas inimigas sempre que puder: além de atrapalhar o adversário, você ganha vantagem na rota.",
+        "<b>Não morra à toa</b>: cada morte entrega almas e espaço para o outro time.",
+        "Compre itens <b>cedo</b>. Guardar almas sem motivo deixa o herói fraco nas primeiras lutas.",
+        "Avise o time quando alguém sumir da rota. Uma emboscada evitada vale mais que uma morte heroica.",
+    ]),
+    ("fa-users", "As funções do time", [
+        "<b>Tanque</b> — aguenta a linha de frente e abre espaço para o time.",
+        "<b>Suporte</b> — mantém o time vivo com cura, escudos e utilidade.",
+        "<b>Carry</b> — fica forte ao longo da partida e decide as brigas no fim.",
+        "<b>Controle</b> — domina a área da briga e atrapalha o posicionamento inimigo.",
+        "<b>Assassino</b> — entra em cima de um alvo só e mata rápido antes de recuar.",
+    ]),
+    ("fa-gem", "Almas e itens", [
+        "A loja tem três categorias: <b>Arma</b> (tiro), <b>Vitalidade</b> (sobrevivência) e <b>Espírito</b> (habilidades).",
+        "Itens <b>ativos</b> precisam ser usados na hora certa — não adianta comprar e esquecer.",
+        "Se estiver perdido, comece pelas <b>builds prontas</b> do site: elas mostram a ordem de compra que os jogadores mais usam.",
+        "Cada item tem página própria com preço, efeito, win rate real e em quais heróis ele aparece.",
+    ]),
+    ("fa-bullseye", "Objetivos e virada de jogo", [
+        "Derrubar <b>Guardians</b> e <b>Walkers</b> abre caminho para a base inimiga.",
+        "<b>Mid Boss</b> e <b>Rejuvenator</b> dão vantagem para o time que controla o centro do mapa — vale disputar com visão e companhia.",
+        "Não ataque sozinho: estrutura com o time inteiro cai muito mais rápido (e com menos risco).",
+        "Se estiver atrás no jogo, jogue seguro, farme e espere um erro do adversário. Virada acontece.",
+    ]),
+    ("fa-triangle-exclamation", "Erros comuns de quem está começando", [
+        "Comprar só dano e morrer para qualquer coisa: <b>sobreviver também é dano</b>.",
+        "Ignorar as tropas e sair caçando herói o tempo todo.",
+        "Entrar em luta 1 contra 3 e culpar o time.",
+        "Esquecer de olhar o mapa e ser pego girando de rota.",
+        "Não usar as habilidades com intenção — apertar tudo de uma vez e ficar sem nada na hora importante.",
+    ]),
+]
+
+
+def pagina_guia(herois):
+    """Guia para iniciantes (página fixa, ligada ao menu do site)."""
+    url = SITE + "guia-iniciante.html"
+    titulo = "Começando no Deadlock — guia para iniciantes | Central Deadlock"
+    descricao = ("Guia em português para quem está começando no Deadlock: o básico da partida, funções, almas, "
+                 "itens, objetivos e os erros mais comuns.")
+    imagem = SITE + "assets/brand/icon-192.png"
+    pagina = [cabecalho(titulo, descricao, url, imagem, "pg-guia", prefixo="")]
+    pagina.append('        <div class="pg-wrap pg-wrap-guia">')
+    pagina.append(topo("", "", "Começando", prefixo="").rstrip("\n"))
+    pagina.append('')
+    pagina.append('            <h1 class="pg-title">Começando no Deadlock</h1>')
+    pagina.append('            <p class="pg-desc">Um resumo direto para a sua primeira partida: o que é o jogo, o que fazer nos '
+                  'primeiros minutos e o que evitar. Tudo em português.</p>')
+    pagina.append('            <p class="pg-note">Este guia é educativo e não substitui o tutorial do jogo. '
+                  'Os números do site vêm de partidas reais (deadlock-api.com).</p>')
+
+    for icone, titulo_secao, paragrafos in SECOES_GUIA:
+        pagina.append('            <section class="pg-card pg-guia-sec">')
+        pagina.append('                <h2 class="pg-sec"><i class="fa-solid {}"></i> {}</h2>'.format(icone, e(titulo_secao)))
+        for paragrafo in paragrafos:
+            pagina.append('                <p>{}</p>'.format(paragrafo))
+        pagina.append('            </section>')
+
+    pagina.append('            <section class="pg-card pg-guia-sec">')
+    pagina.append('                <h2 class="pg-sec"><i class="fa-solid fa-arrow-right"></i> Próximos passos</h2>')
+    pagina.append('                <div class="pg-atalhos">')
+    atalhos = [
+        ("index.html#herois", "fa-masks-theater", "Escolha um herói", "44 heróis, com dificuldade e números reais"),
+        ("index.html#guias", "fa-book", "Leia um guia", "Um guia pronto para cada herói"),
+        ("index.html#builds", "fa-screwdriver-wrench", "Use uma build", "A ordem de compra que os jogadores mais usam"),
+        ("index.html#itens", "fa-gem", "Entenda os itens", "Preço, efeito e win rate de cada item"),
+        ("index.html#glossario", "fa-list", "Glossário", "As palavras que todo mundo usa no jogo"),
+    ]
+    for endereco, icone, nome, texto in atalhos:
+        pagina.append('                    <a class="pg-atalho" href="{}"><i class="fa-solid {}"></i><b>{}</b><span>{}</span></a>'.format(
+            e(endereco), icone, e(nome), e(texto)))
+    pagina.append('                </div>')
+    pagina.append('            </section>')
+    pagina.append(rodape("index.html", "Voltar para a Home", prefixo=""))
+    with open(os.path.join(BASE, "guia-iniciante.html"), "w", encoding="utf-8") as arquivo:
+        arquivo.write("\n".join(pagina))
+    return {"url": url, "img": imagem, "alt": "Guia para iniciantes"}
+
+
 def limpar_paginas_antigas(pasta, manter):
     """Apaga as páginas geradas que sobraram (ex.: notícia que saiu da lista).
 
@@ -794,23 +1001,29 @@ def main():
     noticias = ler_js("data/steam-news.js")
     noticias = noticias.get("items") or []
     top = ler_js("data/top-jogadores.js")
+    builds = ler_js("data/builds.js")
 
     paginas = paginas_herois(herois, stats, jogo, hist, extra, analitico, top)
     print("   {} paginas de herois".format(len(paginas)))
     paginas_not = paginas_noticias(noticias)
     print("   {} paginas de noticias".format(len(paginas_not)))
+    paginas_item = paginas_itens(jogo, builds, herois)
+    print("   {} paginas de itens".format(len(paginas_item)))
+    guia = pagina_guia(herois)
+    print("   guia-iniciante.html (guia para iniciantes)")
 
     # apaga as paginas que sobraram (noticia que saiu da lista, heroi renomeado...)
     slugs_herois = {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas}
     antigas = limpar_paginas_antigas(PASTA_HEROIS, slugs_herois)
     antigas += limpar_paginas_antigas(PASTA_NOTICIAS, {str(n.get("id")) for n in noticias if n.get("id")})
+    antigas += limpar_paginas_antigas(PASTA_ITENS, {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas_item})
     if antigas:
         print("   {} pagina(s) antiga(s) apagada(s): {}".format(len(antigas), ", ".join(antigas)))
 
     pagina_404()
     print("   404.html (pagina de endereco que nao existe)")
 
-    total = escrever_sitemap(paginas + paginas_not)
+    total = escrever_sitemap(paginas + paginas_not + paginas_item + [guia])
     print("   sitemap.xml com {} enderecos".format(total))
     print("OK! Rode de novo sempre que mudar os herois ou chegarem noticias novas.")
     return 0

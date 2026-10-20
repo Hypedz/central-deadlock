@@ -111,6 +111,7 @@ POLY.hexflat = [[-1, 0], [-0.5, -0.866], [0.5, -0.866], [1, 0], [0.5, 0.866], [-
 POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17; const r = 0.87 + 0.13 * Math.cos(6 * a); return [r * Math.sin(a), -r * Math.cos(a)]; });
 
 const MAX_MAINS = 6;
+const TEMA_SISTEMA = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
 const LINK_LABELS = [
     ['discord', 'Discord'], ['twitch', 'Twitch'], ['youtube', 'YouTube'],
     ['x', 'X'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['steam', 'Steam']
@@ -130,7 +131,7 @@ const PROFILE_DEF = {
     fundo: 'padrao', fundoHeroi: '', fundoCor: '#141419', menuOculto: [],
     cards: { formato: 'pen', papel: true, tier: false, win: false, pick: false, partidas: false, kda: false, diff: false, tamanho: 'padrao' },
     av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50, c1: '', c2: '' },
-    theme: 'dark', lang: 'pt-BR', compact: false
+    theme: TEMA_SISTEMA, lang: 'pt-BR', compact: false, texto: 'padrao'
 };
 let profile = (() => {
     const raw = store.get('cdl_profile', null);
@@ -293,7 +294,30 @@ document.addEventListener('DOMContentLoaded', () => {
     updateChip();
     checkSharedCard();
     registrarApp();
+    initOffline();
 });
+
+/* ================= aviso "sem internet" =================
+   Quando o navegador avisa que a conexão caiu, mostramos uma
+   barrinha discreta dizendo que o site está mostrando o que já
+   foi baixado. (As páginas geradas fazem o mesmo pelo pwa.js.) */
+function initOffline() {
+    const atualizar = () => {
+        let barra = $('#barraOffline');
+        if (!barra) {
+            barra = document.createElement('div');
+            barra.id = 'barraOffline';
+            barra.className = 'offline-bar';
+            barra.setAttribute('role', 'status');
+            barra.innerHTML = '<i class="fa-solid fa-wifi"></i><span>Você está sem internet. Mostrando o que já foi baixado.</span>';
+            document.body.appendChild(barra);
+        }
+        document.body.classList.toggle('offline', navigator.onLine === false);
+    };
+    window.addEventListener('online', atualizar);
+    window.addEventListener('offline', atualizar);
+    atualizar();
+}
 
 /* ================= app instalável (PWA) =================
    O sw.js deixa o site abrir mais rápido e funcionar mesmo com
@@ -1305,6 +1329,7 @@ function renderHeroModal() {
                     ${favs.includes(h.name) ? '★ Favorito' : '☆ Favoritar'}
                 </button>
                 ${h.soon ? '' : `<a class="btn btn-dark btn-block" href="heroi/${esc(slugJS(h.name))}.html" style="margin-top:8px"><i class="fa-solid fa-up-right-from-square"></i> Página completa</a>`}
+                ${h.soon ? '' : `<button type="button" class="btn btn-dark btn-block" id="hShare" style="margin-top:8px"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>`}
                 ${rel.length ? `<div class="hp-parecidos"><small>PARECIDOS</small>${rel.map(miniHero).join('')}</div>` : ''}
             </aside>
             <section>
@@ -1320,6 +1345,12 @@ function renderHeroModal() {
     $$('#heroModalBox [data-tab]').forEach(b => b.addEventListener('click', () => { heroTab = b.dataset.tab; renderHeroModal(); }));
     const ft = $('#heroModalBox [data-favtoggle]');
     if (ft) ft.addEventListener('click', () => { toggleFav(ft.dataset.favtoggle); renderHeroModal(); });
+    const hs = $('#heroModalBox #hShare');
+    if (hs) hs.addEventListener('click', () => compartilhar({
+        title: h.name + ' — Central Deadlock',
+        text: `${h.name} (${h.role}): números reais, habilidades e as builds mais usadas.`,
+        url: new URL('heroi/' + slugJS(h.name) + '.html', location.href).href
+    }));
     $$('#heroModalBox [data-hero-link]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); openHero(a.dataset.heroLink); }));
 }
 
@@ -1943,6 +1974,7 @@ function openItem(id) {
                 <div class="pg-stat"><b>${item.x ? money(item.x) : '—'}</b><small>compras registradas</small></div>
             </div>` : ''}
             <p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> Números reais de partidas, via deadlock-api.com</p>
+            <a class="btn btn-dark btn-block" style="margin-top:14px" href="item/${esc(slugJS(item.en || item.n))}.html"><i class="fa-solid fa-up-right-from-square"></i> Página do item</a>
         </div>`;
     openOverlay($('#itemModal'));
 }
@@ -3127,7 +3159,12 @@ function renderForm() {
                 <label class="field">Tema<select data-f="theme"><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
                 <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
             </div>
-            <label class="chk"><input type="checkbox" data-f="compact" ${p.compact ? 'checked' : ''}> Layout compacto (menos espaço nos cards)</label>`;
+            <p class="field-note" style="margin-top:10px">Tamanho do texto</p>
+            <div class="picker-row">
+                ${[['pequeno', 'Pequeno'], ['padrao', 'Padrão'], ['grande', 'Grande']]
+                    .map(([k, n]) => `<button type="button" class="pill ${(p.texto || 'padrao') === k ? 'on' : ''}" data-texto="${k}">${n}</button>`).join('')}
+            </div>
+            <label class="chk" style="margin-top:10px"><input type="checkbox" data-f="compact" ${p.compact ? 'checked' : ''}> Layout compacto (menos espaço nos cards)</label>`;
     } else if (pTab === 'ach') {
         html = `
             <div class="pform-sec">Progresso</div>
@@ -3220,6 +3257,7 @@ function initProfile() {
         const fd = e.target.closest('[data-fundo]'); if (fd) { profile.fundo = fd.dataset.fundo; touch('fundo'); commit(); return; }
         const cf = e.target.closest('[data-cardfmt]'); if (cf) { profile.cards.formato = cf.dataset.cardfmt; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
         const cs = e.target.closest('[data-cardsize]'); if (cs) { profile.cards.tamanho = cs.dataset.cardsize; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
+        const tx = e.target.closest('[data-texto]'); if (tx) { profile.texto = tx.dataset.texto; touch('texto'); commit(); return; }
         const dl = e.target.closest('[data-dl]'); if (dl) { downloadCard(dl.dataset.dl); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
         const act = e.target.closest('[data-act]');
@@ -3243,6 +3281,7 @@ function initProfile() {
     $('#prand').addEventListener('click', randomizeProfile);
     $('#pdl').addEventListener('click', () => downloadCard('paisagem'));
     $('#plink').addEventListener('click', copyLink);
+    const pshare = $('#pshare'); if (pshare) pshare.addEventListener('click', shareProfile);
     $('#pcp').addEventListener('click', copyText);
 
     // botões do perfil grande (topo)
@@ -3250,6 +3289,7 @@ function initProfile() {
         const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     $('#pvLink').addEventListener('click', copyLink);
+    const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
     $('#pvDl').addEventListener('click', () => downloadCard('paisagem'));
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
@@ -3393,6 +3433,27 @@ async function copyLink() {
     const url = location.href.split('#')[0] + '#share=' + encShare(profile);
     try { await navigator.clipboard.writeText(url); showToast('Link do cartão copiado!'); }
     catch (e) { window.prompt('Copie o link do cartão:', url); }
+}
+
+/* Compartilhar: no celular abre o menu do próprio aparelho (WhatsApp, Discord...);
+   no computador, copia o link. */
+async function compartilhar(dados) {
+    if (navigator.share) {
+        try { await navigator.share(dados); return true; }
+        catch (erro) { if (erro && erro.name === 'AbortError') return false; }
+    }
+    const url = dados.url || location.href;
+    try { await navigator.clipboard.writeText(url); showToast('Link copiado para compartilhar!'); }
+    catch (erro) { window.prompt('Copie o link para compartilhar:', url); }
+    return false;
+}
+function shareProfile() {
+    const url = location.href.split('#')[0] + '#share=' + encShare(profile);
+    return compartilhar({
+        title: (profile.nick || 'Meu perfil') + ' — Central Deadlock',
+        text: cardText(profile),
+        url
+    });
 }
 
 function exportData() {
@@ -3965,6 +4026,9 @@ function aplicarMenu() {
 function applyProfile() {
     document.documentElement.setAttribute('data-theme', profile.theme);
     document.body.classList.toggle('compact', !!profile.compact);
+    // tamanho do texto: muda a base do site inteiro (todas as medidas em rem acompanham)
+    const tamTexto = { pequeno: '15px', padrao: '16px', grande: '18px' }[profile.texto] || '16px';
+    document.documentElement.style.fontSize = tamTexto;
     aplicarDestaque();
     aplicarFundo();
     aplicarMenu();

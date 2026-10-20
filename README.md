@@ -9,9 +9,11 @@ Portal da comunidade brasileira de **Deadlock**, com identidade visual inspirada
 ```
 meu-fansite/
 ├── index.html
+├── guia-iniciante.html      # Guia "Começando no Deadlock" — GERADO sozinho
 ├── style.css
 ├── heroes-data.js           # Ficha dos heróis (nomes, atributos, habilidades)
 ├── script.js
+├── pwa.js                   # Liga o "app instalável" nas páginas geradas
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
 ├── sw.js                    # Guarda o site no navegador (abre mais rápido)
 ├── sitemap.xml              # Mapa do site para o Google - GERADO sozinho
@@ -22,6 +24,7 @@ meu-fansite/
 ├── atualizar-tudo.bat       # 2 cliques = notícias + estatísticas + Discord
 ├── README.md
 ├── heroi/                   # 1 página por herói (ajuda o Google) — GERADO sozinho
+├── item/                    # 1 página por item da loja — GERADO sozinho
 ├── noticia/                 # 1 página por notícia — GERADO sozinho
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
@@ -102,20 +105,21 @@ meu-fansite/
 
 ## 📑 Menu (seções)
 
-**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
+**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
 **Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
 
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
 - **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
-- **Itens do Jogo** — **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo.
+- **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
 - **Mapa** — esquema **ilustrativo** (não é o mapa oficial) com rotas, bases e Midboss clicáveis.
 - **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
 - **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
 - **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). **Clique em um jogador** para ver a posição dele, os heróis mais jogados e **buscar o perfil de verdade no Steam** (o site mostra as partidas reais daquela conta). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
 - **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
+- **Começando** — guia em português para a primeira partida (o básico, funções, almas, itens, objetivos e erros comuns), com atalhos para o resto do site.
 - **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
 - **Busca global (Ctrl + K)** — acha **herói, item, notícia, guia, build, tela e termo do glossário** num lugar só. Abre com **Ctrl + K** (⌘ + K no Mac) ou pelo botão de lupa do menu, e funciona de qualquer tela. Nas páginas de herói e de notícia existe o link **Buscar no site**. Use ↑ ↓ para escolher e Enter para abrir.
 - **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
@@ -164,6 +168,32 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 > Essa informação de origem **não aparece mais na página** — ela fica só aqui, para você saber de onde veio cada número.
 >
 > Para adicionar um herói novo, escreva o nome das habilidades **em inglês** (como está na deadlock.wiki) e rode `python tools/traduzir-jogo.py`: ele traduz sozinho e guarda o original no campo `name_en`.
+
+---
+
+## 🚀 Começando (guia para iniciantes)
+
+O menu tem o item **Começando**, que abre a página `guia-iniciante.html` — um resumo direto para a primeira partida:
+o que é o jogo, como funciona uma partida (rotas, almas, habilidades), o que fazer no começo, as funções do time,
+almas e itens, objetivos (Guardians, Walkers, Mid Boss, Rejuvenator, Patron), os erros mais comuns e os próximos passos
+(com atalhos para Heróis, Guias, Builds, Itens e Glossário).
+
+> A página é **gerada** por `tools/gerar-paginas.py` (o texto fica na lista `SECOES_GUIA`, dentro desse script).
+> Ela também aparece no menu lateral e nas sugestões da página 404.
+
+---
+
+## 💎 Itens (173 páginas próprias)
+
+Cada item da loja tem uma **página própria** em `item/<nome-em-ingles>.html`, gerada por `tools/gerar-paginas.py`:
+
+- nome, nome original em inglês, tipo (**Arma**, **Vitalidade** ou **Espírito**), tier, custo em almas, se é **item ativo**
+- **win rate real** e o número de **compras registradas** (deadlock-api.com)
+- a **descrição do efeito** que o jogo mostra na loja
+- **em quais heróis ele aparece** nas builds mais usadas, com link para o guia de cada um
+
+Para abrir: clique em qualquer item na aba **Itens do Jogo** (ou na build de um herói) e depois em **Página do item**.
+As 173 páginas entram no `sitemap.xml` — é conteúdo que o Google consegue achar.
 
 ---
 
@@ -237,13 +267,15 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 
 ## 🔎 Aparecer no Google
 
-- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **55 endereços** hoje)
+- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **229 endereços** hoje: Home, 43 heróis, 173 itens, 10 notícias, o guia para iniciantes e a página 404 fica de fora)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
 - **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de fundo do jogo **e o personagem recortado** por cima, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
   - 💡 **Passe o mouse (ou toque) no ícone de uma habilidade** no banner: abre uma caixinha com o **nome em português e inglês**, as etiquetas (**Suprema**, **Passiva**, **Recarga**) e a **descrição completa** — sem precisar rolar a página.
 
 > A **cor de cada herói** vem do próprio jogo (`data/hero-extra.js`) e pinta as etiquetas, a linha do banner e a barra de dificuldade. Se a cor for muito escura, o site clareia sozinho o que precisa e escolhe a cor do texto, para nada ficar ilegível.
 - **`noticia/<id>.html`** — **uma página para cada notícia**, com o resumo em português e o texto original
+- **`item/<nome>.html`** — **uma página para cada item** da loja (preço, efeito, win rate real e em quais heróis ele aparece)
+- **`guia-iniciante.html`** — o guia **Começando no Deadlock**, para quem está na primeira partida
 - **`404.html`** — a página que aparece quando alguém abre um **endereço que não existe** (o GitHub usa ela sozinho). Tem a cara do site, o **404** em verde, atalhos para Heróis/Guias/Builds/Itens/Notícias e um botão para voltar. Ela não usa JavaScript, então funciona sempre — e os endereços dela são absolutos (tag `<base>`), porque ela pode aparecer em qualquer profundidade (ex.: `/heroi/nao-existe.html`). Ela fica **fora** do sitemap e com `noindex`.
 
 Essas páginas são geradas pelo `tools/gerar-paginas.py` (o robô do GitHub roda sozinho, todo dia). Os cards de notícia do site apontam para elas com links de verdade — quem clica abre a janela bonita aqui; os buscadores leem o texto completo.
@@ -470,11 +502,11 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Jogo** — heróis principais (**até 6**), que aparecem como estandartes no cartão
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
 - **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
-- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), tema escuro/claro, idioma e modo compacto
+- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
 
-Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **3 tamanhos**: paisagem 1000×600, **story 1080×1920** e **banner 1500×500** para Discord), **Copiar link** (link com o cartão dentro) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
+Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **3 tamanhos**: paisagem 1000×600, **story 1080×1920** e **banner 1500×500** para Discord), **Copiar link** (link com o cartão dentro), **Compartilhar** (no celular abre o menu do aparelho — WhatsApp, Discord… — e no computador copia o link) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
 
 3. **Meu painel do Steam (no fim da aba)** — digite o seu **nick do Steam** e o site mostra **as suas partidas de verdade**: win rate pessoal, KDA médio, elo atual (com o brasão oficial), os heróis que você mais joga e os **últimos 20 jogos** (vitória/derrota, K/D/A, duração e data). Se aparecerem vários jogadores com o mesmo nome, é só escolher o seu. O jogador escolhido fica salvo no navegador e volta sozinho na próxima visita; os botões **Atualizar** e **Trocar jogador** ficam ao lado do nome. Os números vêm do serviço público **deadlock-api.com** — nada é enviado para lugar nenhum.
 
@@ -499,6 +531,10 @@ e acesse `http://localhost:8123`.
 - **Botão "voltar ao topo"** — aparece no canto quando você rola a página.
 - **`theme-color`** — a barra do navegador no celular fica na cor do site.
 - **App instalável** — dá para instalar no celular/PC, com ícone próprio (`manifest.webmanifest` + `sw.js`).
+- **Funciona sem internet** — o `sw.js` guarda as páginas, as imagens, **as fontes e os ícones** no navegador; quando a conexão cai aparece uma barrinha avisando que o site está mostrando o que já foi baixado.
+- **Acessibilidade** — link "Pular para o conteúdo" (aparece ao apertar **Tab**), contorno de foco visível no teclado, `alt` em todas as imagens e respeito a "reduzir animações" do sistema.
+- **Compartilhar** — botões **Compartilhar** no perfil (grande e editor) e na ficha do herói: no celular abrem o menu do aparelho, no computador copiam o link.
+- **Tamanho do texto** — Pequeno / Padrão / Grande em **Meu Perfil → Site**; muda o site inteiro na hora.
 - **Google** — `sitemap.xml` + `robots.txt`.
 - **Notícias traduzidas** — títulos e resumos em português, com o original em inglês preservado.
 - **Estatísticas reais** — win rate, pick rate, KDA e tier list vindos de milhões de partidas.
