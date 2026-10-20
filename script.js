@@ -116,16 +116,21 @@ const PROFILE_DEF = {
     mains: [], links: { discord: '', twitch: '', youtube: '' },
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
     accent: 'auto',
+    /* aparência do site (aba "Site") */
+    fundo: 'padrao', fundoHeroi: '', fundoCor: '#141419', menuOculto: [],
+    cards: { formato: 'pen', papel: true, tier: false, win: false, pick: false },
     av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50, c1: '', c2: '' },
     theme: 'dark', lang: 'pt-BR', compact: false
 };
 let profile = (() => {
     const raw = store.get('cdl_profile', null);
-    if (!raw || typeof raw !== 'object') return { ...PROFILE_DEF, av: { ...PROFILE_DEF.av } };
+    if (!raw || typeof raw !== 'object') return { ...PROFILE_DEF, av: { ...PROFILE_DEF.av }, cards: { ...PROFILE_DEF.cards } };
     return {
         ...PROFILE_DEF, ...raw,
         links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
+        cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
+        menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
         mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, 3) : []
     };
 })();
@@ -1013,9 +1018,16 @@ function pickTxt(p) {
 }
 
 function heroCard(hero, w) {
+    // o que aparece embaixo da arte é escolhido em Meu Perfil > Site
+    const c = profile.cards || PROFILE_DEF.cards;
     const tags = hero.soon
         ? '<span class="tag vio">Em breve</span>'
-        : `<span class="tag">${esc(hero.role)}</span>`; // <--- Removido o Tier daqui
+        : [
+            c.papel ? `<span class="tag">${esc(hero.role)}</span>` : '',
+            c.tier && hero.tier ? `<span class="tag ${tierClass(hero.tier)}">Tier ${esc(hero.tier)}</span>` : '',
+            c.win && hero.win != null ? `<span class="tag cy">${esc(hero.win)}% win</span>` : '',
+            c.pick && hero.pick != null ? `<span class="tag">${esc(hero.pick)}% pick</span>` : ''
+        ].filter(Boolean).join('');
     return `<article class="hc" data-hero="${esc(hero.name)}" title="${esc(hero.name)}">
         <div class="hc-pen">
             ${pennant(hero, w)}
@@ -1027,6 +1039,7 @@ function heroCard(hero, w) {
 
 /* ================= heróis ================= */
 let heroFilter = { q: '', role: 'Todos', sort: 'az' };
+let renderHeroesGrid = () => { };
 
 function initHeroes() {
     const grid = $('#heroesGrid');
@@ -1064,6 +1077,7 @@ function initHeroes() {
             ? list.map(h => heroCard(h, 138)).join('')
             : '<p style="color:var(--text-faint);grid-column:1/-1;text-align:center;padding:40px 0;">Nenhum herói encontrado.</p>';
     }
+    renderHeroesGrid = render;
 
     search.addEventListener('input', e => { heroFilter.q = e.target.value; render(); });
     sort.addEventListener('change', e => { heroFilter.sort = e.target.value; render(); });
@@ -2988,11 +3002,69 @@ function renderForm() {
             <div class="grid2">
                 <label class="field" style="cursor:pointer">Enviar imagem<input type="file" id="bannerFile" accept="image/*" style="padding:8px"></label>
                 <button type="button" class="btn btn-dark btn-block" data-act="banner-remove" style="align-self:end;height:44px">Remover imagem</button>
+            </div>
+            <div class="pform-sec">Baixar o cartão</div>
+            <p class="field-note">Escolha o tamanho da imagem. O cartão do link compartilhado continua o de sempre.</p>
+            <div class="picker-row">
+                <button type="button" class="btn btn-dark" data-dl="paisagem"><i class="fa-solid fa-image"></i> Paisagem · 1000×600</button>
+                <button type="button" class="btn btn-dark" data-dl="story"><i class="fa-solid fa-mobile-screen"></i> Story · 1080×1920</button>
+                <button type="button" class="btn btn-dark" data-dl="banner"><i class="fa-solid fa-panorama"></i> Banner · 1500×500</button>
             </div>`;
     } else if (pTab === 'site') {
+        const cards = { ...PROFILE_DEF.cards, ...(p.cards || {}) };
+        const ocultos = Array.isArray(p.menuOculto) ? p.menuOculto : [];
+        const secoes = $$('.sidebar-nav .nav-item[data-section]')
+            .map(a => [a.dataset.section, a.textContent.trim()])
+            .filter(([id]) => id !== 'home' && id !== 'perfil');
+        const listaHerois = [...favs.map(heroByName).filter(Boolean), ...PLAYABLE.filter(h => !favs.includes(h.name))];
+        const corDestaque = /^#[0-9a-f]{6}$/i.test(p.accent) ? p.accent : '#ff8a3d';
         html = `
             <div class="pform-sec">Cor de destaque</div>
+            <p class="field-note">Vale para o <b>site inteiro</b> — botões, títulos, barras e abas. O texto em cima da cor muda sozinho para continuar legível.</p>
             <div class="picker-row">${acSw}</div>
+            <div class="grid2" style="margin-top:10px">
+                <label class="field">Outra cor<input type="color" data-f="accent" value="${esc(corDestaque)}" style="padding:2px;height:40px"></label>
+                <button type="button" class="btn btn-dark btn-block" data-act="accent-auto" style="align-self:end;height:44px"><i class="fa-solid fa-rotate-left"></i> Voltar ao verde</button>
+            </div>
+
+            <div class="pform-sec">Fundo do site</div>
+            <div class="picker-row">
+                <button type="button" class="pill ${p.fundo === 'padrao' ? 'on' : ''}" data-fundo="padrao">Padrão</button>
+                <button type="button" class="pill ${p.fundo === 'heroi' ? 'on' : ''}" data-fundo="heroi">Arte do herói</button>
+                <button type="button" class="pill ${p.fundo === 'cor' ? 'on' : ''}" data-fundo="cor">Cor sólida</button>
+            </div>
+            ${p.fundo === 'heroi' ? `
+                <label class="field" style="margin-top:10px">Herói do fundo
+                    <select data-f="fundoHeroi">
+                        <option value="">Primeiro dos favoritos${favs[0] ? ' (' + esc(favs[0]) + ')' : ''}</option>
+                        ${listaHerois.map(h => `<option value="${esc(h.name)}" ${h.name === p.fundoHeroi ? 'selected' : ''}>${favs.includes(h.name) ? '★ ' : ''}${esc(h.name)}</option>`).join('')}
+                    </select>
+                </label>
+                <p class="field-note">Os favoritos (★) aparecem primeiro na lista.</p>
+            ` : ''}
+            ${p.fundo === 'cor' ? `
+                <label class="field" style="margin-top:10px">Cor do fundo<input type="color" data-f="fundoCor" value="${esc(p.fundoCor || '#141419')}" style="padding:2px;height:40px"></label>
+                <p class="field-note">O site ajusta o tom para o texto continuar legível.</p>
+            ` : ''}
+
+            <div class="pform-sec">Menu lateral</div>
+            <p class="field-note">Desmarque as abas que você não usa. <b>Home</b> e <b>Meu Perfil</b> ficam sempre no menu.</p>
+            <div class="menu-pick">
+                ${secoes.map(([id, nome]) => `<label class="chk"><input type="checkbox" data-menusec="${id}" ${ocultos.includes(id) ? '' : 'checked'}> ${esc(nome)}</label>`).join('')}
+            </div>
+            <button type="button" class="btn btn-dark btn-sm" data-act="menu-all" style="margin-top:10px"><i class="fa-solid fa-eye"></i> Mostrar todas as abas</button>
+
+            <div class="pform-sec">Cartões de herói</div>
+            <div class="picker-row">
+                <button type="button" class="pill ${cards.formato === 'pen' ? 'on' : ''}" data-cardfmt="pen">Estandarte (atual)</button>
+                <button type="button" class="pill ${cards.formato === 'cartao' ? 'on' : ''}" data-cardfmt="cartao">Cartão</button>
+            </div>
+            <p class="field-note" style="margin-top:10px">O que aparece embaixo da arte:</p>
+            <div class="menu-pick">
+                ${[['papel', 'Papel (Tanque, Carry...)'], ['tier', 'Tier'], ['win', 'Win rate'], ['pick', 'Pick rate']]
+                    .map(([k, n]) => `<label class="chk"><input type="checkbox" data-cardbadge="${k}" ${cards[k] ? 'checked' : ''}> ${n}</label>`).join('')}
+            </div>
+
             <div class="pform-sec">Preferências</div>
             <div class="grid2">
                 <label class="field">Tema<select data-f="theme"><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
@@ -3057,6 +3129,21 @@ function initProfile() {
         else if (e.target.id === 'pavFile') handleAvatar(e.target.files[0]);
         else if (e.target.id === 'importFile') importData(e.target.files[0]);
         else if (e.target.dataset.f === 'bc1' || e.target.dataset.f === 'bc2') { profile.banner = 'custom'; touch('banner'); commit(); }
+        else if (e.target.dataset.f === 'accent') { touch('accent'); commit(); }
+        else if (e.target.dataset.menusec) {
+            const id = e.target.dataset.menusec;
+            const set = new Set(profile.menuOculto || []);
+            if (e.target.checked) set.delete(id); else set.add(id);
+            profile.menuOculto = [...set];
+            touch('menu');
+            commitLight();
+        } else if (e.target.dataset.cardbadge) {
+            profile.cards[e.target.dataset.cardbadge] = e.target.checked;
+            touch('cards');
+            commitLight();
+            renderHeroesGrid();
+            renderFavs();
+        }
     });
 
     form.addEventListener('click', (e) => {
@@ -3073,6 +3160,9 @@ function initProfile() {
             touch('avatar'); commit(); return;
         }
         const ac = e.target.closest('[data-ac]'); if (ac) { profile.accent = ac.dataset.ac; touch('accent'); commit(); return; }
+        const fd = e.target.closest('[data-fundo]'); if (fd) { profile.fundo = fd.dataset.fundo; touch('fundo'); commit(); return; }
+        const cf = e.target.closest('[data-cardfmt]'); if (cf) { profile.cards.formato = cf.dataset.cardfmt; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
+        const dl = e.target.closest('[data-dl]'); if (dl) { downloadCard(dl.dataset.dl); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
         const act = e.target.closest('[data-act]');
         if (act) {
@@ -3082,6 +3172,8 @@ function initProfile() {
             else if (a === 'avatar-adjust') { avAdjustOpen = !avAdjustOpen; renderForm(); }
             else if (a === 'avatar-random-hero') { const h = PLAYABLE[Math.floor(Math.random() * PLAYABLE.length)]; profile.av.img = 'assets/heroes/' + h.file; profile.av.zoom = 1; profile.av.px = 50; profile.av.py = 50; touch('avatar'); commit(); showToast('Avatar sorteado: ' + h.name); }
             else if (a === 'avatar-clear-color') { profile.av.c1 = ''; profile.av.c2 = ''; touch('avatar'); commit(); showToast('Cores do avatar restauradas.'); }
+            else if (a === 'accent-auto') { profile.accent = 'auto'; touch('accent'); commit(); showToast('Cor de destaque de volta ao verde padrão.'); }
+            else if (a === 'menu-all') { profile.menuOculto = []; touch('menu'); commit(); showToast('Todas as abas de volta no menu.'); }
             else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
             else if (a === 'reset') resetProfile();
             else if (a === 'export') exportData();
@@ -3091,7 +3183,7 @@ function initProfile() {
     // botões do cartão (pré-visualização)
     $('#pavQuick').addEventListener('change', (e) => handleAvatar(e.target.files[0]));
     $('#prand').addEventListener('click', randomizeProfile);
-    $('#pdl').addEventListener('click', downloadCard);
+    $('#pdl').addEventListener('click', () => downloadCard('paisagem'));
     $('#plink').addEventListener('click', copyLink);
     $('#pcp').addEventListener('click', copyText);
 
@@ -3100,7 +3192,7 @@ function initProfile() {
         const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     $('#pvLink').addEventListener('click', copyLink);
-    $('#pvDl').addEventListener('click', downloadCard);
+    $('#pvDl').addEventListener('click', () => downloadCard('paisagem'));
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
         pTab = g.dataset.goto; renderPTabs(); renderForm();
@@ -3181,7 +3273,13 @@ function handleBanner(file) {
 function resetProfile() {
     if (!confirm('Redefinir todas as customizações do perfil?')) return;
     const id = profile.id;
-    profile = { ...PROFILE_DEF, id, av: { ...PROFILE_DEF.av }, links: { ...PROFILE_DEF.links } };
+    profile = {
+        ...PROFILE_DEF, id,
+        av: { ...PROFILE_DEF.av },
+        links: { ...PROFILE_DEF.links },
+        cards: { ...PROFILE_DEF.cards },
+        menuOculto: []
+    };
     avAdjustOpen = false;
     saveProfile(); applyProfile(); renderProfileUI();
     showToast('Perfil redefinido.');
@@ -3261,6 +3359,8 @@ function importData(file) {
                 profile = Object.assign({}, PROFILE_DEF, d.profile, {
                     links: { ...PROFILE_DEF.links, ...(d.profile.links || {}) },
                     av: { ...PROFILE_DEF.av, ...(d.profile.av || {}) },
+                    cards: { ...PROFILE_DEF.cards, ...(d.profile.cards || {}) },
+                    menuOculto: Array.isArray(d.profile.menuOculto) ? d.profile.menuOculto.filter(x => typeof x === 'string') : [],
                     mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, 3) : []
                 });
                 saveProfile();
@@ -3390,7 +3490,9 @@ function drawPattern(ctx, padrao, x, y, w, h) {
     ctx.restore();
 }
 
-async function downloadCard() {
+async function downloadCard(formato) {
+    if (formato === 'story') return baixarCartaoStory(profile);
+    if (formato === 'banner') return baixarCartaoBanner(profile);
     const p = profile;
     const W = 1000, H = 600;
     const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -3494,6 +3596,184 @@ async function downloadCard() {
     } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
 }
 
+/* ---------- cartões em outros tamanhos (story 1080×1920 e banner 1500×500) ---------- */
+
+async function cartaoCapa(ctx, p, x, y, w, h, raio) {
+    ctx.save();
+    roundRectPath(ctx, x, y, w, h, raio); ctx.clip();
+    let desenhou = false;
+    if (p.bannerImg) { const im = await loadImg(p.bannerImg); if (im) { drawCover(ctx, im, x, y, w, h); desenhou = true; } }
+    if (!desenhou) {
+        const [a, b] = bannerColors(p);
+        const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, a); g.addColorStop(1, b);
+        ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+        drawPattern(ctx, p.pattern, x, y, w, h);
+    }
+    ctx.restore();
+}
+
+async function cartaoAvatar(ctx, p, x, y, tamanho, acento) {
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const im = p.av.img ? await loadImg(p.av.img) : null;
+    if (p.av.frame !== 'none') {
+        ctx.fillStyle = p.av.frame === 'gold' ? '#e2b94b' : acento;
+        shapePath(ctx, x - 7, y - 7, tamanho + 14, p.av.shape); ctx.fill();
+    }
+    ctx.save();
+    shapePath(ctx, x, y, tamanho, p.av.shape); ctx.clip();
+    if (im) {
+        const zoom = p.av.zoom || 1, px = p.av.px ?? 50, py = p.av.py ?? 50;
+        const s = Math.max(tamanho / im.width, tamanho / im.height) * zoom;
+        const dw = im.width * s, dh = im.height * s;
+        ctx.drawImage(im, x + (tamanho - dw) * (px / 100), y + (tamanho - dh) * (py / 100), dw, dh);
+    } else {
+        const [a, b] = bannerColors(p);
+        const g = ctx.createLinearGradient(x, y, x + tamanho, y + tamanho); g.addColorStop(0, a); g.addColorStop(1, b);
+        ctx.fillStyle = g; ctx.fillRect(x, y, tamanho, tamanho);
+        ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.round(tamanho * 0.34)}px ${font}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(avatarInner(p), x + tamanho / 2, y + tamanho / 2);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    }
+    ctx.restore();
+}
+
+function cartaoPrincipais(ctx, p, x, y, largura, altura, acento, font) {
+    const mains = p.mains.map(heroByName).filter(Boolean);
+    let cx = x;
+    mains.forEach((h) => {
+        ctx.fillStyle = 'rgba(255,255,255,.07)';
+        roundRectPath(ctx, cx, y, largura, altura, 12); ctx.fill();
+        const lado = altura - 16;
+        ctx.fillStyle = acento; roundRectPath(ctx, cx + 8, y + 8, lado, lado, 8); ctx.fill();
+        ctx.fillStyle = '#0c0c0e'; ctx.font = `800 ${Math.round(lado * 0.4)}px ${font}`; ctx.textAlign = 'center';
+        ctx.fillText(initials(h.name), cx + 8 + lado / 2, y + 8 + lado * 0.68);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(altura * 0.26)}px ${font}`;
+        ctx.fillText(h.name.slice(0, 13), cx + lado + 18, y + altura * 0.46);
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 ${Math.round(altura * 0.2)}px ${font}`;
+        ctx.fillText(h.role || '', cx + lado + 18, y + altura * 0.74);
+        cx += largura + 12;
+    });
+    return cx;
+}
+
+function baixarPng(c, p, sufixo) {
+    try {
+        const url = c.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock' + (sufixo ? '-' + sufixo : '') + '.png';
+        a.click();
+        showToast('Cartão baixado!');
+    } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
+}
+
+async function baixarCartaoStory(p) {
+    const W = 1080, H = 1920;
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const acento = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    const lv = level();
+
+    ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+    await cartaoCapa(ctx, p, 40, 40, W - 80, 700, 26);
+    await cartaoAvatar(ctx, p, W / 2 - 125, 610, 250, acento);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 18px ${font}`;
+    ctx.fillText('CENTRAL DEADLOCK', W / 2, 935);
+
+    ctx.fillStyle = '#fff'; ctx.font = `800 66px ${font}`;
+    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 1015);
+
+    let y = 1065;
+    if (p.pronouns) {
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 24px ${font}`;
+        ctx.fillText(p.pronouns.slice(0, 24), W / 2, y); y += 40;
+    }
+    ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
+    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, W / 2, y + 6); y += 46;
+    if (p.status) {
+        ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 26px ${font}`;
+        ctx.fillText(`“${p.status}”`.slice(0, 60), W / 2, y); y += 42;
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 26px ${font}`;
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 30, 860, 38, 3);
+
+    if (p.mains.filter(n => heroByName(n)).length) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
+        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 1400);
+        const largura = 300, altura = 96;
+        const quantos = p.mains.filter(n => heroByName(n)).length;
+        const total = quantos * largura + (quantos - 1) * 12;
+        cartaoPrincipais(ctx, p, (W - total) / 2, 1435, largura, altura, acento, font);
+        ctx.textAlign = 'center';
+    }
+
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
+        .filter(x => x[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(lk.slice(0, 70), W / 2, 1600); }
+    ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
+    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, 1670);
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 21px ${font}`;
+    ctx.fillText(`ID ${p.id}`, W / 2, 1710);
+
+    ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 19px ${font}`;
+    ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1845);
+    ctx.textAlign = 'left';
+
+    baixarPng(c, p, 'story');
+}
+
+async function baixarCartaoBanner(p) {
+    const W = 1500, H = 500;
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const acento = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    const lv = level();
+
+    ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+    await cartaoCapa(ctx, p, 0, 0, W, H, 0);
+    ctx.fillStyle = 'rgba(10, 12, 15, .82)'; ctx.fillRect(0, 0, W, H);
+
+    await cartaoAvatar(ctx, p, 48, 100, 300, acento);
+
+    const x = 400;
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 16px ${font}`;
+    ctx.fillText('CENTRAL DEADLOCK', x, 95);
+    ctx.fillStyle = '#fff'; ctx.font = `800 54px ${font}`;
+    ctx.fillText((p.nick || 'Seu apelido').slice(0, 24), x, 165);
+    ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
+    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, x, 205);
+    if (p.status) {
+        ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 19px ${font}`;
+        ctx.fillText(`“${p.status}”`.slice(0, 64), x, 240);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 18px ${font}`;
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282, 1040, 24, 2);
+
+    if (p.mains.filter(n => heroByName(n)).length) {
+        cartaoPrincipais(ctx, p, x, 340, 220, 64, acento, font);
+    }
+
+    const lk = [['Discord', p.links.discord], ['Twitch', p.links.twitch], ['YouTube', p.links.youtube]]
+        .filter(v => v[1]).map(([k, v]) => `${k}: ${v}`).join('   ');
+    ctx.textAlign = 'right';
+    ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
+    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
+    ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `500 16px ${font}`;
+    ctx.fillText(`ID ${p.id}`, W - 48, 478);
+    ctx.textAlign = 'left';
+    if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 15px ${font}`; ctx.fillText(lk.slice(0, 48), x, 470); }
+    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.font = `600 14px ${font}`;
+    ctx.fillText('hypedz.github.io/central-deadlock', 48, 478);
+
+    baixarPng(c, p, 'banner');
+}
+
 /* ---------- cartão compartilhado por link ---------- */
 function checkSharedCard() {
     const m = location.hash.match(/^#share=(.+)$/);
@@ -3515,12 +3795,112 @@ function checkSharedCard() {
     history.replaceState(null, '', location.pathname + location.search);
 }
 
+/* ================= aparência do site (aba "Site") ================= */
+
+function hexParaRgb(hex) {
+    let h = String(hex || '').replace('#', '').trim();
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16);
+    if (!isFinite(n)) return [182, 242, 74];
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function rgbParaHex(rgb) {
+    return '#' + rgb.map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join('');
+}
+function luminanciaRgb(rgb) {
+    const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
+}
+function misturarRgb(rgb, alvo, quanto) {
+    return rgb.map((c, i) => c + (alvo[i] - c) * quanto);
+}
+/* clareia (tema escuro) ou escurece (tema claro) a cor escolhida até ela ficar legível */
+function ajustarDestaque(hex, tema) {
+    let rgb = hexParaRgb(hex);
+    const escuro = tema !== 'light';
+    const alvo = escuro ? [255, 255, 255] : [0, 0, 0];
+    for (let i = 0; i < 24; i++) {
+        const l = luminanciaRgb(rgb);
+        if (escuro ? l >= 0.30 : l <= 0.30) break;
+        rgb = misturarRgb(rgb, alvo, 0.09);
+    }
+    return rgb;
+}
+/* mesma ideia para a cor de fundo: o texto do site não pode sumir */
+function ajustarFundo(hex, tema) {
+    let rgb = hexParaRgb(hex);
+    const escuro = tema !== 'light';
+    const alvo = escuro ? [0, 0, 0] : [255, 255, 255];
+    for (let i = 0; i < 24; i++) {
+        const l = luminanciaRgb(rgb);
+        if (escuro ? l <= 0.045 : l >= 0.86) break;
+        rgb = misturarRgb(rgb, alvo, 0.1);
+    }
+    return rgbParaHex(rgb);
+}
+
+function aplicarDestaque() {
+    const root = document.documentElement.style;
+    const escolhida = (profile.accent && profile.accent !== 'auto') ? profile.accent : '';
+    if (!escolhida) {
+        root.removeProperty('--lime');
+        root.removeProperty('--lime-rgb');
+        root.removeProperty('--on-lime');
+        return;
+    }
+    const rgb = ajustarDestaque(escolhida, profile.theme);
+    root.setProperty('--lime', rgbParaHex(rgb));
+    root.setProperty('--lime-rgb', rgb.map(c => Math.round(c)).join(', '));
+    root.setProperty('--on-lime', luminanciaRgb(rgb) > 0.18 ? '#0c0c0e' : '#ffffff');
+}
+
+function aplicarFundo() {
+    const body = document.body;
+    body.classList.remove('fundo-heroi', 'fundo-cor');
+    body.style.backgroundImage = '';
+    body.style.backgroundColor = '';
+    const modo = profile.fundo || 'padrao';
+    if (modo === 'heroi') {
+        const nome = profile.fundoHeroi || favs[0] || '';
+        const hero = nome ? heroByName(nome) : null;
+        if (hero) {
+            body.style.backgroundImage = "linear-gradient(rgba(var(--bg-rgb), .84), rgba(var(--bg-rgb), .95)), url('assets/capas/" + slugJS(hero.name) + ".webp')";
+            body.style.backgroundSize = 'cover, cover';
+            body.style.backgroundPosition = 'center center, center top';
+            body.style.backgroundAttachment = 'fixed, fixed';
+            body.style.backgroundRepeat = 'no-repeat, no-repeat';
+            body.classList.add('fundo-heroi');
+        }
+    } else if (modo === 'cor') {
+        body.style.backgroundColor = ajustarFundo(profile.fundoCor || '#141419', profile.theme);
+        body.classList.add('fundo-cor');
+    }
+}
+
+function aplicarMenu() {
+    const ocultos = Array.isArray(profile.menuOculto) ? profile.menuOculto : [];
+    $$('.sidebar-nav .nav-item[data-section]').forEach(a => {
+        a.classList.toggle('oculto', ocultos.includes(a.dataset.section));
+    });
+    // esconde o título do grupo (Deadlock / Comunidade) quando não sobrou nada nele
+    let grupo = null, visivel = false;
+    $$('.sidebar-nav > *').forEach(el => {
+        if (el.classList.contains('nav-group')) {
+            if (grupo) grupo.classList.toggle('oculto', !visivel);
+            grupo = el;
+            visivel = false;
+        } else if (!el.classList.contains('oculto')) visivel = true;
+    });
+    if (grupo) grupo.classList.toggle('oculto', !visivel);
+}
+
 function applyProfile() {
     document.documentElement.setAttribute('data-theme', profile.theme);
     document.body.classList.toggle('compact', !!profile.compact);
-    const root = document.documentElement.style;
-    if (profile.accent && profile.accent !== 'auto') root.setProperty('--lime', profile.accent);
-    else root.removeProperty('--lime');
+    aplicarDestaque();
+    aplicarFundo();
+    aplicarMenu();
+    document.body.classList.toggle('cards-cartao', (profile.cards || {}).formato === 'cartao');
 }
 
 function updateChip() {

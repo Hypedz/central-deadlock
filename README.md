@@ -470,11 +470,11 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Jogo** — heróis principais (até 3), que aparecem como estandartes no cartão
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
 - **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
-- **Site** — cor de destaque (recolore o site inteiro), tema escuro/claro, idioma e modo compacto
+- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (formato **estandarte** ou **cartão**, e o que aparece embaixo: papel, tier, win rate e pick rate), tema escuro/claro, idioma e modo compacto
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
 
-Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão), **Copiar link** (link com o cartão dentro) e **Copiar texto** (resumo em texto). Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
+Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **3 tamanhos**: paisagem 1000×600, **story 1080×1920** e **banner 1500×500** para Discord), **Copiar link** (link com o cartão dentro) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
 
 3. **Meu painel do Steam (no fim da aba)** — digite o seu **nick do Steam** e o site mostra **as suas partidas de verdade**: win rate pessoal, KDA médio, elo atual (com o brasão oficial), os heróis que você mais joga e os **últimos 20 jogos** (vitória/derrota, K/D/A, duração e data). Se aparecerem vários jogadores com o mesmo nome, é só escolher o seu. O jogador escolhido fica salvo no navegador e volta sozinho na próxima visita; os botões **Atualizar** e **Trocar jogador** ficam ao lado do nome. Os números vêm do serviço público **deadlock-api.com** — nada é enviado para lugar nenhum.
 
