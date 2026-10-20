@@ -49,6 +49,7 @@ rem --- pega o que o robo do GitHub ja postou (evita postar a mesma noticia 2x) 
 %PY% "tools\gerar-guias.py" >> "%LOG%" 2>&1
 %PY% "tools\gerar-builds.py" >> "%LOG%" 2>&1
 %PY% "tools\update-esports.py" --forcar >> "%LOG%" 2>&1
+%PY% "tools\update-top-jogadores.py" --forcar >> "%LOG%" 2>&1
 %PY% "tools\gerar-paginas.py" >> "%LOG%" 2>&1
 %PY% "tools\discord-post.py" >> "%LOG%" 2>&1
 
