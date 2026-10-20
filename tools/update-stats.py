@@ -16,6 +16,7 @@ No Windows você também pode dar dois cliques em: atualizar-tudo.bat
 import datetime
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -26,6 +27,10 @@ API_STATS = "https://api.deadlock-api.com/v1/analytics/hero-stats"
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASTA = os.path.join(BASE, "data")
 SAIDA = os.path.join(PASTA, "hero-stats.js")
+ARQ_HEROIS = os.path.join(BASE, "heroes-data.js")
+
+# quantas partidas o herói recém-lançado precisa ter para sair do "Em breve"
+MIN_PARTIDAS_LANCAMENTO = 300
 
 # quantos heróis entram em cada nota da tier list (por posição no win rate)
 # S = melhor 15%, A = próximos 25%, B = próximos 30%, C = próximos 20%, D = resto
@@ -69,6 +74,58 @@ def buscar_stats():
     # bucket 0 = todas as partidas juntas (sem separar por rank)
     todas = [l for l in linhas if int(l.get("bucket", 0)) == 0]
     return todas or linhas
+
+
+def liberar_herois_novos(herois):
+    """Tira do "Em breve" quem já apareceu nas partidas de verdade.
+
+    Herói novo entra no jogo antes de a deadlock-api ter números dele.
+    Enquanto não houver partidas suficientes, a página continua escondida
+    (o site só mostra números reais). Quando os números chegam, este script
+    libera o herói sozinho: tira o nome da lista HEROES_SOON e troca o
+    "soon": true por false no heroes-data.js.
+
+    Devolve a lista de heróis liberados agora.
+    """
+    if not os.path.exists(ARQ_HEROIS):
+        return []
+    with open(ARQ_HEROIS, "rb") as arquivo:
+        texto = arquivo.read().decode("utf-8")
+
+    lista = re.search(r"HEROES_SOON\s*=\s*\[(.*?)\]", texto, re.S)
+    if not lista:
+        return []
+    nomes = re.findall(r'"([^"]+)"', lista.group(1))
+
+    liberados = []
+    for nome in nomes:
+        dados = herois.get(nome) or {}
+        if int(dados.get("partidas") or 0) < MIN_PARTIDAS_LANCAMENTO:
+            continue                    # ainda sem números de verdade
+        inicio = texto.find('"name": "{}"'.format(nome))
+        if inicio < 0:
+            continue
+        fim = inicio + 3000
+        trecho = texto[inicio:fim]
+        novo = trecho.replace('"soon": true', '"soon": false', 1)
+        if novo == trecho:
+            continue
+        texto = texto[:inicio] + novo + texto[fim:]
+        liberados.append(nome)
+
+    if not liberados:
+        return []
+
+    # tira os nomes liberados da lista HEROES_SOON (pode ficar vazia)
+    lista = re.search(r"HEROES_SOON\s*=\s*\[(.*?)\]", texto, re.S)
+    if lista:
+        sobrou = [n for n in re.findall(r'"([^"]+)"', lista.group(1)) if n not in liberados]
+        nova = "HEROES_SOON = [{}]".format(", ".join('"{}"'.format(n) for n in sobrou))
+        texto = texto[:lista.start()] + nova + texto[lista.end():]
+
+    with open(ARQ_HEROIS, "wb") as arquivo:
+        arquivo.write(texto.encode("utf-8"))
+    return liberados
 
 
 def calcular_tier(herois):
@@ -135,6 +192,9 @@ def main():
 
     calcular_tier(herois)
 
+    # herói recém-lançado: quando os números reais chegam, sai do "Em breve"
+    liberados = liberar_herois_novos(herois)
+
     # resumo geral (aparece no topo da aba Estatisticas)
     # cada partida tem 12 herois (6 x 6), por isso divide por 12
     total_partidas = int(round(soma_partidas / 12.0))
@@ -174,6 +234,8 @@ def main():
     print("   partidas analisadas: {:,}".format(total_partidas).replace(",", "."))
     print("   melhor win rate: {} ({:.1f}%)".format(melhor, herois[melhor]["win"]))
     print("   mais jogado:     {} ({:.1f}%)".format(mais_jogado, herois[mais_jogado]["pick"]))
+    if liberados:
+        print("   saiu do 'Em breve': {}".format(", ".join(liberados)))
     return 0
 
 

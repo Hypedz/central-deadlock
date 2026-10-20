@@ -161,7 +161,8 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
   - **Melhores duplas** — com quem aquele herói mais ganha e com quem não combina (partidas reais)
   - **Rota (lane)** — contra quem ele ganha ou perde a rota e por quantas almas de diferença
   - **Top jogadores** — os **melhores jogadores daquele herói em cada região** (Europa, América do Norte, América do Sul, Ásia e Oceania), direto do ranking do jogo
-- **The Doorman** aparece normalmente; só **Nurse Harrow** está marcada como **"Em breve"** (ela ainda está em pré-lançamento no jogo — a própria API oficial diz isso)
+- **Nurse Harrow** foi lançada em **20/10/2026** e já está com a ficha completa: as 4 habilidades reais (Terapia de Sanguessugas, Vapores Miseráveis, Agulhas de Cura e Terrores Espreitados, a suprema) e os atributos reais (730 de vida, 6,8 m/s)
+- Ela continua marcada como **"Em breve"** só até a API do jogo ter partidas suficientes dela. Quando chegar a **300 partidas**, o próprio robô **libera o herói sozinho**: tira o nome da lista `HEROES_SOON`, troca `"soon": true` por `false` no `heroes-data.js` e a página dela é publicada. Você não precisa fazer nada
 - **Violet** foi lançada em **16/10/2026** e já está completa, com as 4 habilidades reais (Tinta Viva, Estado de Fluxo, Natureza Morta e Paisagem Abstrata) e os atributos reais (710 de vida, 6,9 m/s)
 
 > Os textos/atributos dos heróis ficam em **`heroes-data.js`** — é só editar o texto entre aspas que a ficha atualiza.

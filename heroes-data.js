@@ -1151,18 +1151,51 @@ const HEROES_DATA = [
     "name": "Nurse Harrow",
     "file": "NurseHarrow.png",
     "arch": "—",
-    "role": "A definir",
-    "diff": 3,
-    "dominio": 3,
+    "role": "Suporte",
+    "diff": 1,
+    "dominio": 1,
     "dif_fonte": "jogo",
     "tier": "B",
-    "desc": "Figura rígida e intimidadora que usa uma seringa como arma. Ainda não foi lançada.",
+    "desc": "Curandeira que drena os inimigos com sanguessugas e mantém o time vivo com cura injetada.",
     "soon": true,
     "win": "55.0",
     "pick": "7.4",
-    "hp": 0,
-    "spd": 0,
-    "skills": []
+    "hp": 730,
+    "spd": 6.8,
+    "skills": [
+      {
+        "key": "1",
+        "name": "Terapia de Sanguessugas",
+        "desc": "Joga um pote de sanguessugas que grudam nos inimigos, causam dano espiritual contínuo e encurtam a duração dos efeitos bons deles. Depois de se alimentarem, as sanguessugas voltam rastejando e curam você, e cada uma dá regeneração e cadência de tiro permanentes (até 10 acúmulos; você perde 25% deles ao morrer).",
+        "cd": 30,
+        "passive": 0,
+        "name_en": "Leech Therapy"
+      },
+      {
+        "key": "2",
+        "name": "Vapores Miseráveis",
+        "desc": "Libera um vapor em você ou num aliado: por 4s tudo fica mais rápido e o dano recebido é adiado em espectros. Quando o vapor passa, tudo fica mais lento e os espectros que sobrarem estouram o dano guardado com um extra. Cura recebida apaga os espectros antes de estourar.",
+        "cd": 40,
+        "passive": 0,
+        "name_en": "Wretched Vapors"
+      },
+      {
+        "key": "3",
+        "name": "Agulhas de Cura",
+        "desc": "Carrega a arma com uma carga cheia de seringas que curam os aliados. Causar dano devolve cargas, e cada sanguessuga coletada repõe cargas aos poucos. Recarregar gasta uma carga; apertar de novo guarda as seringas que sobraram.",
+        "cd": null,
+        "passive": 0,
+        "name_en": "Healing Needles"
+      },
+      {
+        "key": "★",
+        "name": "Terrores Espreitados",
+        "desc": "Abre a bolsa e solta os horrores que carrega: dano espiritual contínuo nos inimigos à frente. Quem olha para você acumula terror e não pode usar stamina nem habilidades de movimento; no terror máximo, foge de medo. Cada sanguessuga coletada aumenta a duração do medo.",
+        "cd": 200,
+        "passive": 0,
+        "name_en": "Lurking Terrors"
+      }
+    ]
   },
   {
     "name": "Paige",
