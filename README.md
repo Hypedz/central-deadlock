@@ -99,6 +99,7 @@ meu-fansite/
 - **Logo própria** — um emblema **octogonal (art déco)** com chifres/crânio, que remete ao clima do Deadlock e ao estilo de site de fã (badge). Fica em SVG dentro do `index.html` e é usada na barra lateral, no topo do celular e como marca d'água
 - Botão **BAIXAR DEADLOCK** e chip de usuário
 - Fontes: Poppins (títulos), Inter (texto), Titan One (nomes dos heróis)
+- **Acessibilidade**: o texto secundário (datas, legendas, rodapé) tem contraste de **pelo menos 4,5:1** nos dois temas — o mínimo recomendado para leitura confortável. O mapa também usa **padrão de linha** além da cor, para quem tem daltonismo.
 
 > **Por que não usamos a logo oficial?** O símbolo do jogo é marca registrada da Valve. Em fan site, o mais seguro é usar uma identidade **própria e original** — foi o que fizemos.
 
@@ -106,15 +107,16 @@ meu-fansite/
 
 ## 📑 Menu (seções)
 
-**Deadlock:** Home · Heróis · Comparar · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
+**Deadlock:** Home · Heróis · Comparar · Counters · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
 **Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
 
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
+- **Counters** — escolha o seu herói e veja, de um lado, **contra quem ele ganha** e, do outro, **com quem ele precisa tomar cuidado**. São os **6 melhores e os 6 piores confrontos** de verdade (win rate real com pelo menos 400 partidas contra cada inimigo), com barra comparativa e o número de partidas. O último herói escolhido fica salvo. Botão **Sortear herói** para descobrir um novo.
 - **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
-- **Mapa** — **mapa esquemático do jogo** (não é o mapa oficial): desenho próprio em SVG montado a partir do mapa real, na posição do minimapa do time Âmbar — as **3 rotas de verdade** (**York/amarela**, **Broadway/azul** no meio e **Greenwich/verde**), as **duas bases** (Âmbar embaixo, Safira em cima), **Guardians e Walkers** marcados em cada rota, o **Midboss** no centro (no esgoto, embaixo da Broadway) e os **4 distritos** da selva (**Praça**, **Teatro**, **Lote Assombrado** e **Chinatown**). Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel. Abaixo do mapa, o cartão **Confrontos de rota — dados reais** mostra os piores duelos de rota do momento (números de verdade da deadlock-api.com).
+- **Mapa** — **mapa esquemático do jogo** (não é o mapa oficial): desenho próprio em SVG montado a partir do mapa real, na posição do minimapa do time Âmbar — as **3 rotas de verdade** (**York/amarela**, **Broadway/azul** no meio e **Greenwich/verde**), as **duas bases** (Âmbar embaixo, Safira em cima), **Guardians e Walkers** marcados em cada rota, o **Midboss** no centro (no esgoto, embaixo da Broadway) e os **4 distritos** da selva (**Praça**, **Teatro**, **Lote Assombrado** e **Chinatown**). Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel. Cada rota tem também um **padrão de linha** próprio — York **pontilhada**, Broadway **contínua** e Greenwich **tracejada** — para quem tem daltonismo saber qual é qual mesmo sem distinguir as cores. Abaixo do mapa, o cartão **Confrontos de rota — dados reais** mostra os piores duelos de rota do momento (números de verdade da deadlock-api.com).
 - **Tema claro / escuro** — botão no **canto direito superior** (em todas as páginas, inclusive nas de herói, item e notícia): troca a cor do site na hora e **fica salvo** no navegador. Se você nunca mexeu, o site segue o tema do seu sistema.
 - **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
 - **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
@@ -125,7 +127,7 @@ meu-fansite/
 - **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
 - **Busca global (Ctrl + K)** — acha **herói, item, notícia, guia, build, tela e termo do glossário** num lugar só. Abre com **Ctrl + K** (⌘ + K no Mac) ou pelo botão de lupa do menu, e funciona de qualquer tela. Nas páginas de herói e de notícia existe o link **Buscar no site**. Use ↑ ↓ para escolher e Enter para abrir.
 - **Glossário** — mais de 50 termos do Deadlock explicados, separados por assunto e com busca.
-- **Home** — banner com a notícia mais recente, "Últimas notícias" (oficiais do Steam), "Meta de hoje" (com números reais) e **atalhos** para as ferramentas do site (Comparar, Itens, Minha Mira, Glossário, Esports e Ranking).
+- **Home** — banner com a notícia mais recente, "Últimas notícias" (oficiais do Steam), "Meta de hoje" (com números reais), **Movimento da semana** (quem mais subiu e quem mais caiu de win rate nos últimos 7 dias, comparando a última semana fechada com a anterior — dado real do `data/hero-history.js`) e **atalhos** para as ferramentas do site (Comparar, Itens, Minha Mira, Glossário, Esports e Ranking).
 
 ### Esports (torneios de verdade)
 

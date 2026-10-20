@@ -35,8 +35,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261020g">
-    <script src="tema.js?v=20261020g"></script>
+    <link rel="stylesheet" href="style.css?v=20261020h">
+    <script src="tema.js?v=20261020h"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -112,6 +112,7 @@
                 <a href="#home" class="nav-item active" data-section="home"><i class="fa-solid fa-house"></i> Home</a>
                 <a href="#herois" class="nav-item" data-section="herois"><i class="fa-solid fa-masks-theater"></i> Heróis</a>
                 <a href="#comparar" class="nav-item" data-section="comparar"><i class="fa-solid fa-right-left"></i> Comparar</a>
+                <a href="#counters" class="nav-item" data-section="counters"><i class="fa-solid fa-hand-fist"></i> Counters</a>
                 <a href="#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
                 <a href="#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
                 <a href="#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
@@ -203,6 +204,32 @@
                 <div class="cmp-rows" id="cmpRows"></div>
             </section>
 
+            <!-- ============ COUNTERS ============ -->
+            <section id="counters" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Counters</h1>
+                        <p class="page-sub">Escolha o seu herói e veja contra quem ele vence e quem ele precisa evitar. Os números são o win rate real dele em partidas contra cada inimigo.</p>
+                    </div>
+                    <button class="btn btn-dark" id="cntSorteia"><i class="fa-solid fa-shuffle"></i> SORTEAR HERÓI</button>
+                </div>
+                <div class="cnt-top">
+                    <label class="field">Seu herói<select id="cntHero"></select></label>
+                    <div class="cnt-hero" id="cntPerfil"></div>
+                </div>
+                <div class="cnt-grid">
+                    <div class="cnt-bloco bom">
+                        <h3><i class="fa-solid fa-thumbs-up"></i> Você ganha de <small>melhores confrontos</small></h3>
+                        <div id="cntBom"></div>
+                    </div>
+                    <div class="cnt-bloco ruim">
+                        <h3><i class="fa-solid fa-triangle-exclamation"></i> Cuidado com <small>piores confrontos</small></h3>
+                        <div id="cntRuim"></div>
+                    </div>
+                </div>
+                <p class="cnt-nota"><i class="fa-solid fa-circle-info"></i> Win rate do seu herói nas partidas em que o inimigo também estava em jogo, com no mínimo 400 partidas registradas. Os 6 melhores e os 6 piores confrontos de cada herói aparecem aqui. Fonte: deadlock-api.com</p>
+            </section>
+
             <!-- ============ TIER LIST ============ -->
             <!-- ============ ESTATÍSTICAS ============ -->
             <section id="estatisticas" class="section">
@@ -269,6 +296,15 @@
 
                 <div class="home-block">
                     <div class="home-block-top">
+                        <h2 class="home-block-title"><i class="fa-solid fa-arrow-trend-up"></i> Movimento da semana</h2>
+                        <button type="button" class="btn btn-dark btn-sm" data-goto="estatisticas">Ver histórico <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <p class="home-block-sub">Quem mais ganhou e quem mais perdeu win rate nos últimos 7 dias — partidas de verdade, não opinião.</p>
+                    <div class="meta-mov" id="homeMov"></div>
+                </div>
+
+                <div class="home-block">
+                    <div class="home-block-top">
                         <h2 class="home-block-title"><i class="fa-solid fa-fire"></i> Explorar</h2>
                     </div>
                     <div class="cards-grid" id="homeGrid"></div>
@@ -283,6 +319,7 @@
                         <p class="page-sub" id="newsSub">As últimas novidades sobre Deadlock. Clique para ler.</p>
                     </div>
                 </div>
+                <h2 class="sr-only">Todas as notícias</h2>
                 <div class="cards-grid" id="newsGrid"></div>
             </section>
 
@@ -299,6 +336,7 @@
                     <div class="roles-row" id="guiasPapeis"></div>
                 </div>
                 <p class="items-count" id="guiasCount"></p>
+                <h2 class="sr-only">Um guia para cada herói</h2>
                 <div class="cards-grid" id="guidesGrid"></div>
             </section>
 
@@ -457,6 +495,7 @@
                     <div class="roles-row" id="buildsPapeis"></div>
                 </div>
                 <p class="items-count" id="buildsCount"></p>
+                <h2 class="sr-only">Todas as builds</h2>
                 <div class="cards-grid" id="buildsGrid"></div>
             </section>
 
@@ -473,6 +512,7 @@
                     <div class="roles-row" id="itemsTipos"></div>
                 </div>
                 <p class="items-count" id="itemsCount"></p>
+                <h2 class="sr-only">Todos os itens da loja</h2>
                 <div class="items-grid" id="itemsGrid"></div>
             </section>
 
@@ -591,9 +631,9 @@
                         <div class="map-dica"><i class="fa-solid fa-hand-pointer"></i> Toque em uma área do mapa</div>
                         <div id="mapBox"></div>
                         <div class="map-legend">
-                            <span><i class="fa-solid fa-circle" style="color:#f5c84c"></i>York (amarela)</span>
-                            <span><i class="fa-solid fa-circle" style="color:#4b9fe8"></i>Broadway (azul)</span>
-                            <span><i class="fa-solid fa-circle" style="color:#4ed17a"></i>Greenwich (verde)</span>
+                            <span><svg viewBox="0 0 26 9" aria-hidden="true"><line x1="2" y1="4.5" x2="24" y2="4.5" stroke="#f5c84c" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 6"></line></svg>York (amarela, pontilhada)</span>
+                            <span><svg viewBox="0 0 26 9" aria-hidden="true"><line x1="2" y1="4.5" x2="24" y2="4.5" stroke="#4b9fe8" stroke-width="3.4" stroke-linecap="round"></line></svg>Broadway (azul, contínua)</span>
+                            <span><svg viewBox="0 0 26 9" aria-hidden="true"><line x1="2" y1="4.5" x2="24" y2="4.5" stroke="#4ed17a" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="6 4"></line></svg>Greenwich (verde, tracejada)</span>
                             <span><i class="fa-solid fa-circle" style="color:#ff9f43"></i>Base Âmbar</span>
                             <span><i class="fa-solid fa-circle" style="color:#58b6ff"></i>Base Safira</span>
                             <span><i class="fa-solid fa-circle" style="color:#b388ff"></i>Midboss</span>
@@ -606,7 +646,7 @@
                 </div>
                 <div class="map-dados card">
                     <div class="map-dados-cab">
-                        <h3><i class="fa-solid fa-chart-simple"></i> Confrontos de rota — dados reais</h3>
+                        <h2><i class="fa-solid fa-chart-simple"></i> Confrontos de rota — dados reais</h2>
                         <span class="map-dados-fonte">deadlock-api.com</span>
                     </div>
                     <p>Os confrontos de rota mais duros do momento: o pior duelo de cada herói, com pelo menos 800 partidas registradas no site. Toque para abrir a ficha de quem sofre.</p>
@@ -689,6 +729,7 @@
                         <p class="page-sub">O que vem por aí e o que já aconteceu — <b>só datas reais</b>: os próximos torneios de Deadlock e as atualizações do jogo. Marque "Lembrar" para guardar no navegador.</p>
                     </div>
                 </div>
+                <h2 class="sr-only">Próximos eventos e atualizações</h2>
                 <div class="event-list" id="eventList"></div>
             </section>
 
@@ -860,17 +901,17 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261020g"></script>
-    <script src="data/game-data.js?v=20261020g"></script>
-    <script src="data/hero-history.js?v=20261020g"></script>
-    <script src="data/hero-stats.js?v=20261020g"></script>
-    <script src="data/steam-news.js?v=20261020g"></script>
-    <script src="data/elos.js?v=20261020g"></script>
-    <script src="data/guias.js?v=20261020g"></script>
-    <script src="data/builds.js?v=20261020g"></script>
-    <script src="data/esports.js?v=20261020g"></script>
-<script src="data/top-jogadores.js?v=20261020g"></script>
-    <script src="data/hero-analytics.js?v=20261020g"></script>
-    <script src="script.js?v=20261020g"></script>
+    <script src="heroes-data.js?v=20261020h"></script>
+    <script src="data/game-data.js?v=20261020h"></script>
+    <script src="data/hero-history.js?v=20261020h"></script>
+    <script src="data/hero-stats.js?v=20261020h"></script>
+    <script src="data/steam-news.js?v=20261020h"></script>
+    <script src="data/elos.js?v=20261020h"></script>
+    <script src="data/guias.js?v=20261020h"></script>
+    <script src="data/builds.js?v=20261020h"></script>
+    <script src="data/esports.js?v=20261020h"></script>
+<script src="data/top-jogadores.js?v=20261020h"></script>
+    <script src="data/hero-analytics.js?v=20261020h"></script>
+    <script src="script.js?v=20261020h"></script>
 </body>
 </html>

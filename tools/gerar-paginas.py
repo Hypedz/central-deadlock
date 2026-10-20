@@ -34,7 +34,7 @@ PASTA_ITENS = os.path.join(BASE, "item")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261020g"
+VERSAO_CSS = "20261020h"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -206,6 +206,7 @@ def topo(secao_url, secao_nome, atual, prefixo="../"):
 ATALHOS_404 = [
     ("index.html", "fa-house", "Início", "Notícias, destaques e atalhos do site"),
     ("index.html#herois", "fa-masks-theater", "Heróis", "Os 44 heróis, com números reais"),
+    ("index.html#counters", "fa-hand-fist", "Counters", "Quem ganha de quem, com números reais"),
     ("index.html#guias", "fa-book", "Guias", "Um guia pronto para cada herói"),
     ("index.html#comecando", "fa-graduation-cap", "Começando", "Guia rápido para a primeira partida"),
     ("index.html#builds", "fa-screwdriver-wrench", "Builds", "As builds mais usadas no jogo"),
@@ -597,6 +598,7 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
         # ---------------- atalhos para o resto do site ----------------
         pagina.append('            <h2 class="pg-sec"><i class="fa-solid fa-arrow-up-right-from-square"></i> Continuar no Central Deadlock</h2>')
         pagina.append('            <div class="pg-atalhos">')
+        pagina.append('                <a class="pg-atalho" href="../index.html#counters"><i class="fa-solid fa-hand-fist"></i><b>Counters deste herói</b><span>Contra quem ele ganha e quem ele evita</span></a>')
         pagina.append('                <a class="pg-atalho" href="../index.html#guias"><i class="fa-solid fa-book"></i><b>Guia completo</b><span>Passo a passo de como jogar com ele</span></a>')
         pagina.append('                <a class="pg-atalho" href="../index.html#builds"><i class="fa-solid fa-screwdriver-wrench"></i><b>Builds de todos os heróis</b><span>As mais usadas e o win rate de cada uma</span></a>')
         pagina.append('                <a class="pg-atalho" href="../index.html#ranking"><i class="fa-solid fa-ranking-star"></i><b>Ranking dos melhores</b><span>Os melhores de cada região, direto do jogo</span></a>')

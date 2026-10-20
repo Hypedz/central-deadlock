@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHeroes();
     initContents();
     initCompare();
+    initCounters();
     initStats();
     initElos();
     initHome();
@@ -2258,6 +2259,9 @@ function initHome() {
             : '<p class="muted-txt">As notícias oficiais aparecem aqui assim que o robô do GitHub rodar pela primeira vez.</p>';
     }
 
+    // ---- movimento da semana (quem subiu, quem caiu) ----
+    renderMovimento();
+
     // ---- mini painel do meta ----
     const hs = $('#homeStats');
     if (!hs) return;
@@ -2296,6 +2300,157 @@ function miniStatRow(h, pos, ruim) {
         <b>${esc(h.name)}</b>
         <span class="mini-win ${ruim ? 'ruim' : ''}">${h.win}%</span>
     </div>`;
+}
+
+/* ================= counters (quem ganha de quem) =================
+   Usa os mesmos números reais do data/game-data.js (deadlock-api.com):
+   para cada herói, o win rate dele contra cada inimigo, com no mínimo
+   400 partidas. O site mostra os 6 melhores e os 6 piores confrontos. */
+let cntHeroAtual = null;
+
+function initCounters() {
+    const sel = $('#cntHero');
+    if (!sel) return;
+    const g = dadosJogo();
+    const cont = (g && g.contadores) || {};
+    const comDados = PLAYABLE.filter(h => cont[String(apiIdDe(h.name))]);
+
+    if (!comDados.length) {
+        $('#cntPerfil').innerHTML = '<p class="muted-txt">Os confrontos entram aqui quando o robô do GitHub rodar pela primeira vez.</p>';
+        $('#cntBom').innerHTML = '<p class="muted-txt">Sem dados por enquanto.</p>';
+        $('#cntRuim').innerHTML = '<p class="muted-txt">Sem dados por enquanto.</p>';
+        return;
+    }
+
+    sel.innerHTML = comDados.map(h => `<option value="${esc(h.name)}">${esc(h.name)}</option>`).join('');
+    const salvo = store.get('cdl_cnt', '');
+    cntHeroAtual = comDados.some(h => h.name === salvo) ? salvo : comDados[0].name;
+    sel.value = cntHeroAtual;
+
+    sel.addEventListener('change', () => {
+        cntHeroAtual = sel.value;
+        store.set('cdl_cnt', cntHeroAtual);
+        renderCounters();
+    });
+    const sortear = $('#cntSorteia');
+    if (sortear) sortear.addEventListener('click', () => {
+        const h = comDados[Math.floor(Math.random() * comDados.length)];
+        cntHeroAtual = h.name;
+        sel.value = h.name;
+        store.set('cdl_cnt', cntHeroAtual);
+        renderCounters();
+    });
+
+    renderCounters();
+}
+
+function renderCounters() {
+    const h = heroByName(cntHeroAtual);
+    const caixa = $('#cntBom');
+    if (!h || !caixa) return;
+    const g = dadosJogo();
+    const cont = (g && g.contadores && g.contadores[String(apiIdDe(h.name))]) || { bons: [], ruins: [] };
+
+    $('#cntPerfil').innerHTML = `
+        <img src="assets/heroes/${esc(h.file)}" alt="" onerror="socorroImagem(this)">
+        <div>
+            <h2>${esc(h.name)}</h2>
+            <p>${esc(h.role)}${h.arch && h.arch !== '—' ? ' · ' + esc(h.arch) : ''}</p>
+            <div class="hc-tags">
+                <span class="tag ${tierClass(h.tier)}">Tier ${esc(h.tier)}</span>
+                ${h.real ? `<span class="tag">${h.win}% de vitórias</span>` : ''}
+            </div>
+        </div>
+        <div class="cnt-nums">
+            ${h.real ? `<div class="cnt-num"><b>${h.win}%</b><small>Win rate</small></div>
+            <div class="cnt-num"><b>${h.pick}%</b><small>Pick rate</small></div>` : ''}
+        </div>`;
+
+    /* a barra vai de 30% a 70% de win rate: metade = 50%, para dar
+       para comparar os confrontos de relance */
+    const linha = ([inimigoId, win, partidas]) => {
+        const outro = heroiPorApiId(inimigoId);
+        if (!outro) return '';
+        const larg = Math.max(6, Math.min(100, ((win - 30) / 40) * 100));
+        return `<button type="button" class="cnt-linha" data-hero="${esc(outro.name)}" title="Abrir a ficha de ${esc(outro.name)}">
+            <img src="assets/heroes/${esc(outro.file)}" alt="" loading="lazy" onerror="socorroImagem(this)">
+            <span class="cnt-quem">
+                <b>${esc(outro.name)}</b>
+                <small>${money(partidas)} partidas contra ele</small>
+                <span class="cnt-barra"><i style="width:${larg.toFixed(1)}%"></i></span>
+            </span>
+            <span class="cnt-wr">${Number(win).toFixed(1)}%</span>
+        </button>`;
+    };
+
+    const bons = (cont.bons || []).map(linha).join('');
+    const ruins = (cont.ruins || []).map(linha).join('');
+    caixa.innerHTML = bons || '<p class="muted-txt">Sem confronto com amostra suficiente.</p>';
+    $('#cntRuim').innerHTML = ruins || '<p class="muted-txt">Sem confronto com amostra suficiente.</p>';
+
+    $$('[data-hero]', $('#counters')).forEach(b => b.addEventListener('click', () => openHero(b.dataset.hero)));
+}
+
+/* ================= movimento do meta (semana a semana) =================
+   O data/hero-history.js guarda o win rate de cada herói semana a semana.
+   Aqui comparamos a última semana fechada com a anterior (7 dias) para
+   mostrar quem está subindo e quem está caindo. Números reais. */
+function renderMovimento() {
+    const alvo = $('#homeMov');
+    if (!alvo) return;
+    const hist = dadosHist();
+    const lista = [];
+
+    if (hist && hist.herois && hist.semanas) {
+        Object.keys(hist.herois).forEach(nome => {
+            const h = heroByName(nome);
+            if (!h || h.soon) return;
+            const serie = hist.herois[nome] || [];
+            const validos = [];
+            serie.forEach((v, i) => { if (typeof v === 'number' && isFinite(v)) validos.push([i, v]); });
+            if (validos.length < 2) return;
+            const [iFim, agora] = validos[validos.length - 1];
+            const [iAntes, antes] = validos[validos.length - 2];
+            if (iFim - iAntes > 2) return; // buraco no histórico: comparação não vale
+            lista.push({ h, agora, iFim, delta: +(agora - antes).toFixed(1) });
+        });
+    }
+
+    if (!lista.length) {
+        alvo.innerHTML = '<p class="muted-txt">O histórico semana a semana aparece aqui quando o robô do GitHub rodar.</p>';
+        return;
+    }
+
+    const subiu = lista.filter(x => x.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 4);
+    const caiu = lista.filter(x => x.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 4);
+    const semana = hist.semanas[Math.max(...lista.map(x => x.iFim))] || '';
+
+    const linha = (x, sobe) => `<div class="mov-row" data-hero="${esc(x.h.name)}" role="button" tabindex="0" title="Abrir ${esc(x.h.name)}">
+        <img src="assets/heroes/${esc(x.h.file)}" alt="" loading="lazy" onerror="socorroImagem(this)">
+        <b>${esc(x.h.name)}</b>
+        <span class="mov-win">${x.agora.toFixed(1)}%</span>
+        <span class="mov-delta">${sobe ? '+' : ''}${x.delta.toFixed(1)} p.p. ${sobe ? '↑' : '↓'}</span>
+    </div>`;
+
+    alvo.innerHTML = `
+        <div class="mov-card sobe">
+            <h3><i class="fa-solid fa-arrow-up"></i> Subiram</h3>
+            ${subiu.length ? subiu.map(x => linha(x, true)).join('') : '<p class="muted-txt">Ninguém subiu nesta semana.</p>'}
+        </div>
+        <div class="mov-card cai">
+            <h3><i class="fa-solid fa-arrow-down"></i> Caíram</h3>
+            ${caiu.length ? caiu.map(x => linha(x, false)).join('') : '<p class="muted-txt">Ninguém caiu nesta semana.</p>'}
+        </div>
+        <p class="mov-nota">${semana ? `Semana de ${esc(semana)} comparada com a anterior · ` : ''}win rate dos heróis · fonte: deadlock-api.com</p>`;
+
+    $$('[data-hero]', alvo).forEach(el => {
+        el.addEventListener('click', () => openHero(el.dataset.hero));
+        el.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            openHero(el.dataset.hero);
+        });
+    });
 }
 
 /* ================= glossário (busca) ================= */
@@ -2437,17 +2592,17 @@ const MAP_ROTAS = [
     {
         id: 'york', nome: 'YORK · AMARELA', cor: MAP_CORES.york,
         d: 'M395,560 C280,560 225,480 225,325 C225,170 280,85 395,85',
-        lx: 225, ly: 325, giro: -90
+        lx: 225, ly: 325, giro: -90, trama: '0.1 12'
     },
     {
         id: 'broadway', nome: 'BROADWAY · AZUL', cor: MAP_CORES.broadway,
         d: 'M450,560 L450,85',
-        lx: 450, ly: 124, giro: 0
+        lx: 450, ly: 124, giro: 0, trama: ''
     },
     {
         id: 'greenwich', nome: 'GREENWICH · VERDE', cor: MAP_CORES.greenwich,
         d: 'M505,560 C620,560 675,480 675,325 C675,170 620,85 505,85',
-        lx: 675, ly: 325, giro: -90
+        lx: 675, ly: 325, giro: -90, trama: '16 11'
     }
 ];
 
@@ -2517,11 +2672,15 @@ const MAP_INFO = {
     }
 };
 function initMap() {
+    /* o "trama" é a marcação no meio da pista: pontilhada na York, contínua
+       na Broadway e tracejada na Greenwich. Serve para quem não distingue
+       as cores (daltonismo) continuar sabendo qual rota é qual. */
     const rotas = MAP_ROTAS.map(r => `
         <g class="map-zone mg-rota" data-area="${r.id}" role="button" tabindex="0" aria-label="${r.nome}">
             <path d="${r.d}" fill="none" stroke="transparent" stroke-width="46" stroke-linecap="round"></path>
             <path d="${r.d}" fill="none" stroke="#0a0a10" stroke-width="34" stroke-linecap="round"></path>
             <path class="mg-estrada" data-rota="${r.id}" d="${r.d}" fill="none" stroke="${r.cor}" stroke-width="22" stroke-linecap="round"></path>
+            <path class="mg-trama" d="${r.d}" fill="none" stroke="#0a0a10" stroke-width="4" stroke-linecap="round" stroke-opacity=".55"${r.trama ? ` stroke-dasharray="${r.trama}"` : ''}></path>
             <path class="zone-shape mg-fluxo" d="${r.d}" fill="none" stroke="${r.cor}" stroke-width="2.5" stroke-dasharray="9 13" stroke-linecap="round"></path>
             <text x="${r.lx}" y="${r.ly}" class="mg-rotulo" text-anchor="middle"${r.giro ? ` transform="rotate(${r.giro} ${r.lx} ${r.ly})"` : ''}>${r.nome}</text>
             <g class="mg-objetivos" data-rota="${r.id}"></g>
@@ -2537,13 +2696,13 @@ function initMap() {
         </g>`).join('');
 
     const selva = `
-        <g class="map-zone mg-selva-zona" data-area="selva" role="button" tabindex="0" aria-label="Selva e distritos">
+        <g class="map-zone mg-selva-zona" data-area="selva" role="button" tabindex="0" aria-label="Selva e distritos Praça Teatro Lote Assombrado Chinatown">
             <circle cx="450" cy="325" r="247" fill="#0a0a10" fill-opacity=".001"></circle>
             ${MAP_DISTRITOS.map(d => `
                 <g class="mg-distrito">
                     <path d="M${d.x} ${d.y - 32} l6 10 h-12 z" fill="${MAP_CORES.selva}" opacity=".8"></path>
                     <rect x="${d.x - 1.5}" y="${d.y - 23}" width="3" height="5" rx="1" fill="${MAP_CORES.selva}" opacity=".6"></rect>
-                    <text x="${d.x}" y="${d.y}" class="mg-rotulo-2" text-anchor="middle">${d.n}</text>
+                    <text x="${d.x}" y="${d.y}" class="mg-rotulo-2" text-anchor="middle" aria-hidden="true">${d.n}</text>
                 </g>`).join('')}
         </g>`;
 
@@ -2672,8 +2831,8 @@ function setMapArea(id) {
         <div class="map-info-head">
             <span class="map-info-ico" style="--c:${info.cor}"><i class="fa-solid ${info.ico}"></i></span>
             <div>
-                <span class="map-info-tag" style="--c:${info.cor}">${esc(info.tag)}</span>
-                <h3>${esc(info.n)}</h3>
+                <span class="map-info-tag" style="--c:${info.cor}"><i></i>${esc(info.tag)}</span>
+                <h2>${esc(info.n)}</h2>
             </div>
         </div>
         <p>${esc(info.d)}</p>
@@ -4231,7 +4390,8 @@ function ajustarDestaque(hex, tema) {
     const alvo = escuro ? [255, 255, 255] : [0, 0, 0];
     for (let i = 0; i < 24; i++) {
         const l = luminanciaRgb(rgb);
-        if (escuro ? l >= 0.30 : l <= 0.30) break;
+        // 0.15 deixa o texto com contraste de pelo menos 4.5:1 no tema claro
+        if (escuro ? l >= 0.30 : l <= 0.15) break;
         rgb = misturarRgb(rgb, alvo, 0.09);
     }
     return rgb;
