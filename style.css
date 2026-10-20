@@ -1892,6 +1892,23 @@ body.compact .cards-grid { gap: 14px; }
 .pg-404 .pg-atalhos { text-align: left; margin-top: 24px; }
 .pg-404 .n404-dica { font-size: .8rem; margin-top: 26px; }
 
+/* top de jogadores de cada herói (ranking real do jogo, por região) */
+.top-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; margin-top: 10px; }
+.top-reg { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 11px 13px; }
+.top-reg b { display: block; font-family: var(--font-ui); font-size: .68rem; letter-spacing: .05em; text-transform: uppercase; color: var(--text-faint); }
+.top-lista { list-style: none; margin: 7px 0 0; padding: 0; display: grid; gap: 5px; }
+.top-lista li { display: flex; gap: 7px; align-items: baseline; font-size: .84rem; color: var(--text); min-width: 0; }
+.top-pos { color: var(--lime); font-family: var(--font-ui); font-size: .72rem; min-width: 20px; }
+.top-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* o mesmo top, nas páginas estáticas dos heróis */
+.pg-top-reg + .pg-top-reg { margin-top: 11px; }
+.pg-top-tit { font-family: var(--font-ui); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
+.pg-top { list-style: none; margin: 5px 0 0; padding: 0; display: grid; gap: 3px; }
+.pg-top li { font-size: .82rem; color: var(--text-soft); line-height: 1.4; }
+.pg-top-pos { color: var(--lime); font-family: var(--font-ui); margin-right: 3px; }
+.pg-top-fonte { margin-top: 12px; font-size: .72rem; }
+
 /* ========================================
    AVISO DE NOVA VERSÃO (o site instalado avisa quando sai atualização)
    ======================================== */

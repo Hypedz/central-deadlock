@@ -37,6 +37,7 @@ meu-fansite/
 │   ├── guias.js             # O guia de cada herói, em português — GERADO sozinho
 │   ├── builds.js            # As builds mais usadas de cada herói — GERADO sozinho
 │   ├── esports.js           # Torneios e resultados reais (Liquipedia) — GERADO sozinho
+│   ├── top-jogadores.js     # Os melhores jogadores de cada herói, por região — GERADO sozinho
 │   ├── traducao-cache.json  # Memória das traduções das notícias — GERADO sozinho
 │   ├── traducao-jogo.json   # Memória das traduções do jogo — GERADO sozinho
 │   ├── discord-posted.json  # O que o bot já postou — GERADO sozinho
@@ -53,6 +54,7 @@ meu-fansite/
 │   ├── gerar-guias.py       # Escreve o guia de cada herói (com os números reais)
 │   ├── gerar-builds.py      # Escreve as builds mais usadas de cada herói
 │   ├── update-esports.py    # Busca os torneios e resultados reais (Liquipedia)
+│   ├── update-top-jogadores.py # Busca os melhores jogadores de cada herói (1x por dia)
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
@@ -129,6 +131,8 @@ Os torneios e resultados vêm da **[Liquipedia](https://liquipedia.net/deadlock/
 Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a página do torneio na Liquipedia. Nada é inventado: os **logos são os oficiais** de cada torneio, e o conteúdo da Liquipedia é usado com o crédito + licença (**CC BY-SA 3.0**) no rodapé da aba e no rodapé do site.
 
 > 🙏 **Uma visita por dia:** a Liquipedia é mantida por voluntários e pede poucas visitas. Por isso o `update-esports.py` só busca **uma vez por dia** (ele olha a data que ficou gravada no `data/esports.js`; o robô do GitHub roda de hora em hora, mas nas outras vezes ele para antes de visitar). Quando **você** roda o `atualizar-tudo.bat`, ele usa `--forcar` e busca na hora. Se a busca falhar, o arquivo antigo é mantido — nunca apagamos os torneios.
+>
+> 👑 O **top de jogadores de cada herói** (`tools/update-top-jogadores.py` → `data/top-jogadores.js`) também é buscado **1x por dia**: são 215 consultas (43 heróis × 5 regiões), feitas em paralelo em ~25 segundos, e a lista muda devagar. O `atualizar-tudo.bat` também usa `--forcar` nele. Se a busca falhar, o arquivo antigo é mantido.
 
 ### Heróis (44)
 
@@ -138,7 +142,7 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
 - **Busca** por nome, **filtro por função** (Tanque, Suporte, Carry, Controle, Assassino) e **ordenação** (A→Z, Z→A, tier, win rate, favoritos)
 - **Estrela ★** em cada estandarte para favoritar (aparece na aba **Favoritos** e no perfil)
 - **Clique em qualquer herói** para abrir a ficha completa, com abas:
-  - **Visão geral** — papel, arquétipo, dificuldade, tier, atributos, win rate, pick rate, KDA, **taxa de banimento** e o **histórico de win rate** (gráfico semana a semana)
+  - **Visão geral** — papel, arquétipo, dificuldade, tier, atributos, win rate, pick rate, KDA, **taxa de banimento**, o **histórico de win rate** (gráfico semana a semana) e os **melhores jogadores daquele herói** em cada região (ranking do próprio jogo)
   - **Habilidades** — as 4 habilidades com descrição e recarga; o nome aparece **em português** e o original em inglês fica logo abaixo, em cinza
   - **Build** — **as 3 builds mais usadas** por quem joga de verdade com aquele herói, com o win rate de cada uma e os itens (clique para ver o item)
   - **Confrontos** — **contra quem o herói realmente ganha e contra quem perde**, com a porcentagem e o número de partidas. Cada inimigo é clicável
@@ -148,6 +152,7 @@ A aba de heróis usa **estandartes** (bandeirinhas) no estilo do protótipo que 
   - **O que upar primeiro** — a ordem das habilidades **nível por nível**, do jeito que os jogadores mais usam em partidas reais (com a % de cada nível)
   - **Melhores duplas** — com quem aquele herói mais ganha e com quem não combina (partidas reais)
   - **Rota (lane)** — contra quem ele ganha ou perde a rota e por quantas almas de diferença
+  - **Top jogadores** — os **melhores jogadores daquele herói em cada região** (Europa, América do Norte, América do Sul, Ásia e Oceania), direto do ranking do jogo
 - **The Doorman** aparece normalmente; só **Nurse Harrow** está marcada como **"Em breve"** (ela ainda está em pré-lançamento no jogo — a própria API oficial diz isso)
 - **Violet** foi lançada em **16/10/2026** e já está completa, com as 4 habilidades reais (Tinta Viva, Estado de Fluxo, Natureza Morta e Paisagem Abstrata) e os atributos reais (710 de vida, 6,9 m/s)
 

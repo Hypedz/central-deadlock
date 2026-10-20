@@ -1173,7 +1173,8 @@ function renderHeroModal() {
            ${h.real
                 ? `<p class="stat-fonte"><i class="fa-solid fa-chart-simple"></i> ${money(h.partidas)} partidas analisadas · ${h.posicao}º melhor win rate do jogo. Fonte: deadlock-api.com</p>`
                 : ''}
-           ${h.real && serieHistorico(h.name) ? `<h2 class="pform-sec" style="margin-top:22px">Histórico de win rate</h2>${sparklineHTML(h.name)}` : ''}`;
+           ${h.real && serieHistorico(h.name) ? `<h2 class="pform-sec" style="margin-top:22px">Histórico de win rate</h2>${sparklineHTML(h.name)}` : ''}
+           ${topJogadoresHTML(h)}`;
 
     const tabHab = h.soon
         ? '<p style="color:var(--text-soft)">Habilidades disponíveis após o lançamento.</p>'
@@ -2051,6 +2052,31 @@ function sparklineHTML(nome) {
             <span>mín ${Math.min(...vals)}% · máx ${Math.max(...vals)}%</span>
         </div>
     </div>`;
+}
+
+/* top de jogadores do herói (ranking do próprio jogo, por região) */
+function topJogadoresHTML(h) {
+    const dados = window.TOP_JOGADORES;
+    if (!dados || !dados.herois) return '';
+    const g = dadosJogo();
+    const apiId = (g && g.ids) ? g.ids[h.name] : null;
+    const porRegiao = apiId == null ? null : dados.herois[String(apiId)];
+    if (!porRegiao) return '';
+
+    const blocos = Object.entries(dados.regioes || {}).map(([codigo, rotulo]) => {
+        const lista = porRegiao[codigo];
+        if (!lista || !lista.length) return '';
+        return `<div class="top-reg"><b>${esc(rotulo)}</b><ol class="top-lista">` +
+            lista.slice(0, 5).map(([nome, pos]) =>
+                `<li><span class="top-pos">${esc(pos)}º</span><span class="top-nome">${esc(nome)}</span></li>`).join('') +
+            '</ol></div>';
+    }).filter(Boolean);
+    if (!blocos.length) return '';
+
+    return `<h2 class="pform-sec" style="margin-top:22px">Melhores jogadores de ${esc(h.name)}</h2>
+        <p class="sec-note">O ranking do próprio jogo para este herói, por região. Atualizado em ${esc(dados.updated || '')}.</p>
+        <div class="top-grid">${blocos.join('')}</div>
+        <p class="stat-fonte"><i class="fa-solid fa-ranking-star"></i> Fonte: deadlock-api.com</p>`;
 }
 
 /* gráfico grande da aba Estatísticas (6 melhores heróis) */

@@ -33,7 +33,7 @@ PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261019a"
+VERSAO_CSS = "20261019b"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -268,7 +268,7 @@ def pagina_404():
 
 # --------------------------- páginas dos heróis ---------------------------
 
-def paginas_herois(herois, stats, jogo, hist, extra, analitico):
+def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
     os.makedirs(PASTA_HEROIS, exist_ok=True)
     stats_herois = stats.get("herois") or {}
     ids = jogo.get("ids") or {}
@@ -281,6 +281,9 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico):
     serie_hist = (hist or {}).get("herois") or {}
     extras = (extra or {}).get("herois") or {}
     analises = (analitico or {}).get("herois") or {}
+    tops = (top or {}).get("herois") or {}
+    top_regioes = (top or {}).get("regioes") or {}
+    top_atualizado = (top or {}).get("updated") or ""
     pasta_hab = os.path.join(BASE, "assets", "habilidades")
 
     # uma cor para cada uma das 4 habilidades (usada no "o que upar primeiro")
@@ -630,6 +633,28 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico):
         for rotulo, valor in resumo:
             pagina.append('                <div class="pg-mini"><span>{}</span><b>{}</b></div>'.format(e(rotulo), valor))
         pagina.append('            </div>')
+
+        # top de jogadores do herói (ranking do próprio jogo, por região)
+        top_do_heroi = tops.get(str(ids.get(nome))) or {}
+        linhas_top = []
+        for codigo in ("Europe", "NAmerica", "SAmerica", "Asia", "Oceania"):
+            lista = top_do_heroi.get(codigo) or []
+            if not lista:
+                continue
+            itens_top = "".join(
+                '<li><span class="pg-top-pos">{}º</span> {}</li>'.format(int(p[1]), e(str(p[0])))
+                for p in lista[:3])
+            linhas_top.append(
+                '                <div class="pg-top-reg"><div class="pg-top-tit">{}</div><ol class="pg-top">{}</ol></div>'.format(
+                    e(top_regioes.get(codigo, codigo)), itens_top))
+        if linhas_top:
+            pagina.append('            <div class="pg-card">')
+            pagina.append('                <div class="pg-lbl">Top jogadores</div>')
+            pagina.append('                <p class="pg-side-txt">O ranking do próprio jogo para {}, por região.</p>'.format(e(nome)))
+            pagina.extend(linhas_top)
+            pagina.append('                <p class="pg-side-txt pg-top-fonte">Fonte: deadlock-api.com · {}</p>'.format(e(top_atualizado)))
+            pagina.append('            </div>')
+
         pagina.append('            <div class="pg-card pg-card-fonte">')
         pagina.append('                <div class="pg-lbl">Fonte dos números</div>')
         pagina.append('                <p class="pg-side-txt">{} partidas analisadas · atualizado em {} · <b>deadlock-api.com</b></p>'.format(
@@ -768,8 +793,9 @@ def main():
     analitico = ler_js("data/hero-analytics.js")
     noticias = ler_js("data/steam-news.js")
     noticias = noticias.get("items") or []
+    top = ler_js("data/top-jogadores.js")
 
-    paginas = paginas_herois(herois, stats, jogo, hist, extra, analitico)
+    paginas = paginas_herois(herois, stats, jogo, hist, extra, analitico, top)
     print("   {} paginas de herois".format(len(paginas)))
     paginas_not = paginas_noticias(noticias)
     print("   {} paginas de noticias".format(len(paginas_not)))
