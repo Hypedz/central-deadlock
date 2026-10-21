@@ -4483,16 +4483,13 @@ function aplicarMenu() {
     $$('.sidebar-nav .nav-item[data-section]').forEach(a => {
         a.classList.toggle('oculto', ocultos.includes(a.dataset.section));
     });
-    // esconde o título do grupo (Deadlock / Comunidade) quando não sobrou nada nele
-    let grupo = null, visivel = false;
-    $$('.sidebar-nav > *').forEach(el => {
-        if (el.classList.contains('nav-group')) {
-            if (grupo) grupo.classList.toggle('oculto', !visivel);
-            grupo = el;
-            visivel = false;
-        } else if (!el.classList.contains('oculto')) visivel = true;
+    // esconde o título do grupo (Jogo / Comunidade) quando não sobrou nada nele
+    $$('.sidebar-nav .nav-bloco').forEach(bloco => {
+        const grupo = bloco.querySelector('.nav-group');
+        if (!grupo) return;
+        const temVisivel = [...bloco.children].some(el => !el.classList.contains('nav-group') && !el.classList.contains('oculto'));
+        grupo.classList.toggle('oculto', !temVisivel);
     });
-    if (grupo) grupo.classList.toggle('oculto', !visivel);
 }
 
 function applyProfile() {

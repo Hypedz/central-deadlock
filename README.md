@@ -93,7 +93,7 @@ meu-fansite/
 
 ## 🎨 Identidade visual
 
-- **Barra lateral** com grupos "Deadlock" e "Comunidade"
+- **Barra lateral** com grupos "Jogo" e "Comunidade" (no celular os títulos ficam fixos no topo do menu, separando as duas partes)
 - Item ativo em **verde-limão** (`#b6f24a`)
 - Fundo escuro com **marca d'água** do emblema próprio
 - **Logo própria** — um emblema **octogonal (art déco)** com chifres/crânio, que remete ao clima do Deadlock e ao estilo de site de fã (badge). Fica em SVG dentro do `index.html` e é usada na barra lateral, no topo do celular e como marca d'água
@@ -107,7 +107,7 @@ meu-fansite/
 
 ## 📑 Menu (seções)
 
-**Deadlock:** Home · Heróis · Comparar · Counters · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
+**Jogo:** Home · Heróis · Comparar · Counters · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
 **Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
