@@ -12,11 +12,11 @@
 
 const ROLES = ["Tanque","Suporte","Carry","Controle","Assassino"];
 const DIFF_LABEL = ["","Fácil","Médio","Difícil"];
-const HEROES_SOON = ["Nurse Harrow"];
+const HEROES_SOON = [];
 
 // Habilidades traduzidas automaticamente para portugues pelo script
 // tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 20/10/2026 as 22:48
+// Ultima traducao: 21/10/2026 as 01:07
 const HEROES_DATA = [
   {
     "name": "Abrams",
@@ -1157,7 +1157,7 @@ const HEROES_DATA = [
     "dif_fonte": "jogo",
     "tier": "B",
     "desc": "Curandeira que drena os inimigos com sanguessugas e mantém o time vivo com cura injetada.",
-    "soon": true,
+    "soon": false,
     "win": "55.0",
     "pick": "7.4",
     "hp": 730,
