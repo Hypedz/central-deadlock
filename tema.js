@@ -136,6 +136,11 @@
     /* já aplica antes do site aparecer (evita o "flash" branco/escuro) */
     aplicar(lerPerfil().theme);
 
+    /* tamanho do texto escolhido no perfil (o mesmo da Home) */
+    var perfilInicial = lerPerfil();
+    var tamanhos = { pequeno: '15px', padrao: '16px', grande: '18px' };
+    raiz.style.fontSize = tamanhos[perfilInicial.texto] || '16px';
+
     window.aplicarTema = aplicar;
     window.alternarTema = alternar;
 
@@ -145,6 +150,8 @@
             botao.dataset.temaLigado = '1';
             botao.addEventListener('click', alternar);
         });
+        /* modo compacto escolhido no perfil */
+        document.body.classList.toggle('compact', !!lerPerfil().compact);
         aplicar(raiz.getAttribute('data-theme'));
     }
 

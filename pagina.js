@@ -63,4 +63,21 @@
             atual.classList.add('active');
         }
     }
+
+    /* respeita o "menu enxuto" do perfil: esconde as abas desmarcadas */
+    var perfil = {};
+    try { perfil = JSON.parse(localStorage.getItem('cdl_profile') || '{}') || {}; } catch (e) { perfil = {}; }
+    var ocultos = Array.isArray(perfil.menuOculto) ? perfil.menuOculto : [];
+    ocultos.forEach(function (id) {
+        var item = document.querySelector('.sidebar-nav .nav-item[data-section="' + id + '"]');
+        if (item) item.classList.add('oculto');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.sidebar-nav .nav-bloco'), function (bloco) {
+        var grupo = bloco.querySelector('.nav-group');
+        if (!grupo) return;
+        var temVisivel = Array.prototype.some.call(bloco.children, function (el) {
+            return !el.classList.contains('nav-group') && !el.classList.contains('oculto');
+        });
+        grupo.classList.toggle('oculto', !temVisivel);
+    });
 })();
