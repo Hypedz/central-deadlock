@@ -35,8 +35,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261021c">
-    <script src="tema.js?v=20261021c"></script>
+    <link rel="stylesheet" href="style.css?v=20261021d">
+    <script src="tema.js?v=20261021d"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -231,6 +231,7 @@
                         <div id="cntRuim"></div>
                     </div>
                 </div>
+                <p class="cnt-nota" id="cntNota"></p>
                 <p class="cnt-nota"><i class="fa-solid fa-circle-info"></i> Win rate do seu herói nas partidas em que o inimigo também estava em jogo, com no mínimo 400 partidas registradas. Os 6 melhores e os 6 piores confrontos de cada herói aparecem aqui. Fonte: deadlock-api.com</p>
             </section>
 
@@ -676,6 +677,41 @@
                     <p class="cx-aviso" id="cxAviso" hidden></p>
                 </div>
 
+                <h2 class="mira-titulo">O que cada ajuste faz</h2>
+                <div class="mira-ajuda">
+                    <div class="card">
+                        <i class="fa-solid fa-ruler-horizontal"></i>
+                        <b>Comprimento</b>
+                        <p>O quanto as linhas crescem para fora do centro. Linhas curtas incomodam menos; longas ajudam a acompanhar o alvo em movimento.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-bars"></i>
+                        <b>Espessura</b>
+                        <p>A grossura de cada linha. Mais fina é mais discreta; mais grossa aparece melhor em telas pequenas ou com pouca luz.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-arrows-left-right"></i>
+                        <b>Intervalo</b>
+                        <p>O espaço vazio no meio da mira. Um intervalo maior deixa o alvo mais visível; um intervalo menor deixa a mira mais fechada.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-circle-dot"></i>
+                        <b>Ponto central</b>
+                        <p>Um ponto no meio da mira. Ajuda a mirar a cabeça em alvo parado e a conferir onde está o centro exato.</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-border-all"></i>
+                        <b>Contorno</b>
+                        <p>Uma borda escura em volta das linhas, para a mira não sumir em fundo claro (céu, parede branca, fumaça).</p>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-palette"></i>
+                        <b>Cor</b>
+                        <p>Verde-limão e ciano aparecem bem no mapa. Evite cores parecidas com o cenário, como marrom e cinza.</p>
+                    </div>
+                </div>
+                <p class="cnt-nota"><i class="fa-solid fa-lightbulb"></i> Dica: mude um ajuste por vez e teste no campo de treino. A mira que funciona para um jogador não é a mesma para outro.</p>
+
                 <div class="cx-wrap" id="cxResultado" hidden>
                     <div class="card cx-preview">
                         <div class="cx-fundo"><img id="cxImagem" alt="Prévia da mira"></div>
@@ -910,17 +946,17 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261021c"></script>
-    <script src="data/game-data.js?v=20261021c"></script>
-    <script src="data/hero-history.js?v=20261021c"></script>
-    <script src="data/hero-stats.js?v=20261021c"></script>
-    <script src="data/steam-news.js?v=20261021c"></script>
-    <script src="data/elos.js?v=20261021c"></script>
-    <script src="data/guias.js?v=20261021c"></script>
-    <script src="data/builds.js?v=20261021c"></script>
-    <script src="data/esports.js?v=20261021c"></script>
-<script src="data/top-jogadores.js?v=20261021c"></script>
-    <script src="data/hero-analytics.js?v=20261021c"></script>
-    <script src="script.js?v=20261021c"></script>
+    <script src="heroes-data.js?v=20261021d"></script>
+    <script src="data/game-data.js?v=20261021d"></script>
+    <script src="data/hero-history.js?v=20261021d"></script>
+    <script src="data/hero-stats.js?v=20261021d"></script>
+    <script src="data/steam-news.js?v=20261021d"></script>
+    <script src="data/elos.js?v=20261021d"></script>
+    <script src="data/guias.js?v=20261021d"></script>
+    <script src="data/builds.js?v=20261021d"></script>
+    <script src="data/esports.js?v=20261021d"></script>
+<script src="data/top-jogadores.js?v=20261021d"></script>
+    <script src="data/hero-analytics.js?v=20261021d"></script>
+    <script src="script.js?v=20261021d"></script>
 </body>
 </html>

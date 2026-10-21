@@ -336,6 +336,14 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .cx-cores i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border-2); display: block; }
 .cx-passos { margin: 6px 0 0; padding-left: 20px; color: var(--text-soft); line-height: 1.8; }
 
+/* explicação dos ajustes da mira (conteúdo fixo, abaixo do campo de código) */
+.mira-titulo { font-family: var(--font-ui); font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .5px; margin: 26px 0 12px; }
+.mira-ajuda { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.mira-ajuda .card { padding: 15px 16px; }
+.mira-ajuda i { color: var(--lime); font-size: 1rem; }
+.mira-ajuda b { display: block; font-family: var(--font-ui); font-size: .92rem; font-weight: 700; margin: 7px 0 4px; }
+.mira-ajuda p { font-size: .82rem; color: var(--text-soft); line-height: 1.6; margin: 0; }
+
 /* ---- elos de verdade (brasões oficiais do jogo) ---- */
 .elos-nota { font-size: .78rem; color: var(--text-faint); font-family: var(--font-ui); }
 .elos-nota i { color: var(--lime); margin-right: 4px; }
@@ -681,7 +689,7 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 }
 .pen-in { position: absolute; inset: 4px; clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%); overflow: hidden; background: #111; }
 /* largura dos estandartes dentro dos grids (muda com o tamanho escolhido no perfil) */
-.heroes-grid .pen { width: var(--card-w, 138px); }
+.heroes-grid .pen { width: min(var(--card-w, 138px), 100%); }
 .pen-ph { position: absolute; inset: 0; display: grid; place-items: start center; padding-top: 26%; }
 .pen-ph span { font-family: var(--font-ui); font-weight: 900; font-size: 34px; color: rgba(255,255,255,0.85); }
 .pen-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
@@ -908,7 +916,7 @@ body.fundo-heroi .sidebar {
     overflow: hidden;
     margin-bottom: 34px;
     border: 1px solid var(--border);
-    background: #050506 url('assets/brand/library_hero.jpg') center/cover no-repeat;
+    background: #050506 url('assets/brand/library_hero.webp') center/cover no-repeat;
 }
 .hero-banner::before {
     content: '';
@@ -1411,6 +1419,7 @@ body.compact .cards-grid { gap: 14px; }
 .cnt-bloco.bom .cnt-wr { color: var(--ok); }
 .cnt-bloco.ruim .cnt-wr { color: var(--danger); }
 .cnt-nota { margin-top: 16px; font-size: .78rem; color: var(--text-faint); line-height: 1.6; }
+.cnt-nota a { color: var(--lime); font-weight: 600; }
 
 /* ===== CARTÃO DO HERÓI (IMAGEM) ===== */
 .cartao-modal { max-width: 520px; width: 100%; }
@@ -1689,6 +1698,8 @@ body.compact .cards-grid { gap: 14px; }
 @media (max-width: 560px) {
     .ranking-head, .ranking-row { grid-template-columns: 36px 1fr 64px; }
     .ranking-head span:nth-child(3), .ranking-row span:nth-child(3) { display: none; }
+    /* no celular os dois cards do Comparar ficam um embaixo do outro */
+    .cmp-head { grid-template-columns: 1fr; }
 }
 
 .hidden { display: none !important; }
@@ -2044,8 +2055,9 @@ body.compact .cards-grid { gap: 14px; }
     .ht-h1 img { max-width: min(300px, 86%); }
     .ht-hab { width: 44px; height: 44px; }
     .ht-hab img { width: 34px; height: 34px; }
-    /* caixinha da habilidade: no celular cabe na tela, alinhada à esquerda */
-    .ht-tip { left: 0; width: min(300px, 84vw); }
+    /* no celular não existe hover: a dica flutuante só criava rolagem lateral.
+       O toque na habilidade já leva para a explicação completa mais abaixo. */
+    .ht-tip { display: none; }
     .pg-cols { gap: 16px; }
 }
 

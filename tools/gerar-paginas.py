@@ -30,11 +30,12 @@ SITE = "https://hypedz.github.io/central-deadlock/"
 PASTA_HEROIS = os.path.join(BASE, "heroi")
 PASTA_NOTICIAS = os.path.join(BASE, "noticia")
 PASTA_ITENS = os.path.join(BASE, "item")
+PASTA_COUNTERS = os.path.join(BASE, "counter")
 
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261021c"
+VERSAO_CSS = "20261021d"
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -496,6 +497,8 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
             pagina.append('                <div class="pg-skill"><div class="pg-skill-info"><b>Sofre contra</b></div>'
                           '<ul class="pg-lista">{}</ul></div>'.format("".join(linha(x) for x in (cont.get("ruins") or []))))
             pagina.append('            </div>')
+            pagina.append('            <p style="margin-top: 14px"><a class="btn btn-dark pg-cta" href="../counter/{}.html">'
+                          '<i class="fa-solid fa-crosshairs"></i> Ver a página de counters do {}</a></p>'.format(e(apelido), e(nome)))
 
         # ---------------- o que upar primeiro (dados reais) ----------------
         analise = analises.get(apelido) or {}
@@ -838,6 +841,112 @@ def paginas_itens(jogo, builds, herois):
     return gerados
 
 
+# --------------------------- counters (uma pagina por heroi) ---------------------------
+
+def paginas_counters(herois, stats, jogo):
+    """Uma pagina propria para cada heroi: contra quem ele ganha e contra quem
+    ele perde, com o win rate real de cada confronto. E a busca que mais traz
+    gente do Google ("counters de <heroi>") e cabe na aba Counters do site."""
+    os.makedirs(PASTA_COUNTERS, exist_ok=True)
+    contadores = jogo.get("contadores") or {}
+    ids = jogo.get("ids") or {}
+    stats_herois = stats.get("herois") or {}
+
+    por_id = {}
+    for h in herois:
+        ident = ids.get(h["name"])
+        if ident is not None:
+            por_id[str(ident)] = h
+
+    def linha(entrada):
+        if not isinstance(entrada, (list, tuple)) or len(entrada) < 3:
+            return ""
+        outro = por_id.get(str(entrada[0]))
+        if not outro:
+            return ""
+        try:
+            win = float(entrada[1])
+            partidas = int(entrada[2])
+        except (TypeError, ValueError):
+            return ""
+        # a barra vai de 30% a 70% (metade = 50%), igual a aba Counters
+        larg = max(6.0, min(100.0, ((win - 30) / 40) * 100))
+        return ('                    <a class="cnt-linha" href="../heroi/{}.html">\n'
+                '                        <img src="../assets/heroes/{}" alt="" loading="lazy">\n'
+                '                        <span class="cnt-quem"><b>{}</b><small>{} partidas contra ele</small>'
+                '<span class="cnt-barra"><i style="width:{:.1f}%"></i></span></span>\n'
+                '                        <span class="cnt-wr">{:.1f}%</span>\n'
+                '                    </a>').format(
+                    e(slug(outro["name"])), e(outro.get("file")), e(outro["name"]),
+                    moeda(partidas), larg, win)
+
+    gerados = []
+    for h in herois:
+        if h.get("soon"):
+            continue
+        nome = h["name"]
+        cont = contadores.get(str(ids.get(nome)))
+        if not cont:
+            continue
+        bons = [x for x in (linha(v) for v in (cont.get("bons") or [])[:6]) if x]
+        ruins = [x for x in (linha(v) for v in (cont.get("ruins") or [])[:6]) if x]
+        if not bons or not ruins:
+            continue
+
+        apelido = slug(nome)
+        s = stats_herois.get(nome) or {}
+        url = "{}counter/{}.html".format(SITE, apelido)
+        imagem = "{}assets/heroes/{}".format(SITE, h.get("file"))
+        titulo = "Counters de {} — quem ele ganha e perde | Central Deadlock".format(nome)
+        descricao = ("Counters de {}: os heróis que ele mais vence e os que ele mais perde, "
+                     "com win rate real e número de partidas. Dados de verdade.").format(nome)
+
+        pagina = [cabecalho(titulo, descricao, url, imagem, "pg-counter")]
+        pagina.append('        <div class="pg-wrap">')
+        pagina.append(topo("counters", "Counters", nome).rstrip("\n"))
+        pagina.append('            <h1 class="pg-title">Counters de {}</h1>'.format(e(nome)))
+        pagina.append('            <p class="pg-desc">Contra quem <b>{}</b> ganha e com quem ele precisa tomar '
+                      'cuidado. O número é o win rate real dele nas partidas contra cada inimigo.</p>'.format(e(nome)))
+        pagina.append('            <div class="pg-tags">')
+        pagina.append('                <span class="tag">{}</span>'.format(e(h.get("role") or "Herói")))
+        if h.get("arch"):
+            pagina.append('                <span class="tag">{}</span>'.format(e(h["arch"])))
+        if s.get("tier"):
+            pagina.append('                <span class="tag">Tier {}</span>'.format(e(s["tier"])))
+        pagina.append('            </div>')
+
+        if s.get("win") is not None:
+            pagina.append('            <div class="pg-stats">')
+            pagina.append('                <div class="pg-stat"><b>{}%</b><small>win rate geral</small></div>'.format(e(s.get("win"))))
+            if s.get("pick") is not None:
+                pagina.append('                <div class="pg-stat"><b>{}%</b><small>pick rate</small></div>'.format(e(s.get("pick"))))
+            if s.get("partidas") is not None:
+                pagina.append('                <div class="pg-stat"><b>{}</b><small>partidas analisadas</small></div>'.format(moeda(s.get("partidas"))))
+            pagina.append('            </div>')
+
+        pagina.append('            <div class="cnt-grid">')
+        pagina.append('                <div class="cnt-bloco bom">')
+        pagina.append('                    <h3><i class="fa-solid fa-thumbs-up"></i> {} ganha de <small>melhores confrontos</small></h3>'.format(e(nome)))
+        pagina.extend(bons)
+        pagina.append('                </div>')
+        pagina.append('                <div class="cnt-bloco ruim">')
+        pagina.append('                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Cuidado com <small>piores confrontos</small></h3>')
+        pagina.extend(ruins)
+        pagina.append('                </div>')
+        pagina.append('            </div>')
+
+        pagina.append('            <p class="pg-note">Win rate do {} nas partidas contra cada herói (mínimo de 400 partidas por confronto). '
+                      'Quanto maior, melhor para o herói.</p>'.format(e(nome)))
+        pagina.append('            <p style="margin-top: 18px"><a class="btn btn-dark pg-cta" href="../heroi/{}.html">'
+                      '<i class="fa-solid fa-book"></i> Guia completo do {}</a></p>'.format(e(apelido), e(nome)))
+        pagina.append(rodape("../index.html#counters", "Ver todos os counters no site"))
+
+        with open(os.path.join(PASTA_COUNTERS, apelido + ".html"), "w", encoding="utf-8") as arquivo:
+            arquivo.write("\n".join(pagina))
+        gerados.append({"url": url, "img": imagem, "alt": nome})
+    return gerados
+
+
 # --------------------------- guia para iniciantes ---------------------------
 
 SECOES_GUIA = [
@@ -1015,6 +1124,8 @@ def main():
     print("   {} paginas de noticias".format(len(paginas_not)))
     paginas_item = paginas_itens(jogo, builds, herois)
     print("   {} paginas de itens".format(len(paginas_item)))
+    paginas_cnt = paginas_counters(herois, stats, jogo)
+    print("   {} paginas de counters".format(len(paginas_cnt)))
     guia = pagina_guia(herois)
     print("   guia-iniciante.html (guia para iniciantes)")
 
@@ -1023,13 +1134,14 @@ def main():
     antigas = limpar_paginas_antigas(PASTA_HEROIS, slugs_herois)
     antigas += limpar_paginas_antigas(PASTA_NOTICIAS, {str(n.get("id")) for n in noticias if n.get("id")})
     antigas += limpar_paginas_antigas(PASTA_ITENS, {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas_item})
+    antigas += limpar_paginas_antigas(PASTA_COUNTERS, {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas_cnt})
     if antigas:
         print("   {} pagina(s) antiga(s) apagada(s): {}".format(len(antigas), ", ".join(antigas)))
 
     pagina_404()
     print("   404.html (pagina de endereco que nao existe)")
 
-    total = escrever_sitemap(paginas + paginas_not + paginas_item + [guia])
+    total = escrever_sitemap(paginas + paginas_not + paginas_item + paginas_cnt + [guia])
     print("   sitemap.xml com {} enderecos".format(total))
     print("OK! Rode de novo sempre que mudar os herois ou chegarem noticias novas.")
     return 0

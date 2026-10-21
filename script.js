@@ -2419,6 +2419,9 @@ function renderCounters() {
     caixa.innerHTML = bons || '<p class="muted-txt">Sem confronto com amostra suficiente.</p>';
     $('#cntRuim').innerHTML = ruins || '<p class="muted-txt">Sem confronto com amostra suficiente.</p>';
 
+    const nota = $('#cntNota');
+    if (nota) nota.innerHTML = `<a href="counter/${slugJS(h.name)}.html"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver a página completa dos counters de ${esc(h.name)}</a>`;
+
     $$('[data-hero]', $('#counters')).forEach(b => b.addEventListener('click', () => openHero(b.dataset.hero)));
 }
 
