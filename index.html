@@ -35,35 +35,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261021d">
-    <script src="tema.js?v=20261021d"></script>
+    <link rel="stylesheet" href="style.css?v=20261021e">
+    <script src="tema.js?v=20261021e"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
-
-    <!-- ===== LOGO (emblema próprio: art déco + chifres) ===== -->
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <symbol id="cdl-logo" viewBox="0 0 64 64">
-            <defs>
-                <linearGradient id="cdlLogoG" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#b6f24a"/>
-                    <stop offset="1" stop-color="#2f7a1a"/>
-                </linearGradient>
-            </defs>
-            <!-- emblema octogonal (art déco) -->
-            <path d="M20 3 H44 L61 20 V44 L44 61 H20 L3 44 V20 Z" fill="url(#cdlLogoG)"/>
-            <path d="M23.5 10 H40.5 L54 23.5 V40.5 L40.5 54 H23.5 L10 40.5 V23.5 Z"
-                  fill="none" stroke="#0c0c0e" stroke-opacity=".35" stroke-width="1.6"/>
-            <!-- chifres + crânio -->
-            <g fill="none" stroke="#0c0c0e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 23 C17 17 11 19 12 25 C13 30 19 30 23 26"/>
-                <path d="M41 23 C47 17 53 19 52 25 C51 30 45 30 41 26"/>
-                <path d="M25 28 C25 39 28.5 45 32 45 C35.5 45 39 39 39 28"/>
-                <path d="M27 32 H30 M34 32 H37" stroke-width="2.4"/>
-                <path d="M32 37 V45" stroke-width="2.4"/>
-            </g>
-        </symbol>
-    </svg>
 
     <!-- ===== TOAST ===== -->
     <div id="toast" class="toast">
@@ -71,16 +47,12 @@
         <span id="toast-msg">Alterações salvas!</span>
     </div>
 
-    <!-- ===== MARCA D'ÁGUA ===== -->
-    <svg class="watermark" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
-
     <!-- ===== TOPBAR MOBILE ===== -->
     <header class="topbar">
         <button class="topbar-burger" id="menuBurger" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
         <a href="#home" class="topbar-logo" data-section="home">
-            <svg class="topbar-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
             CENTRAL <span>DEADLOCK</span>
         </a>
         <button class="btn-icon" id="btnBuscaTop" data-busca aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -93,10 +65,9 @@
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <a href="#home" class="sidebar-brand" data-section="home">
-                <svg class="brand-emblem" viewBox="0 0 64 64" aria-hidden="true"><use href="#cdl-logo"/></svg>
                 <div class="brand-text">
                     <span class="brand-main">CENTRAL</span>
-                    <span class="brand-sub">DEADLOCK <em>BR</em></span>
+                    <span class="brand-sub">DEADLOCK</span>
                 </div>
                 <button class="sidebar-close" id="closeSidebar" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
             </a>
@@ -946,17 +917,17 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261021d"></script>
-    <script src="data/game-data.js?v=20261021d"></script>
-    <script src="data/hero-history.js?v=20261021d"></script>
-    <script src="data/hero-stats.js?v=20261021d"></script>
-    <script src="data/steam-news.js?v=20261021d"></script>
-    <script src="data/elos.js?v=20261021d"></script>
-    <script src="data/guias.js?v=20261021d"></script>
-    <script src="data/builds.js?v=20261021d"></script>
-    <script src="data/esports.js?v=20261021d"></script>
-<script src="data/top-jogadores.js?v=20261021d"></script>
-    <script src="data/hero-analytics.js?v=20261021d"></script>
-    <script src="script.js?v=20261021d"></script>
+    <script src="heroes-data.js?v=20261021e"></script>
+    <script src="data/game-data.js?v=20261021e"></script>
+    <script src="data/hero-history.js?v=20261021e"></script>
+    <script src="data/hero-stats.js?v=20261021e"></script>
+    <script src="data/steam-news.js?v=20261021e"></script>
+    <script src="data/elos.js?v=20261021e"></script>
+    <script src="data/guias.js?v=20261021e"></script>
+    <script src="data/builds.js?v=20261021e"></script>
+    <script src="data/esports.js?v=20261021e"></script>
+<script src="data/top-jogadores.js?v=20261021e"></script>
+    <script src="data/hero-analytics.js?v=20261021e"></script>
+    <script src="script.js?v=20261021e"></script>
 </body>
 </html>

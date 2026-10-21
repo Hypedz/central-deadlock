@@ -131,18 +131,6 @@ ul { list-style: none; }
 img { max-width: 100%; display: block; }
 button { font: inherit; cursor: pointer; color: inherit; background: none; border: 0; }
 
-/* ===== MARCA D'ÁGUA ===== */
-.watermark {
-    position: fixed;
-    right: -160px;
-    bottom: -180px;
-    width: 680px;
-    height: 680px;
-    opacity: 0.06;
-    pointer-events: none;
-    z-index: 0;
-}
-
 /* ===== TOPBAR (mobile) ===== */
 .topbar {
     display: none;
@@ -164,14 +152,14 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .topbar-burger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
 
 .topbar-logo {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center;
     font-family: var(--font-ui);
     font-weight: 800;
-    font-size: 1.05rem;
-    letter-spacing: 0.5px; cursor: pointer;
+    font-size: 1.15rem;
+    letter-spacing: 0.3px; cursor: pointer;
+    color: var(--lime);
 }
-.topbar-logo span { color: var(--lime); margin-left: 3px; }
-.topbar-mark { width: 26px; height: 26px; }
+.topbar-logo span { color: var(--text); }
 
 /* ===== TROCA DE TEMA (canto direito superior) ===== */
 .topo-acoes { display: flex; justify-content: flex-end; margin: -14px 0 10px; }
@@ -203,18 +191,14 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px;
+    padding: 18px 16px;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
 }
 
-.brand-emblem { width: 46px; height: 46px; flex-shrink: 0; }
-
-.brand-text { display: flex; flex-direction: column; line-height: 1.05; }
-.brand-main { font-family: var(--font-ui); font-weight: 800; font-size: 1.25rem; letter-spacing: 1px; }
-.brand-sub { font-family: var(--font-ui); font-weight: 700; font-size: 0.78rem; letter-spacing: 3px; color: var(--lime); margin-top: 2px; }
-.brand-sub em { font-style: normal; font-size: 0.62rem; letter-spacing: 1px; border: 1px solid var(--lime); border-radius: 3px; padding: 1px 4px; vertical-align: middle; margin-left: 4px; }
+.brand-text { display: flex; flex-direction: row; align-items: center; gap: 6px; line-height: 1; }
+.brand-main { font-family: var(--font-ui); font-weight: 800; font-size: 1.25rem; letter-spacing: .2px; color: var(--lime); white-space: nowrap; }
+.brand-sub { font-family: var(--font-ui); font-weight: 800; font-size: 1.25rem; letter-spacing: .2px; color: var(--text); white-space: nowrap; }
 
 .sidebar-close { display: none; margin-left: auto; background: none; border: none; color: var(--text-soft); font-size: 1.1rem; cursor: pointer; }
 
@@ -1625,6 +1609,8 @@ body.compact .cards-grid { gap: 14px; }
     .sidebar { transform: translateX(-100%); }
     .sidebar.open { transform: translateX(0); }
     .sidebar-close { display: block; }
+    /* o X de fechar divide o espaço com a marca: um pouco menor no celular */
+    .brand-main, .brand-sub { font-size: 1.05rem; }
     .sidebar-overlay.show { display: block; }
     .topbar { display: flex; }
 

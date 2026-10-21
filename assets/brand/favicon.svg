@@ -1,18 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Central Deadlock">
-  <defs>
-    <linearGradient id="cdlFav" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#b6f24a"/>
-      <stop offset="1" stop-color="#2f7a1a"/>
-    </linearGradient>
-  </defs>
-  <path d="M20 3 H44 L61 20 V44 L44 61 H20 L3 44 V20 Z" fill="url(#cdlFav)"/>
-  <path d="M23.5 10 H40.5 L54 23.5 V40.5 L40.5 54 H23.5 L10 40.5 V23.5 Z"
-        fill="none" stroke="#0c0c0e" stroke-opacity=".35" stroke-width="1.6"/>
-  <g fill="none" stroke="#0c0c0e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M23 23 C17 17 11 19 12 25 C13 30 19 30 23 26"/>
-    <path d="M41 23 C47 17 53 19 52 25 C51 30 45 30 41 26"/>
-    <path d="M25 28 C25 39 28.5 45 32 45 C35.5 45 39 39 39 28"/>
-    <path d="M27 32 H30 M34 32 H37" stroke-width="2.4"/>
-    <path d="M32 37 V45" stroke-width="2.4"/>
-  </g>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="#0c0c0e"/>
+  <path d="M41 21.3 A14 14 0 1 0 41 42.7" fill="none" stroke="#b6f24a" stroke-width="8" stroke-linecap="round"/>
 </svg>

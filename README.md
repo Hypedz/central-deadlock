@@ -96,7 +96,7 @@ meu-fansite/
 - **Barra lateral** com grupos "Jogo" e "Comunidade" (no celular os títulos ficam fixos no topo do menu, separando as duas partes)
 - Item ativo em **verde-limão** (`#b6f24a`)
 - Fundo escuro com **marca d'água** do emblema próprio
-- **Logo própria** — um emblema **octogonal (art déco)** com chifres/crânio, que remete ao clima do Deadlock e ao estilo de site de fã (badge). Fica em SVG dentro do `index.html` e é usada na barra lateral, no topo do celular e como marca d'água
+- **Marca** — só o nome, em tipografia: **CENTRAL** em lima + **DEADLOCK** em branco na mesma linha (barra lateral e topo do celular). O ícone (favicon e app instalável) é um **C** lima no fundo escuro. Sem emblema: é o mesmo caminho que o dlbr.gg usa
 - Botão **BAIXAR DEADLOCK** e chip de usuário
 - Fontes: Poppins (títulos), Inter (texto), Titan One (nomes dos heróis)
 - **Acessibilidade**: o texto secundário (datas, legendas, rodapé) tem contraste de **pelo menos 4,5:1** nos dois temas — o mínimo recomendado para leitura confortável. O mapa também usa **padrão de linha** além da cor, para quem tem daltonismo.
