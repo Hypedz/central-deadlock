@@ -290,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initItens();
     initComecando();
     initRanking();
-    initJogador();
     renderHistorico();
     initMap();
     initEvents();
@@ -688,7 +687,6 @@ function steamDesenhar() {
             </div>` : ''}
             <div class="steam-acoes">
                 <button type="button" class="btn btn-dark btn-sm" id="steamAtualizar"><i class="fa-solid fa-rotate"></i> Atualizar</button>
-                <button type="button" class="btn btn-dark btn-sm" id="steamCompleto"><i class="fa-solid fa-id-card"></i> Abrir na aba Jogador</button>
                 <button type="button" class="btn btn-dark btn-sm" id="steamTrocar"><i class="fa-solid fa-right-left"></i> Trocar jogador</button>
             </div>
         </div>
@@ -697,7 +695,7 @@ function steamDesenhar() {
             <div class="pg-stat"><b>${steamPorcento(winRate)}</b><small>win rate</small></div>
             <div class="pg-stat"><b>${steamNumero(kda)}</b><small>KDA médio</small></div>
             <div class="pg-stat"><b>${abates}/${mortes}/${ajudas}</b><small>abates / mortes / ajudas</small></div>
-            <div class="pg-stat"><b>${contadas.length}</b><small>partidas contadas</small></div>
+            <div class="pg-stat"><b>${contadas.length}</b><small>partidas analisadas</small></div>
         </div>
 
         ${favoritos ? '<div class="steam-sec">Seus heróis mais jogados</div><div class="steam-favs">' + favoritos + '</div>' : ''}
@@ -715,13 +713,6 @@ function steamDesenhar() {
         const campo = $('#steamCampo');
         if (campo) { campo.value = ''; campo.focus(); }
     });
-    const completo = $('#steamCompleto');
-    if (completo) completo.addEventListener('click', () => {
-        showSection('jogador');
-        const campo = $('#jgInput');
-        if (campo) campo.value = String(jogador.id);
-        jgAbrirConta(jogador.id);
-    });
 }
 
 function initSteam() {
@@ -737,15 +728,39 @@ function initSteam() {
         caixa.hidden = !texto;
     };
 
+    // aceita três formas: nick, link do perfil ou ID (SteamID64 / ID da conta)
+    const contaDoTexto = (bruto) => {
+        const txt = String(bruto || '').trim();
+        if (!txt) return 0;
+        const doPerfil = txt.match(/\/profiles\/(\d{16,17})/);
+        if (doPerfil) return Number(BigInt(doPerfil[1]) - 76561197960265728n);
+        if (/^\d{16,17}$/.test(txt)) return Number(BigInt(txt) - 76561197960265728n);
+        if (/^\d{5,10}$/.test(txt)) return Number(txt);
+        return 0;
+    };
+
     const procurar = async () => {
-        const nick = campo.value.trim();
-        if (nick.length < 2) { avisar('Digite pelo menos 2 letras do seu nick no Steam.', true); return; }
+        let nick = campo.value.trim();
+        if (nick.length < 2) { avisar('Digite pelo menos 2 letras do seu nick no Steam (ou cole o link do perfil).', true); return; }
         botao.disabled = true;
-        avisar('Procurando "' + nick + '" no Steam...');
         try {
+            const conta = contaDoTexto(nick);
+            if (conta) {
+                avisar('Buscando a conta ' + conta + '...');
+                const perfis = await steamPedir('/players/steam?account_ids=' + conta).catch(() => []);
+                const p = (perfis && perfis[0]) || {};
+                avisar('');
+                campo.value = p.personaname || String(conta);
+                await steamCarregar(conta, p.personaname, p.avatarfull || p.avatar, p.profileurl);
+                return;
+            }
+            // link com nome personalizado (steamcommunity.com/id/fulano): procura pelo nome
+            const vaidade = nick.match(/\/id\/([^\/?#]+)/);
+            if (vaidade) nick = decodeURIComponent(vaidade[1]).replace(/[+_]/g, ' ');
+            avisar('Procurando "' + nick + '" no Steam...');
             const achados = await steamPedir('/players/steam-search?limit=8&search_query=' + encodeURIComponent(nick));
             if (!achados || !achados.length) {
-                avisar('Não achei ninguém com esse nick. Confira a escrita (é o nome de exibição do Steam).', true);
+                avisar('Não achei ninguém com esse nick. Confira a escrita, cole o link do perfil ou o ID da conta.', true);
                 return;
             }
             avisar(achados.length === 1 ? 'Achei 1 jogador — é você?' : 'Achei ' + achados.length + ' jogadores — escolha o seu:');
@@ -981,7 +996,6 @@ function showSection(id) {
     window.scrollTo({ top: 0, behavior: 'auto' });
     if (id === 'favoritos') renderFavs();
     if (id === 'perfil') renderProfileUI();
-    if (id === 'jogador') jgAoAbrir();
 }
 
 /* ================= voltar ao topo ================= */
@@ -1596,7 +1610,6 @@ function initContents() {
         { goto: 'mira', icone: 'fa-crosshairs', titulo: 'Minha Mira', desc: 'Cole o seu código DL. e veja a mira desenhada na hora.' },
         { goto: 'glossario', icone: 'fa-list', titulo: 'Glossário', desc: 'Os termos do jogo explicados em português.' },
         { goto: 'esports', icone: 'fa-trophy', titulo: 'Esports', desc: 'Os torneios de Deadlock e quem está ganhando.' },
-        { goto: 'jogador', icone: 'fa-id-card', titulo: 'Jogador', desc: 'Veja as partidas de qualquer jogador pelo nome ou link do perfil.' },
         { goto: 'ranking', icone: 'fa-ranking-star', titulo: 'Ranking', desc: 'Os melhores jogadores de cada região, direto do jogo.' }
     ];
     const gradeHome = $('#homeGrid');
@@ -4523,239 +4536,12 @@ function showToast(msg, type = 'success') {
     showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
-/* ================= JOGADOR (perfil público) =================
-   Busca o jogador pelo nome, link do perfil ou ID da Steam e mostra
-   as partidas públicas dele no Deadlock. Tudo vem da deadlock-api.com
-   direto do navegador — o site não tem servidor nem login. */
-const JG_API = 'https://api.deadlock-api.com';
-const JG_CHAVE = 'cdl_jogador';
-let jgConta = 0;
-let jgCarregado = null;   // { conta, perfil, rank, partidas, quando }
-
-function jgInt(n) { return Number(n || 0).toLocaleString('pt-BR'); }
-
-function jgPct(parte, total) {
-    if (!total) return '—';
-    return (100 * parte / total).toFixed(1).replace('.', ',') + '%';
-}
-
-function jgQuando(ts) {
-    const seg = Math.max(0, Math.floor(Date.now() / 1000) - Number(ts || 0));
-    if (seg < 90) return 'agora há pouco';
-    if (seg < 3600) return 'há ' + Math.round(seg / 60) + ' min';
-    if (seg < 86400) return 'há ' + Math.round(seg / 3600) + ' h';
-    const d = Math.round(seg / 86400);
-    return d === 1 ? 'ontem' : 'há ' + d + ' dias';
-}
-
-function jgDuracao(seg) {
-    seg = Math.max(0, Math.round(Number(seg) || 0));
-    return Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2, '0');
-}
-
-/* aceita: 7656119... (SteamID64), link /profiles/7656..., ID da conta (5 a 10 dígitos) */
-function jgContaDoTexto(bruto) {
-    const txt = String(bruto || '').trim();
-    if (!txt) return 0;
-    const doPerfil = txt.match(/\/profiles\/(\d{16,17})/);
-    if (doPerfil) return Number(BigInt(doPerfil[1]) - 76561197960265728n);
-    if (/^\d{16,17}$/.test(txt)) return Number(BigInt(txt) - 76561197960265728n);
-    if (/^\d{5,10}$/.test(txt)) return Number(txt);
-    return 0;
-}
-
-function jgStatus(html, tipo) {
-    const el = $('#jgStatus');
-    if (!el) return;
-    el.className = 'jg-status' + (tipo ? ' ' + tipo : '');
-    el.innerHTML = html || '';
-}
-
-function jgApi(caminho) {
-    return fetch(JG_API + caminho, { headers: { accept: 'application/json' } }).then(r => {
-        if (r.status === 429) throw new Error('muitas consultas em pouco tempo, espere um minuto');
-        if (r.status === 404) throw new Error('não encontrei esse jogador');
-        if (!r.ok) throw new Error('a API respondeu ' + r.status);
-        return r.json();
-    });
-}
-
-function jgListaHTML(lista) {
-    return lista.map(p => `<button type="button" class="jg-item" data-conta="${Number(p.account_id) || 0}">
-            <img src="${esc(p.avatarmedium || p.avatar || '')}" alt="" loading="lazy">
-            <span class="jg-item-quem">
-                <b>${esc(p.personaname || 'Jogador')}</b>
-                <small>${jgInt(p.matches_played_last_30d)} partidas nos últimos 30 dias</small>
-            </span>
-            <i class="fa-solid fa-arrow-right"></i>
-        </button>`).join('');
-}
-
-async function jgProcurar(bruto) {
-    let termo = String(bruto || '').trim();
-    if (termo.length < 2) { jgStatus('Digite pelo menos 2 letras do nome (ou cole o link do perfil).', 'erro'); return; }
-    const conta = jgContaDoTexto(termo);
-    if (conta) { jgAbrirConta(conta); return; }
-    // link com nome personalizado (steamcommunity.com/id/fulano): procura pelo nome
-    const vaidade = termo.match(/\/id\/([^\/?#]+)/);
-    if (vaidade) termo = decodeURIComponent(vaidade[1]).replace(/[+_]/g, ' ');
-    jgStatus('<i class="fa-solid fa-spinner fa-spin"></i> Procurando na Steam...');
-    $('#jgLista').innerHTML = '';
-    try {
-        const achados = await jgApi('/v1/players/steam-search?search_query=' + encodeURIComponent(termo) + '&limit=8');
-        if (!Array.isArray(achados) || !achados.length) {
-            jgStatus('Nenhum jogador com esse nome. Confira se está escrito igual ao da Steam, ou cole o link do perfil.', 'erro');
-            return;
-        }
-        if (achados.length === 1) { jgAbrirConta(achados[0].account_id); return; }
-        jgStatus('Achei ' + achados.length + ' jogadores — clique no seu:', 'ok');
-        $('#jgLista').innerHTML = jgListaHTML(achados);
-    } catch (e) {
-        jgStatus('Não consegui buscar: ' + esc(e.message) + '.', 'erro');
-    }
-}
-
-function jgElo(rank) {
-    if (!rank || rank.rank == null) return null;
-    const faixas = (window.ELOS && window.ELOS.faixas) || [];
-    const f = faixas.find(x => Number(x.tier) === Number(rank.rank));
-    if (!f) return null;
-    return { nome: f.nome + (rank.subrank ? ' ' + rank.subrank : ''), img: f.img };
-}
-
-async function jgAbrirConta(conta) {
-    conta = Number(conta) || 0;
-    if (!conta) return;
-    jgConta = conta;
-    store.set(JG_CHAVE, conta);
-    $('#jgLista').innerHTML = '';
-    $('#jgPainel').innerHTML = '';
-    jgStatus('<i class="fa-solid fa-spinner fa-spin"></i> Carregando o perfil e as partidas...');
-    try {
-        const [perfis, rank, partidas] = await Promise.all([
-            jgApi('/v1/players/steam?account_ids=' + conta).catch(() => []),
-            jgApi('/v1/players/' + conta + '/rank').catch(() => null),
-            jgApi('/v1/players/' + conta + '/match-history')
-        ]);
-        if (!Array.isArray(partidas) || !partidas.length) {
-            jgStatus('Esse jogador ainda não tem partidas públicas de Deadlock. Jogue uma partida e tente de novo.', 'erro');
-            return;
-        }
-        jgCarregado = { conta, perfil: (perfis && perfis[0]) || {}, rank, partidas, quando: Date.now() };
-        jgStatus('');
-        jgPintar();
-    } catch (e) {
-        jgStatus('Não consegui carregar o perfil: ' + esc(e.message) + '.', 'erro');
-    }
-}
-
-function jgPintar() {
-    const d = jgCarregado;
-    const painel = $('#jgPainel');
-    if (!d || !painel) return;
-    const p = d.perfil || {};
-    const rank = jgElo(d.rank);
-    const validas = d.partidas
-        .filter(m => (m.player_team === 0 || m.player_team === 1) && (m.match_result === 0 || m.match_result === 1))
-        .sort((a, b) => Number(b.start_time) - Number(a.start_time));
-    if (!validas.length) { jgStatus('Não achei partidas válidas nesse perfil.', 'erro'); return; }
-
-    const venceu = (m) => m.player_team === m.match_result;
-    const vitorias = validas.filter(venceu).length;
-    const ultimas = validas.slice(0, 20);
-    const vitUlt = ultimas.filter(venceu).length;
-    const soma = (lista, campo) => lista.reduce((s, m) => s + (Number(m[campo]) || 0), 0);
-    const abates = soma(validas, 'player_kills');
-    const mortes = soma(validas, 'player_deaths');
-    const ajudas = soma(validas, 'player_assists');
-    const kda = ((abates + ajudas) / Math.max(1, mortes)).toFixed(2).replace('.', ',');
-    const abatesPorPartida = (abates / validas.length).toFixed(1).replace('.', ',');
-
-    const porHeroi = {};
-    validas.forEach(m => {
-        const id = String(m.hero_id);
-        const r = porHeroi[id] || (porHeroi[id] = { id, partidas: 0, vitorias: 0, abates: 0, mortes: 0, ajudas: 0 });
-        r.partidas++;
-        if (venceu(m)) r.vitorias++;
-        r.abates += Number(m.player_kills) || 0;
-        r.mortes += Number(m.player_deaths) || 0;
-        r.ajudas += Number(m.player_assists) || 0;
-    });
-    const top = Object.values(porHeroi).sort((a, b) => b.partidas - a.partidas).slice(0, 6);
-    const nomeHeroi = (id) => (heroiPorApiId(id) || {}).name || ('Herói ' + id);
-    const imgHeroi = (id) => {
-        const h = heroiPorApiId(id);
-        return h ? `assets/heroes/${esc(h.file)}` : '';
-    };
-
-    const html = [];
-    html.push(`<div class="jg-card">
-        <img class="jg-av" src="${esc(p.avatarfull || p.avatarmedium || '')}" alt="Avatar de ${esc(p.personaname || 'jogador')}">
-        <div class="jg-quem">
-            <h2>${esc(p.personaname || 'Jogador')}</h2>
-            <p>${jgInt(validas.length)} partidas no histórico${p.matches_played_last_30d ? ' · ' + jgInt(p.matches_played_last_30d) + ' nos últimos 30 dias' : ''}</p>
-            ${p.profileurl ? `<a class="jg-link" href="${esc(p.profileurl)}" target="_blank" rel="noopener"><i class="fa-brands fa-steam"></i> Ver perfil na Steam</a>` : ''}
-        </div>
-        ${rank ? `<div class="jg-elo"><img src="${esc(rank.img)}" alt=""><span><small>Elo atual</small><b>${esc(rank.nome)}</b></span></div>` : ''}
-        <button type="button" class="btn btn-dark" id="jgAtualizar"><i class="fa-solid fa-rotate"></i> Atualizar</button>
-    </div>`);
-
-    html.push(`<div class="jg-nums">
-        <div class="jg-num"><b>${jgPct(vitorias, validas.length)}</b><small>win rate · ${jgInt(vitorias)}V / ${jgInt(validas.length - vitorias)}D</small></div>
-        <div class="jg-num"><b>${jgPct(vitUlt, ultimas.length)}</b><small>win rate nas últimas ${ultimas.length}</small></div>
-        <div class="jg-num"><b>${kda}</b><small>KDA médio (abates + ajudas por morte)</small></div>
-        <div class="jg-num"><b>${abatesPorPartida}</b><small>abates por partida</small></div>
-    </div>`);
-
-    html.push(`<h3 class="jg-titulo"><i class="fa-solid fa-masks-theater"></i> Heróis mais jogados</h3><div class="jg-herois">` +
-        top.map(r => `<button type="button" class="jg-heroi" data-heroi="${esc(nomeHeroi(r.id))}">
-            ${imgHeroi(r.id) ? `<img src="${imgHeroi(r.id)}" alt="" loading="lazy">` : ''}
-            <span class="jg-heroi-quem"><b>${esc(nomeHeroi(r.id))}</b><small>${jgInt(r.partidas)} partidas · ${jgPct(r.vitorias, r.partidas)}</small></span>
-            <span class="jg-heroi-kda">${((r.abates + r.ajudas) / Math.max(1, r.mortes)).toFixed(2).replace('.', ',')}</span>
-        </button>`).join('') + '</div>');
-
-    html.push(`<h3 class="jg-titulo"><i class="fa-solid fa-clock-rotate-left"></i> Últimas partidas</h3><div class="jg-partidas">` +
-        ultimas.slice(0, 15).map(m => {
-            const v = venceu(m);
-            return `<div class="jg-partida ${v ? 'v' : 'd'}">
-                ${imgHeroi(m.hero_id) ? `<img src="${imgHeroi(m.hero_id)}" alt="" loading="lazy">` : ''}
-                <span class="jg-p-heroi"><b>${esc(nomeHeroi(m.hero_id))}</b><small>${esc(jgQuando(m.start_time))} · ${jgDuracao(m.match_duration_s)}</small></span>
-                <span class="jg-p-kda">${Number(m.player_kills) || 0} / ${Number(m.player_deaths) || 0} / ${Number(m.player_assists) || 0}</span>
-                <span class="jg-p-res">${v ? 'VITÓRIA' : 'DERROTA'}</span>
-            </div>`;
-        }).join('') + '</div>');
-
-    painel.innerHTML = html.join('');
-    const atualizar = $('#jgAtualizar');
-    if (atualizar) atualizar.addEventListener('click', () => jgAbrirConta(d.conta));
-    $$('#jgPainel [data-heroi]').forEach(b => b.addEventListener('click', () => openHero(b.dataset.heroi)));
-}
-
-function jgAoAbrir() {
-    if (jgCarregado) return;
-    const salvo = Number(store.get(JG_CHAVE, 0)) || 0;
-    if (salvo) {
-        const campo = $('#jgInput');
-        if (campo && !campo.value) campo.value = String(salvo);
-        jgAbrirConta(salvo);
-    }
-}
-
-function initJogador() {
-    const form = $('#jgForm');
-    if (!form) return;
-    form.addEventListener('submit', (e) => { e.preventDefault(); jgProcurar($('#jgInput').value); });
-    $('#jgLista').addEventListener('click', (e) => {
-        const b = e.target.closest('[data-conta]');
-        if (b) jgAbrirConta(b.dataset.conta);
-    });
-}
-
 /* ================= CARTÃO DO HERÓI (imagem) =================
    Desenha um cartão 1080x1350 no canvas (com as artes que já estão no
    site, então funciona até offline) para baixar ou compartilhar. */
 const CARTAO_L = 1080;
 const CARTAO_A = 1350;
+const numeroBR = (n) => Number(n || 0).toLocaleString('pt-BR');
 
 function carregarImagem(src) {
     return new Promise((ok, erro) => {
@@ -4909,7 +4695,7 @@ async function gerarCartao(hero) {
         if (hero.partidas) {
             g.fillStyle = '#ffffff';
             g.font = '800 44px Poppins, Inter, sans-serif';
-            g.fillText(jgInt(hero.partidas), 560, 1052);
+            g.fillText(numeroBR(hero.partidas), 560, 1052);
             g.fillStyle = 'rgba(255,255,255,.55)';
             g.font = '600 23px Inter, sans-serif';
             g.fillText('partidas analisadas', 562, 1084);
@@ -4981,7 +4767,7 @@ async function compartilharCartao(canvas, hero) {
             await navigator.share({
                 files: [arquivo],
                 title: hero.name + ' — Central Deadlock',
-                text: hero.real ? `${hero.name}: ${hero.win}% de vitória em ${jgInt(hero.partidas)} partidas.` : hero.name + ' — Central Deadlock'
+                text: hero.real ? `${hero.name}: ${hero.win}% de vitória em ${numeroBR(hero.partidas)} partidas.` : hero.name + ' — Central Deadlock'
             });
             return;
         } catch (e) {
