@@ -108,7 +108,7 @@ meu-fansite/
 ## 📑 Menu (seções)
 
 **Deadlock:** Home · Heróis · Comparar · Counters · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
-**Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
+**Comunidade:** Esports · Ranking · **Jogador** · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
 
 ### Abas novas
 
@@ -240,6 +240,8 @@ O que isso muda no site:
 | **Busca global** | não existia | **Ctrl + K** acha herói, item, notícia, guia, build, tela e termo do glossário num lugar só |
 | **Guias** | só 3 guias escritos à mão | **um guia para cada um dos 43 heróis**, montado sozinho com os números reais das partidas, com filtro por nome/papel/tier |
 | **Painel do Steam** (em Meu Perfil) | não existia | digite o seu nick e veja **as suas partidas de verdade**: win rate, KDA, elo, heróis mais jogados e os últimos 20 jogos |
+| **Aba Jogador** | não existia | procure **qualquer jogador** pelo nome, pelo link do perfil ou pelo ID e veja o perfil completo: elo, win rate de todo o histórico, KDA, 6 heróis mais jogados e as últimas 15 partidas |
+| **Cartão do herói** | não existia | um botão na ficha do herói gera um **cartão em imagem (1080×1350)** com nome, tier, win rate, pick rate e a build mais usada — pronto para WhatsApp, Discord ou Instagram |
 
 ### De onde sai cada arquivo
 
@@ -258,6 +260,37 @@ O que isso muda no site:
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
 >
 > ⚠️ Os nomes das builds vêm de jogadores. Se algum nome for ofensivo, o script troca por "Build da comunidade" sozinho.
+
+---
+
+## 🎮 Aba Jogador (perfil de qualquer jogador)
+
+A aba **Jogador** (no menu, embaixo de Ranking) procura **qualquer conta** e mostra o perfil completo, na hora:
+
+1. Digite **o nome na Steam**, cole **o link do perfil** (`steamcommunity.com/profiles/...`) ou o **ID da conta**.
+2. Se aparecerem vários jogadores com o mesmo nome, o site lista todos (foto + partidas nos últimos 30 dias) — clique no seu.
+3. O perfil mostra: **elo atual** (brasão oficial), **win rate de todo o histórico**, win rate das últimas 20, **KDA médio**, abates por partida, os **6 heróis mais jogados** (com win rate e KDA de cada um) e as **últimas 15 partidas** (herói, resultado, K/D/A, duração e quando foi).
+4. O último ID buscado fica guardado **no seu navegador** e volta sozinho quando você abre a aba de novo.
+
+Clique em qualquer herói da lista para abrir a ficha dele. O botão **Atualizar** busca as partidas de novo.
+
+> 🔒 O site **não tem login, senha nem servidor**: a busca vai direto do seu navegador para a **deadlock-api.com**, que só devolve o que já é público no perfil do jogador. Nada é guardado fora do seu computador.
+>
+> 💡 Em **Meu Perfil** existe um resumo rápido do seu próprio perfil (com busca por nick). O botão **"Abrir na aba Jogador"** leva esse jogador para a aba completa.
+
+---
+
+## 🖼️ Cartão do herói (imagem para compartilhar)
+
+Na ficha de qualquer herói, o botão **"Baixar cartão"** monta um **cartão em imagem, 1080×1350** (o tamanho que o Instagram, o WhatsApp e o Discord gostam), com:
+
+- a arte do herói (a mesma capa da página dele)
+- nome, papel, arquétipo e **tier**
+- **win rate**, **pick rate** e o **número de partidas analisadas**
+- a **build mais usada** naquele momento
+- o endereço do site e a fonte dos números
+
+Dá para **baixar o PNG** ou usar o botão **Compartilhar** (no celular ele abre o menu do próprio aparelho). O cartão é desenhado no seu navegador, com as imagens que já estão no site — então **funciona até sem internet**.
 
 ---
 

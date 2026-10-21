@@ -290,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initItens();
     initComecando();
     initRanking();
+    initJogador();
     renderHistorico();
     initMap();
     initEvents();
@@ -624,8 +625,12 @@ function steamDesenhar() {
     if (!alvo || !steamDados) return;
     const jogador = steamDados.jogador;
     const todas = steamDados.partidas || [];
-    const contadas = todas.filter(m => m.player_match_outcome === 1 || m.player_match_outcome === 2);
-    const vitorias = contadas.filter(m => m.player_match_outcome === 1).length;
+    // o resultado de verdade: o time do jogador x o time que ganhou a partida
+    const ganhouJogo = (m) => m.player_team === m.match_result;
+    const contadas = todas
+        .filter(m => (m.player_team === 0 || m.player_team === 1) && (m.match_result === 0 || m.match_result === 1))
+        .sort((a, b) => Number(b.start_time) - Number(a.start_time));
+    const vitorias = contadas.filter(ganhouJogo).length;
     const abates = contadas.reduce((s, m) => s + (Number(m.player_kills) || 0), 0);
     const mortes = contadas.reduce((s, m) => s + (Number(m.player_deaths) || 0), 0);
     const ajudas = contadas.reduce((s, m) => s + (Number(m.player_assists) || 0), 0);
@@ -640,7 +645,7 @@ function steamDesenhar() {
         let registro = porHeroi.filter(x => x.chave === chave)[0];
         if (!registro) { registro = { chave: chave, heroi: h, jogos: 0, vitorias: 0 }; porHeroi.push(registro); }
         registro.jogos++;
-        if (m.player_match_outcome === 1) registro.vitorias++;
+        if (ganhouJogo(m)) registro.vitorias++;
     });
     porHeroi.sort((a, b) => b.jogos - a.jogos);
 
@@ -656,7 +661,7 @@ function steamDesenhar() {
 
     const ultimos = contadas.slice(0, 20).map(m => {
         const h = heroiPorApiId(m.hero_id);
-        const ganhou = m.player_match_outcome === 1;
+        const ganhou = ganhouJogo(m);
         const mortesJogo = Number(m.player_deaths) || 0;
         const kd = mortesJogo > 0 ? ((Number(m.player_kills) || 0) + (Number(m.player_assists) || 0)) / mortesJogo : ((Number(m.player_kills) || 0) + (Number(m.player_assists) || 0));
         return `<div class="steam-jogo ${ganhou ? 'ganhou' : 'perdeu'}">
@@ -674,7 +679,7 @@ function steamDesenhar() {
             <img class="steam-avatar" src="${esc(jogador.avatar || '')}" alt="" onerror="this.style.visibility='hidden'">
             <div class="steam-quem">
                 <b>${esc(jogador.nome || 'Jogador')}</b>
-                <small>${contadas.length} ${contadas.length === 1 ? 'partida contada' : 'partidas contadas'}${todas.length > contadas.length ? ' · ' + (todas.length - contadas.length) + ' sem resultado' : ''}</small>
+                <small>${contadas.length} ${contadas.length === 1 ? 'partida no histórico' : 'partidas no histórico'}</small>
                 ${jogador.link ? `<a href="${esc(jogador.link)}" target="_blank" rel="noopener">Ver no Steam <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
             </div>
             ${elo ? `<div class="steam-elo">
@@ -683,6 +688,7 @@ function steamDesenhar() {
             </div>` : ''}
             <div class="steam-acoes">
                 <button type="button" class="btn btn-dark btn-sm" id="steamAtualizar"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+                <button type="button" class="btn btn-dark btn-sm" id="steamCompleto"><i class="fa-solid fa-id-card"></i> Abrir na aba Jogador</button>
                 <button type="button" class="btn btn-dark btn-sm" id="steamTrocar"><i class="fa-solid fa-right-left"></i> Trocar jogador</button>
             </div>
         </div>
@@ -708,6 +714,13 @@ function steamDesenhar() {
         alvo.innerHTML = '';
         const campo = $('#steamCampo');
         if (campo) { campo.value = ''; campo.focus(); }
+    });
+    const completo = $('#steamCompleto');
+    if (completo) completo.addEventListener('click', () => {
+        showSection('jogador');
+        const campo = $('#jgInput');
+        if (campo) campo.value = String(jogador.id);
+        jgAbrirConta(jogador.id);
     });
 }
 
@@ -968,6 +981,7 @@ function showSection(id) {
     window.scrollTo({ top: 0, behavior: 'auto' });
     if (id === 'favoritos') renderFavs();
     if (id === 'perfil') renderProfileUI();
+    if (id === 'jogador') jgAoAbrir();
 }
 
 /* ================= voltar ao topo ================= */
@@ -1342,6 +1356,7 @@ function renderHeroModal() {
                 </button>
                 ${h.soon ? '' : `<a class="btn btn-dark btn-block" href="heroi/${esc(slugJS(h.name))}.html" style="margin-top:8px"><i class="fa-solid fa-up-right-from-square"></i> Página completa</a>`}
                 ${h.soon ? '' : `<button type="button" class="btn btn-dark btn-block" id="hShare" style="margin-top:8px"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>`}
+                ${h.soon ? '' : `<button type="button" class="btn btn-dark btn-block" id="hCartao" style="margin-top:8px"><i class="fa-solid fa-image"></i> Baixar cartão</button>`}
                 ${rel.length ? `<div class="hp-parecidos"><small>PARECIDOS</small>${rel.map(miniHero).join('')}</div>` : ''}
             </aside>
             <section>
@@ -1363,6 +1378,8 @@ function renderHeroModal() {
         text: `${h.name} (${h.role}): números reais, habilidades e as builds mais usadas.`,
         url: new URL('heroi/' + slugJS(h.name) + '.html', location.href).href
     }));
+    const hc = $('#heroModalBox #hCartao');
+    if (hc) hc.addEventListener('click', () => abrirCartao(h.name));
     $$('#heroModalBox [data-hero-link]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); openHero(a.dataset.heroLink); }));
 }
 
@@ -1579,6 +1596,7 @@ function initContents() {
         { goto: 'mira', icone: 'fa-crosshairs', titulo: 'Minha Mira', desc: 'Cole o seu código DL. e veja a mira desenhada na hora.' },
         { goto: 'glossario', icone: 'fa-list', titulo: 'Glossário', desc: 'Os termos do jogo explicados em português.' },
         { goto: 'esports', icone: 'fa-trophy', titulo: 'Esports', desc: 'Os torneios de Deadlock e quem está ganhando.' },
+        { goto: 'jogador', icone: 'fa-id-card', titulo: 'Jogador', desc: 'Veja as partidas de qualquer jogador pelo nome ou link do perfil.' },
         { goto: 'ranking', icone: 'fa-ranking-star', titulo: 'Ranking', desc: 'Os melhores jogadores de cada região, direto do jogo.' }
     ];
     const gradeHome = $('#homeGrid');
@@ -4503,4 +4521,505 @@ function showToast(msg, type = 'success') {
     toast.classList.add('show');
     clearTimeout(showToast._t);
     showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+/* ================= JOGADOR (perfil público) =================
+   Busca o jogador pelo nome, link do perfil ou ID da Steam e mostra
+   as partidas públicas dele no Deadlock. Tudo vem da deadlock-api.com
+   direto do navegador — o site não tem servidor nem login. */
+const JG_API = 'https://api.deadlock-api.com';
+const JG_CHAVE = 'cdl_jogador';
+let jgConta = 0;
+let jgCarregado = null;   // { conta, perfil, rank, partidas, quando }
+
+function jgInt(n) { return Number(n || 0).toLocaleString('pt-BR'); }
+
+function jgPct(parte, total) {
+    if (!total) return '—';
+    return (100 * parte / total).toFixed(1).replace('.', ',') + '%';
+}
+
+function jgQuando(ts) {
+    const seg = Math.max(0, Math.floor(Date.now() / 1000) - Number(ts || 0));
+    if (seg < 90) return 'agora há pouco';
+    if (seg < 3600) return 'há ' + Math.round(seg / 60) + ' min';
+    if (seg < 86400) return 'há ' + Math.round(seg / 3600) + ' h';
+    const d = Math.round(seg / 86400);
+    return d === 1 ? 'ontem' : 'há ' + d + ' dias';
+}
+
+function jgDuracao(seg) {
+    seg = Math.max(0, Math.round(Number(seg) || 0));
+    return Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2, '0');
+}
+
+/* aceita: 7656119... (SteamID64), link /profiles/7656..., ID da conta (5 a 10 dígitos) */
+function jgContaDoTexto(bruto) {
+    const txt = String(bruto || '').trim();
+    if (!txt) return 0;
+    const doPerfil = txt.match(/\/profiles\/(\d{16,17})/);
+    if (doPerfil) return Number(BigInt(doPerfil[1]) - 76561197960265728n);
+    if (/^\d{16,17}$/.test(txt)) return Number(BigInt(txt) - 76561197960265728n);
+    if (/^\d{5,10}$/.test(txt)) return Number(txt);
+    return 0;
+}
+
+function jgStatus(html, tipo) {
+    const el = $('#jgStatus');
+    if (!el) return;
+    el.className = 'jg-status' + (tipo ? ' ' + tipo : '');
+    el.innerHTML = html || '';
+}
+
+function jgApi(caminho) {
+    return fetch(JG_API + caminho, { headers: { accept: 'application/json' } }).then(r => {
+        if (r.status === 429) throw new Error('muitas consultas em pouco tempo, espere um minuto');
+        if (r.status === 404) throw new Error('não encontrei esse jogador');
+        if (!r.ok) throw new Error('a API respondeu ' + r.status);
+        return r.json();
+    });
+}
+
+function jgListaHTML(lista) {
+    return lista.map(p => `<button type="button" class="jg-item" data-conta="${Number(p.account_id) || 0}">
+            <img src="${esc(p.avatarmedium || p.avatar || '')}" alt="" loading="lazy">
+            <span class="jg-item-quem">
+                <b>${esc(p.personaname || 'Jogador')}</b>
+                <small>${jgInt(p.matches_played_last_30d)} partidas nos últimos 30 dias</small>
+            </span>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>`).join('');
+}
+
+async function jgProcurar(bruto) {
+    let termo = String(bruto || '').trim();
+    if (termo.length < 2) { jgStatus('Digite pelo menos 2 letras do nome (ou cole o link do perfil).', 'erro'); return; }
+    const conta = jgContaDoTexto(termo);
+    if (conta) { jgAbrirConta(conta); return; }
+    // link com nome personalizado (steamcommunity.com/id/fulano): procura pelo nome
+    const vaidade = termo.match(/\/id\/([^\/?#]+)/);
+    if (vaidade) termo = decodeURIComponent(vaidade[1]).replace(/[+_]/g, ' ');
+    jgStatus('<i class="fa-solid fa-spinner fa-spin"></i> Procurando na Steam...');
+    $('#jgLista').innerHTML = '';
+    try {
+        const achados = await jgApi('/v1/players/steam-search?search_query=' + encodeURIComponent(termo) + '&limit=8');
+        if (!Array.isArray(achados) || !achados.length) {
+            jgStatus('Nenhum jogador com esse nome. Confira se está escrito igual ao da Steam, ou cole o link do perfil.', 'erro');
+            return;
+        }
+        if (achados.length === 1) { jgAbrirConta(achados[0].account_id); return; }
+        jgStatus('Achei ' + achados.length + ' jogadores — clique no seu:', 'ok');
+        $('#jgLista').innerHTML = jgListaHTML(achados);
+    } catch (e) {
+        jgStatus('Não consegui buscar: ' + esc(e.message) + '.', 'erro');
+    }
+}
+
+function jgElo(rank) {
+    if (!rank || rank.rank == null) return null;
+    const faixas = (window.ELOS && window.ELOS.faixas) || [];
+    const f = faixas.find(x => Number(x.tier) === Number(rank.rank));
+    if (!f) return null;
+    return { nome: f.nome + (rank.subrank ? ' ' + rank.subrank : ''), img: f.img };
+}
+
+async function jgAbrirConta(conta) {
+    conta = Number(conta) || 0;
+    if (!conta) return;
+    jgConta = conta;
+    store.set(JG_CHAVE, conta);
+    $('#jgLista').innerHTML = '';
+    $('#jgPainel').innerHTML = '';
+    jgStatus('<i class="fa-solid fa-spinner fa-spin"></i> Carregando o perfil e as partidas...');
+    try {
+        const [perfis, rank, partidas] = await Promise.all([
+            jgApi('/v1/players/steam?account_ids=' + conta).catch(() => []),
+            jgApi('/v1/players/' + conta + '/rank').catch(() => null),
+            jgApi('/v1/players/' + conta + '/match-history')
+        ]);
+        if (!Array.isArray(partidas) || !partidas.length) {
+            jgStatus('Esse jogador ainda não tem partidas públicas de Deadlock. Jogue uma partida e tente de novo.', 'erro');
+            return;
+        }
+        jgCarregado = { conta, perfil: (perfis && perfis[0]) || {}, rank, partidas, quando: Date.now() };
+        jgStatus('');
+        jgPintar();
+    } catch (e) {
+        jgStatus('Não consegui carregar o perfil: ' + esc(e.message) + '.', 'erro');
+    }
+}
+
+function jgPintar() {
+    const d = jgCarregado;
+    const painel = $('#jgPainel');
+    if (!d || !painel) return;
+    const p = d.perfil || {};
+    const rank = jgElo(d.rank);
+    const validas = d.partidas
+        .filter(m => (m.player_team === 0 || m.player_team === 1) && (m.match_result === 0 || m.match_result === 1))
+        .sort((a, b) => Number(b.start_time) - Number(a.start_time));
+    if (!validas.length) { jgStatus('Não achei partidas válidas nesse perfil.', 'erro'); return; }
+
+    const venceu = (m) => m.player_team === m.match_result;
+    const vitorias = validas.filter(venceu).length;
+    const ultimas = validas.slice(0, 20);
+    const vitUlt = ultimas.filter(venceu).length;
+    const soma = (lista, campo) => lista.reduce((s, m) => s + (Number(m[campo]) || 0), 0);
+    const abates = soma(validas, 'player_kills');
+    const mortes = soma(validas, 'player_deaths');
+    const ajudas = soma(validas, 'player_assists');
+    const kda = ((abates + ajudas) / Math.max(1, mortes)).toFixed(2).replace('.', ',');
+    const abatesPorPartida = (abates / validas.length).toFixed(1).replace('.', ',');
+
+    const porHeroi = {};
+    validas.forEach(m => {
+        const id = String(m.hero_id);
+        const r = porHeroi[id] || (porHeroi[id] = { id, partidas: 0, vitorias: 0, abates: 0, mortes: 0, ajudas: 0 });
+        r.partidas++;
+        if (venceu(m)) r.vitorias++;
+        r.abates += Number(m.player_kills) || 0;
+        r.mortes += Number(m.player_deaths) || 0;
+        r.ajudas += Number(m.player_assists) || 0;
+    });
+    const top = Object.values(porHeroi).sort((a, b) => b.partidas - a.partidas).slice(0, 6);
+    const nomeHeroi = (id) => (heroiPorApiId(id) || {}).name || ('Herói ' + id);
+    const imgHeroi = (id) => {
+        const h = heroiPorApiId(id);
+        return h ? `assets/heroes/${esc(h.file)}` : '';
+    };
+
+    const html = [];
+    html.push(`<div class="jg-card">
+        <img class="jg-av" src="${esc(p.avatarfull || p.avatarmedium || '')}" alt="Avatar de ${esc(p.personaname || 'jogador')}">
+        <div class="jg-quem">
+            <h2>${esc(p.personaname || 'Jogador')}</h2>
+            <p>${jgInt(validas.length)} partidas no histórico${p.matches_played_last_30d ? ' · ' + jgInt(p.matches_played_last_30d) + ' nos últimos 30 dias' : ''}</p>
+            ${p.profileurl ? `<a class="jg-link" href="${esc(p.profileurl)}" target="_blank" rel="noopener"><i class="fa-brands fa-steam"></i> Ver perfil na Steam</a>` : ''}
+        </div>
+        ${rank ? `<div class="jg-elo"><img src="${esc(rank.img)}" alt=""><span><small>Elo atual</small><b>${esc(rank.nome)}</b></span></div>` : ''}
+        <button type="button" class="btn btn-dark" id="jgAtualizar"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+    </div>`);
+
+    html.push(`<div class="jg-nums">
+        <div class="jg-num"><b>${jgPct(vitorias, validas.length)}</b><small>win rate · ${jgInt(vitorias)}V / ${jgInt(validas.length - vitorias)}D</small></div>
+        <div class="jg-num"><b>${jgPct(vitUlt, ultimas.length)}</b><small>win rate nas últimas ${ultimas.length}</small></div>
+        <div class="jg-num"><b>${kda}</b><small>KDA médio (abates + ajudas por morte)</small></div>
+        <div class="jg-num"><b>${abatesPorPartida}</b><small>abates por partida</small></div>
+    </div>`);
+
+    html.push(`<h3 class="jg-titulo"><i class="fa-solid fa-masks-theater"></i> Heróis mais jogados</h3><div class="jg-herois">` +
+        top.map(r => `<button type="button" class="jg-heroi" data-heroi="${esc(nomeHeroi(r.id))}">
+            ${imgHeroi(r.id) ? `<img src="${imgHeroi(r.id)}" alt="" loading="lazy">` : ''}
+            <span class="jg-heroi-quem"><b>${esc(nomeHeroi(r.id))}</b><small>${jgInt(r.partidas)} partidas · ${jgPct(r.vitorias, r.partidas)}</small></span>
+            <span class="jg-heroi-kda">${((r.abates + r.ajudas) / Math.max(1, r.mortes)).toFixed(2).replace('.', ',')}</span>
+        </button>`).join('') + '</div>');
+
+    html.push(`<h3 class="jg-titulo"><i class="fa-solid fa-clock-rotate-left"></i> Últimas partidas</h3><div class="jg-partidas">` +
+        ultimas.slice(0, 15).map(m => {
+            const v = venceu(m);
+            return `<div class="jg-partida ${v ? 'v' : 'd'}">
+                ${imgHeroi(m.hero_id) ? `<img src="${imgHeroi(m.hero_id)}" alt="" loading="lazy">` : ''}
+                <span class="jg-p-heroi"><b>${esc(nomeHeroi(m.hero_id))}</b><small>${esc(jgQuando(m.start_time))} · ${jgDuracao(m.match_duration_s)}</small></span>
+                <span class="jg-p-kda">${Number(m.player_kills) || 0} / ${Number(m.player_deaths) || 0} / ${Number(m.player_assists) || 0}</span>
+                <span class="jg-p-res">${v ? 'VITÓRIA' : 'DERROTA'}</span>
+            </div>`;
+        }).join('') + '</div>');
+
+    painel.innerHTML = html.join('');
+    const atualizar = $('#jgAtualizar');
+    if (atualizar) atualizar.addEventListener('click', () => jgAbrirConta(d.conta));
+    $$('#jgPainel [data-heroi]').forEach(b => b.addEventListener('click', () => openHero(b.dataset.heroi)));
+}
+
+function jgAoAbrir() {
+    if (jgCarregado) return;
+    const salvo = Number(store.get(JG_CHAVE, 0)) || 0;
+    if (salvo) {
+        const campo = $('#jgInput');
+        if (campo && !campo.value) campo.value = String(salvo);
+        jgAbrirConta(salvo);
+    }
+}
+
+function initJogador() {
+    const form = $('#jgForm');
+    if (!form) return;
+    form.addEventListener('submit', (e) => { e.preventDefault(); jgProcurar($('#jgInput').value); });
+    $('#jgLista').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-conta]');
+        if (b) jgAbrirConta(b.dataset.conta);
+    });
+}
+
+/* ================= CARTÃO DO HERÓI (imagem) =================
+   Desenha um cartão 1080x1350 no canvas (com as artes que já estão no
+   site, então funciona até offline) para baixar ou compartilhar. */
+const CARTAO_L = 1080;
+const CARTAO_A = 1350;
+
+function carregarImagem(src) {
+    return new Promise((ok, erro) => {
+        const img = new Image();
+        img.onload = () => ok(img);
+        img.onerror = () => erro(new Error('imagem não carregou: ' + src));
+        img.src = src;
+    });
+}
+
+function desenharCover(g, img, x, y, w, h, focoX = 0.5, focoY = 0.5) {
+    const escala = Math.max(w / img.width, h / img.height);
+    const lw = img.width * escala, lh = img.height * escala;
+    g.drawImage(img, x - (lw - w) * focoX, y - (lh - h) * focoY, lw, lh);
+}
+
+function textoQuebrado(g, texto, largura, maxLinhas) {
+    const palavras = String(texto).split(/\s+/);
+    const linhas = [];
+    let atual = '';
+    palavras.forEach(palavra => {
+        const teste = atual ? atual + ' ' + palavra : palavra;
+        if (!atual || g.measureText(teste).width <= largura) atual = teste;
+        else { linhas.push(atual); atual = palavra; }
+    });
+    if (atual) linhas.push(atual);
+    if (linhas.length > maxLinhas) {
+        linhas.length = maxLinhas;
+        linhas[maxLinhas - 1] = linhas[maxLinhas - 1].replace(/\s+\S*$/, '') + '…';
+    }
+    return linhas;
+}
+
+function fonteTamanho(g, texto, familia, tamanho, peso, larguraMax) {
+    let t = tamanho;
+    g.font = `${peso} ${t}px ${familia}`;
+    while (t > 40 && g.measureText(texto).width > larguraMax) {
+        t -= 2;
+        g.font = `${peso} ${t}px ${familia}`;
+    }
+    return t;
+}
+
+async function gerarCartao(hero) {
+    try { await document.fonts.ready; } catch (e) { /* segue com a fonte do sistema */ }
+    try { await document.fonts.load('800 78px Poppins'); } catch (e) { /* idem */ }
+
+    const base = document.createElement('canvas');
+    base.width = CARTAO_L;
+    base.height = CARTAO_A;
+    const g = base.getContext('2d');
+    const alturaArte = 760;
+
+    // fundo
+    const fundo = g.createLinearGradient(0, 0, CARTAO_L, CARTAO_A);
+    fundo.addColorStop(0, '#0b0d10');
+    fundo.addColorStop(1, '#161b22');
+    g.fillStyle = fundo;
+    g.fillRect(0, 0, CARTAO_L, CARTAO_A);
+
+    const brilho = g.createRadialGradient(140, CARTAO_A - 120, 20, 140, CARTAO_A - 120, 760);
+    brilho.addColorStop(0, 'rgba(182,242,74,.20)');
+    brilho.addColorStop(1, 'rgba(182,242,74,0)');
+    g.save();
+    g.beginPath();
+    g.rect(0, alturaArte, CARTAO_L, CARTAO_A - alturaArte);
+    g.clip();
+    g.fillStyle = brilho;
+    g.fillRect(0, 0, CARTAO_L, CARTAO_A);
+    g.restore();
+
+    // arte: usa a capa larga; se o herói não tiver, usa o retrato
+    g.save();
+    g.beginPath();
+    g.rect(0, 0, CARTAO_L, alturaArte);
+    g.clip();
+    let desenhou = false;
+    try {
+        const capa = await carregarImagem('assets/capas/' + slugJS(hero.name) + '.webp');
+        // nas capas do site o herói fica no lado direito: puxa o recorte para lá
+        desenharCover(g, capa, 0, 0, CARTAO_L, alturaArte, 0.72, 0.3);
+        desenhou = true;
+    } catch (e) { desenhou = false; }
+    if (!desenhou && hero.file) {
+        try {
+            const retrato = await carregarImagem('assets/heroes/' + hero.file);
+            // sem capa: usa o retrato grande à direita (fica mais nítido que esticar)
+            const alt = 700;
+            const larg = Math.round(alt * retrato.width / retrato.height);
+            const x = CARTAO_L - larg - 24;
+            const y = alturaArte - alt;
+            g.save();
+            g.beginPath();
+            if (g.roundRect) g.roundRect(x, y, larg, alt, 28); else g.rect(x, y, larg, alt);
+            g.clip();
+            g.drawImage(retrato, x, y, larg, alt);
+            g.restore();
+        } catch (e) { /* fica só o fundo */ }
+    }
+    g.restore();
+
+    // painel de baixo: cor sólida em toda a largura, para a arte terminar sem emenda
+    g.fillStyle = '#0b0d10';
+    g.fillRect(0, alturaArte, CARTAO_L, CARTAO_A - alturaArte);
+
+    // degradê de transição: a arte vai sumindo dentro do painel
+    const sombra = g.createLinearGradient(0, alturaArte * 0.28, 0, alturaArte);
+    sombra.addColorStop(0, 'rgba(11,13,16,0)');
+    sombra.addColorStop(0.55, 'rgba(11,13,16,.6)');
+    sombra.addColorStop(1, 'rgba(11,13,16,1)');
+    g.fillStyle = sombra;
+    g.fillRect(0, alturaArte * 0.28, CARTAO_L, alturaArte * 0.72);
+
+    // marca
+    g.textAlign = 'left';
+    g.fillStyle = '#b6f24a';
+    g.font = '800 30px Poppins, Inter, sans-serif';
+    g.fillText('CENTRAL DEADLOCK', 64, 94);
+    g.fillStyle = 'rgba(255,255,255,.55)';
+    g.font = '600 22px Inter, sans-serif';
+    g.fillText('números reais do Deadlock', 64, 128);
+
+    // nome
+    g.fillStyle = '#ffffff';
+    const tamNome = fonteTamanho(g, hero.name, 'Poppins, Inter, sans-serif', 82, '800', CARTAO_L - 128);
+    g.font = `800 ${tamNome}px Poppins, Inter, sans-serif`;
+    g.fillText(hero.name, 64, 846);
+
+    // cargo · arquétipo · tier
+    const partes = [hero.role, hero.arch && hero.arch !== '—' ? hero.arch : '', hero.real ? 'Tier ' + hero.tier : ''].filter(Boolean);
+    g.fillStyle = 'rgba(255,255,255,.62)';
+    g.font = '600 30px Inter, sans-serif';
+    g.fillText(partes.join('  ·  '), 64, 894);
+
+    // win rate grande
+    if (hero.real) {
+        g.fillStyle = '#b6f24a';
+        g.font = '800 118px Poppins, Inter, sans-serif';
+        g.fillText(hero.win + '%', 60, 1030);
+        g.fillStyle = 'rgba(255,255,255,.58)';
+        g.font = '600 26px Inter, sans-serif';
+        g.fillText('de vitória', 68, 1068);
+
+        // coluna da direita
+        g.fillStyle = '#ffffff';
+        g.font = '800 44px Poppins, Inter, sans-serif';
+        g.fillText(Number(hero.pick) >= 0.1 ? hero.pick + '%' : '<0,1%', 560, 962);
+        g.fillStyle = 'rgba(255,255,255,.55)';
+        g.font = '600 23px Inter, sans-serif';
+        g.fillText('de escolha', 562, 994);
+        if (hero.partidas) {
+            g.fillStyle = '#ffffff';
+            g.font = '800 44px Poppins, Inter, sans-serif';
+            g.fillText(jgInt(hero.partidas), 560, 1052);
+            g.fillStyle = 'rgba(255,255,255,.55)';
+            g.font = '600 23px Inter, sans-serif';
+            g.fillText('partidas analisadas', 562, 1084);
+        }
+    } else {
+        g.fillStyle = 'rgba(255,255,255,.8)';
+        g.font = '800 46px Poppins, Inter, sans-serif';
+        g.fillText('Números chegando', 64, 1030);
+        g.fillStyle = 'rgba(255,255,255,.55)';
+        g.font = '600 24px Inter, sans-serif';
+        g.fillText('o herói é novo: os dados aparecem quando houver partidas', 64, 1070);
+    }
+
+    // build mais usada
+    const build = (typeof BUILDS !== 'undefined' ? BUILDS : []).find(b => String(b.heroPage || '').endsWith(slugJS(hero.name) + '.html'));
+    const topBuild = build && build.builds && build.builds.length ? build.builds[0] : null;
+    if (topBuild) {
+        g.fillStyle = 'rgba(255,255,255,.45)';
+        g.font = '700 22px Inter, sans-serif';
+        g.fillText('BUILD MAIS USADA', 64, 1146);
+        g.fillStyle = 'rgba(255,255,255,.92)';
+        g.font = '600 28px Inter, sans-serif';
+        const linhas = textoQuebrado(g, topBuild.nome, CARTAO_L - 128, 2);
+        linhas.forEach((linha, i) => g.fillText(linha, 64, 1186 + i * 38));
+    }
+
+    // rodapé
+    g.fillStyle = 'rgba(255,255,255,.45)';
+    g.font = '600 23px Inter, sans-serif';
+    g.fillText('hypedz.github.io/central-deadlock', 64, CARTAO_A - 58);
+    g.textAlign = 'right';
+    g.fillText('dados: deadlock-api.com', CARTAO_L - 64, CARTAO_A - 58);
+    g.textAlign = 'left';
+
+    // cantos arredondados (fora fica transparente)
+    const saida = document.createElement('canvas');
+    saida.width = CARTAO_L;
+    saida.height = CARTAO_A;
+    const gs = saida.getContext('2d');
+    gs.beginPath();
+    if (gs.roundRect) gs.roundRect(0, 0, CARTAO_L, CARTAO_A, 44);
+    else gs.rect(0, 0, CARTAO_L, CARTAO_A);
+    gs.clip();
+    gs.drawImage(base, 0, 0);
+    return saida;
+}
+
+function baixarCartao(canvas, hero) {
+    canvas.toBlob((blob) => {
+        if (!blob) { showToast('Não consegui gerar a imagem', 'error'); return; }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'central-deadlock-' + slugJS(hero.name) + '.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        showToast('Cartão baixado!');
+    }, 'image/png');
+}
+
+async function compartilharCartao(canvas, hero) {
+    const blob = await new Promise(ok => canvas.toBlob(ok, 'image/png'));
+    if (!blob) { showToast('Não consegui gerar a imagem', 'error'); return; }
+    const arquivo = new File([blob], 'central-deadlock-' + slugJS(hero.name) + '.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+        try {
+            await navigator.share({
+                files: [arquivo],
+                title: hero.name + ' — Central Deadlock',
+                text: hero.real ? `${hero.name}: ${hero.win}% de vitória em ${jgInt(hero.partidas)} partidas.` : hero.name + ' — Central Deadlock'
+            });
+            return;
+        } catch (e) {
+            if (e && e.name === 'AbortError') return;
+        }
+    }
+    baixarCartao(canvas, hero);
+}
+
+async function abrirCartao(nome) {
+    const hero = heroByName(nome);
+    const box = $('#cartaoBox');
+    const modal = $('#cartaoModal');
+    if (!hero || !box || !modal) return;
+
+    box.innerHTML = '<p class="cartao-carregando"><i class="fa-solid fa-spinner fa-spin"></i> Montando o cartão...</p>';
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    let canvas = null;
+    try {
+        canvas = await gerarCartao(hero);
+    } catch (e) {
+        box.innerHTML = '<button class="modal-close" data-close="cartaoModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><p class="cartao-carregando">Não consegui montar o cartão agora. Tente de novo.</p>';
+        return;
+    }
+
+    box.innerHTML = `<button class="modal-close" data-close="cartaoModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <h2 class="modal-title">Cartão do ${esc(hero.name)}</h2>
+        <p class="modal-text">Imagem pronta para mandar no WhatsApp, Discord ou Instagram. ${hero.real ? 'Os números são os mesmos do site.' : ''}</p>
+        <img class="cartao-img" src="${canvas.toDataURL('image/png')}" alt="Cartão do ${esc(hero.name)} com win rate, pick rate e build mais usada">
+        <div class="cartao-acoes">
+            <button type="button" class="btn btn-lime" id="cartaoBaixar"><i class="fa-solid fa-download"></i> Baixar imagem</button>
+            <button type="button" class="btn btn-dark" id="cartaoCompartilhar"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
+        </div>`;
+
+    const baixar = $('#cartaoBaixar');
+    if (baixar) baixar.addEventListener('click', () => baixarCartao(canvas, hero));
+    const comp = $('#cartaoCompartilhar');
+    if (comp) comp.addEventListener('click', () => compartilharCartao(canvas, hero));
 }

@@ -35,8 +35,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261020h">
-    <script src="tema.js?v=20261020h"></script>
+    <link rel="stylesheet" href="style.css?v=20261021a">
+    <script src="tema.js?v=20261021a"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -127,6 +127,7 @@
                 <span class="nav-group">Comunidade</span>
                 <a href="#esports" class="nav-item" data-section="esports"><i class="fa-solid fa-trophy"></i> Esports</a>
                 <a href="#ranking" class="nav-item" data-section="ranking"><i class="fa-solid fa-ranking-star"></i> Ranking</a>
+                <a href="#jogador" class="nav-item" data-section="jogador"><i class="fa-solid fa-id-card"></i> Jogador</a>
                 <a href="#favoritos" class="nav-item" data-section="favoritos"><i class="fa-solid fa-star"></i> Favoritos</a>
                 <a href="#eventos" class="nav-item" data-section="eventos"><i class="fa-regular fa-calendar"></i> Eventos</a>
                 <a href="#quiz" class="nav-item" data-section="quiz"><i class="fa-solid fa-wand-magic-sparkles"></i> Quiz</a>
@@ -228,6 +229,26 @@
                     </div>
                 </div>
                 <p class="cnt-nota"><i class="fa-solid fa-circle-info"></i> Win rate do seu herói nas partidas em que o inimigo também estava em jogo, com no mínimo 400 partidas registradas. Os 6 melhores e os 6 piores confrontos de cada herói aparecem aqui. Fonte: deadlock-api.com</p>
+            </section>
+
+            <!-- ============ JOGADOR ============ -->
+            <section id="jogador" class="section">
+                <div class="section-top">
+                    <div>
+                        <h1 class="page-title">Jogador</h1>
+                        <p class="page-sub">Digite o nome do seu perfil na Steam (ou cole o link) e veja suas últimas partidas, win rate, KDA e os heróis que você mais joga. É dado público do jogo, sem login e sem senha.</p>
+                    </div>
+                </div>
+                <form class="jg-form" id="jgForm">
+                    <label class="field" for="jgInput">Nome, link do perfil ou ID da Steam
+                        <input type="search" id="jgInput" placeholder="ex.: Playwithme, 76561199389140629 ou o link do perfil" autocomplete="off" spellcheck="false">
+                    </label>
+                    <button class="btn btn-lime" type="submit" id="jgBtn"><i class="fa-solid fa-magnifying-glass"></i> BUSCAR</button>
+                </form>
+                <div class="jg-status" id="jgStatus" role="status" aria-live="polite"></div>
+                <div class="jg-lista" id="jgLista"></div>
+                <div id="jgPainel"></div>
+                <p class="cnt-nota"><i class="fa-solid fa-circle-info"></i> As partidas vêm do perfil público do jogador na deadlock-api.com. O site não guarda nada no servidor — só lembra o último ID buscado, no seu próprio navegador.</p>
             </section>
 
             <!-- ============ TIER LIST ============ -->
@@ -893,6 +914,11 @@
         <div class="modal content-modal" id="shareModalBox"></div>
     </div>
 
+    <!-- ===== MODAL: CARTÃO DO HERÓI (IMAGEM) ===== -->
+    <div class="modal-overlay" id="cartaoModal">
+        <div class="modal cartao-modal" id="cartaoBox"></div>
+    </div>
+
     <!-- ===== VOLTAR AO TOPO ===== -->
     <button type="button" class="to-top" id="toTop" title="Voltar ao topo" aria-label="Voltar ao topo">
         <i class="fa-solid fa-arrow-up"></i>
@@ -901,17 +927,17 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261020h"></script>
-    <script src="data/game-data.js?v=20261020h"></script>
-    <script src="data/hero-history.js?v=20261020h"></script>
-    <script src="data/hero-stats.js?v=20261020h"></script>
-    <script src="data/steam-news.js?v=20261020h"></script>
-    <script src="data/elos.js?v=20261020h"></script>
-    <script src="data/guias.js?v=20261020h"></script>
-    <script src="data/builds.js?v=20261020h"></script>
-    <script src="data/esports.js?v=20261020h"></script>
-<script src="data/top-jogadores.js?v=20261020h"></script>
-    <script src="data/hero-analytics.js?v=20261020h"></script>
-    <script src="script.js?v=20261020h"></script>
+    <script src="heroes-data.js?v=20261021a"></script>
+    <script src="data/game-data.js?v=20261021a"></script>
+    <script src="data/hero-history.js?v=20261021a"></script>
+    <script src="data/hero-stats.js?v=20261021a"></script>
+    <script src="data/steam-news.js?v=20261021a"></script>
+    <script src="data/elos.js?v=20261021a"></script>
+    <script src="data/guias.js?v=20261021a"></script>
+    <script src="data/builds.js?v=20261021a"></script>
+    <script src="data/esports.js?v=20261021a"></script>
+<script src="data/top-jogadores.js?v=20261021a"></script>
+    <script src="data/hero-analytics.js?v=20261021a"></script>
+    <script src="script.js?v=20261021a"></script>
 </body>
 </html>
