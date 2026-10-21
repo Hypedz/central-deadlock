@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-21g';
+const VERSAO = 'central-deadlock-2026-10-21i';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -26,7 +26,8 @@ const ESSENCIAIS = [
     './data/top-jogadores.js',
     './data/hero-analytics.js',
     './manifest.webmanifest',
-    './assets/brand/favicon.svg',
+    './pagina.js',
+    './assets/brand/favicon-c.svg',
     './assets/brand/icon-192.png'
 ];
 

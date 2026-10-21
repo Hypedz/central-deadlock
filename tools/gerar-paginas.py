@@ -35,7 +35,47 @@ PASTA_COUNTERS = os.path.join(BASE, "counter")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261021g"
+VERSAO_CSS = "20261021i"
+
+# --------------------------- casca do site ---------------------------
+# As páginas internas (herói, notícia, item, counter, guia) usam a mesma barra
+# lateral e a mesma barra do topo da Home. Assim elas não parecem "outro site".
+# A casca é copiada da própria Home na hora de gerar, para não ficar diferente.
+def _ler_home():
+    try:
+        with open(os.path.join(BASE, "index.html"), encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+_HOME = _ler_home()
+
+
+def _trecho(padrao):
+    achado = re.search(padrao, _HOME, re.S)
+    return achado.group(0) if achado else ""
+
+
+def casca(prefixo):
+    """Devolve (barra do topo, barra lateral) com os links apontando para a Home."""
+    def ajustar(html):
+        # mantém o data-section: o pagina.js usa para marcar a aba atual no menu
+        return html.replace('href="#', 'href="{}index.html#'.format(prefixo))
+
+    topbar = ajustar(_trecho(r'<header class="topbar">.*?</header>'))
+    sidebar = ajustar(_trecho(r'<aside class="sidebar" id="sidebar">.*?</aside>'))
+
+    # Na Home esse botão abre a janela de download. Aqui não existe a janela,
+    # então ele vai direto para a página da Steam.
+    sidebar = sidebar.replace(
+        '<button class="btn-download" id="btnDownload"><i class="fa-solid fa-download"></i> BAIXAR DEADLOCK</button>',
+        '<a class="btn-download" href="https://store.steampowered.com/app/1422450/Deadlock/" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> BAIXAR DEADLOCK</a>')
+
+    # a Home vinha com "active" fixo; aqui quem manda é a página aberta
+    sidebar = sidebar.replace('class="nav-item active"', 'class="nav-item"')
+
+    return topbar, sidebar
 
 DIFF_LABEL = ["", "Fácil", "Médio", "Difícil"]
 
@@ -137,6 +177,7 @@ def estilo_da_cor(cor):
 # --------------------------- moldura da página ---------------------------
 
 def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../"):
+    topbar, sidebar = casca(prefixo)
     return f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -156,8 +197,8 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <meta name="twitter:description" content="{e(descricao)}">
 <meta name="twitter:image" content="{e(imagem)}">
 <meta name="theme-color" content="#b6f24a">
-<link rel="icon" type="image/svg+xml" href="{prefixo}assets/brand/favicon.svg">
-<link rel="apple-touch-icon" href="{prefixo}assets/brand/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="{prefixo}assets/brand/favicon-c.svg?v={VERSAO_CSS}">
+<link rel="apple-touch-icon" href="{prefixo}assets/brand/icon-192.png?v={VERSAO_CSS}">
 <!-- deixa esta página também "instalável" no celular (igual à Home) -->
 <link rel="manifest" href="{prefixo}manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -169,7 +210,12 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <link rel="stylesheet" href="{prefixo}style.css?v={VERSAO_CSS}">
 <script src="{prefixo}tema.js?v={VERSAO_CSS}"></script>
 </head>
-<body class="pg-body {classe}"{estilo}>"""
+<body class="pg-body {classe}"{estilo}>
+{topbar}
+{sidebar}
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<main class="content pg-conteudo">
+"""
 
 
 def rodape(voltar_para, voltar_nome, prefixo="../"):
@@ -179,20 +225,21 @@ def rodape(voltar_para, voltar_nome, prefixo="../"):
         Este site não tem ligação com a Valve. Números reais de partidas, via <b>deadlock-api.com</b>.</p>
     </footer>
 </div>
+</main>
+<script src="{prefixo}pagina.js?v={VERSAO_CSS}" data-prefixo="{prefixo}" defer></script>
 <script src="{prefixo}pwa.js?v={VERSAO_CSS}" defer></script>
 </body>
 </html>
 """
 
 
-def topo(secao_url, secao_nome, atual, prefixo="../"):
+def topo(secao_url, secao_nome, atual, prefixo="../", secao_ativa=None):
+    ativa = secao_url if secao_ativa is None else secao_ativa
     meio = ''
     if secao_url and secao_nome:
         meio = ' › <a href="{0}index.html#{1}">{2}</a>'.format(prefixo, e(secao_url), e(secao_nome))
-    return f"""    <header class="pg-top">
-        <a class="pg-brand" href="{prefixo}index.html"><img src="{prefixo}assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
+    return f"""    <header class="pg-top" data-secao="{e(ativa or '')}">
         <nav class="pg-crumb"><a href="{prefixo}index.html">Início</a>{meio} › <b>{e(atual)}</b></nav>
-        <a class="pg-busca" href="{prefixo}index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
         <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
     </header>
 """
@@ -234,8 +281,8 @@ def pagina_404():
 <meta name="robots" content="noindex, follow">
 <meta name="description" content="Este endereço não existe no Central Deadlock. Use os atalhos para heróis, guias, builds, itens e notícias.">
 <meta name="theme-color" content="#b6f24a">
-<link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
-<link rel="apple-touch-icon" href="assets/brand/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="assets/brand/favicon-c.svg?v={VERSAO_CSS}">
+<link rel="apple-touch-icon" href="assets/brand/icon-192.png?v={VERSAO_CSS}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -245,7 +292,7 @@ def pagina_404():
 <body class="pg-body pg-404">
     <div class="pg-wrap">
         <header class="pg-top">
-            <a class="pg-brand" href="index.html"><img src="assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
+            <a class="pg-brand pg-brand-tipo" href="index.html" aria-label="Central Deadlock"><b>CENTRAL</b><span>DEADLOCK</span></a>
             <nav class="pg-crumb"><a href="index.html">Início</a> › <b>Página não encontrada</b></nav>
             <a class="pg-busca" href="index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
             <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
@@ -401,7 +448,7 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
         pagina.append('')
         pagina.append('        <div class="pg-wrap">')
         pagina.append('        <div class="pg-cols">')
-        pagina.append('        <main class="pg-main">')
+        pagina.append('        <div class="pg-main">')
         pagina.append('            <p class="pg-desc">{}</p>'.format(e(h.get("desc"))))
 
         # ---------------- história (texto oficial do jogo) ----------------
@@ -608,7 +655,7 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
         pagina.append('                <a class="pg-atalho" href="../index.html#itens"><i class="fa-solid fa-store"></i><b>Loja de itens</b><span>Preço e efeito de todos os itens</span></a>')
         pagina.append('            </div>')
 
-        pagina.append('        </main>')
+        pagina.append('        </div>')
 
         # ---------------- barra lateral ----------------
         papel = PAPEL_TXT.get(h.get("role"), "Herói de Deadlock.")
@@ -1008,7 +1055,7 @@ def pagina_guia(herois):
     imagem = SITE + "assets/brand/icon-192.png"
     pagina = [cabecalho(titulo, descricao, url, imagem, "pg-guia", prefixo="")]
     pagina.append('        <div class="pg-wrap pg-wrap-guia">')
-    pagina.append(topo("", "", "Começando", prefixo="").rstrip("\n"))
+    pagina.append(topo("", "", "Começando", prefixo="", secao_ativa="comecando").rstrip("\n"))
     pagina.append('')
     pagina.append('            <h1 class="pg-title">Começando no Deadlock</h1>')
     pagina.append('            <p class="pg-desc">Um resumo direto para a sua primeira partida: o que é o jogo, o que fazer nos '

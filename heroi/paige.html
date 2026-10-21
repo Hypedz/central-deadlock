@@ -17,8 +17,8 @@
 <meta name="twitter:description" content="Paige (Suporte): win rate real 56.5%, habilidades, counters e as builds mais usadas. Dados de verdade, direto das partidas.">
 <meta name="twitter:image" content="https://hypedz.github.io/central-deadlock/assets/heroes/Paige.webp">
 <meta name="theme-color" content="#b6f24a">
-<link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
-<link rel="apple-touch-icon" href="../assets/brand/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="../assets/brand/favicon-c.svg?v=20261021i">
+<link rel="apple-touch-icon" href="../assets/brand/icon-192.png?v=20261021i">
 <!-- deixa esta página também "instalável" no celular (igual à Home) -->
 <link rel="manifest" href="../manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,15 +27,90 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="../style.css?v=20261021g">
-<script src="../tema.js?v=20261021g"></script>
+<link rel="stylesheet" href="../style.css?v=20261021i">
+<script src="../tema.js?v=20261021i"></script>
 </head>
 <body class="pg-body pg-heroi" style="--cor:#258F63;--cor-txt:#0b0d10;--cor-borda:#258F63">
+<header class="topbar">
+        <button class="topbar-burger" id="menuBurger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <a href="../index.html#home" class="topbar-logo" data-section="home">
+            CENTRAL <span>DEADLOCK</span>
+        </a>
+        <button class="btn-icon" id="btnBuscaTop" data-busca aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <button class="btn-icon" id="btnProfileTop" aria-label="Perfil"><i class="fa-regular fa-user"></i></button>
+    </header>
+<aside class="sidebar" id="sidebar">
+            <a href="../index.html#home" class="sidebar-brand" data-section="home">
+                <div class="brand-text">
+                    <span class="brand-main">CENTRAL</span>
+                    <span class="brand-sub">DEADLOCK</span>
+                </div>
+                <button class="sidebar-close" id="closeSidebar" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+            </a>
+
+            <button type="button" class="sidebar-busca" id="btnBusca" data-busca>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Buscar no site...</span>
+                <kbd>Ctrl K</kbd>
+            </button>
+
+            <nav class="sidebar-nav">
+                <div class="nav-bloco">
+                <span class="nav-group">Jogo</span>
+                <a href="../index.html#home" class="nav-item" data-section="home"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="../index.html#herois" class="nav-item" data-section="herois"><i class="fa-solid fa-masks-theater"></i> Heróis</a>
+                <a href="../index.html#comparar" class="nav-item" data-section="comparar"><i class="fa-solid fa-right-left"></i> Comparar</a>
+                <a href="../index.html#counters" class="nav-item" data-section="counters"><i class="fa-solid fa-hand-fist"></i> Counters</a>
+                <a href="../index.html#estatisticas" class="nav-item" data-section="estatisticas"><i class="fa-solid fa-chart-simple"></i> Estatísticas</a>
+                <a href="../index.html#noticias" class="nav-item" data-section="noticias"><i class="fa-regular fa-newspaper"></i> Notícias</a>
+                <a href="../index.html#guias" class="nav-item" data-section="guias"><i class="fa-solid fa-book"></i> Guias</a>
+                <a href="../index.html#comecando" class="nav-item" data-section="comecando"><i class="fa-solid fa-graduation-cap"></i> Começando</a>
+                <a href="../index.html#builds" class="nav-item" data-section="builds"><i class="fa-solid fa-screwdriver-wrench"></i> Builds</a>
+                <a href="../index.html#itens" class="nav-item" data-section="itens"><i class="fa-solid fa-gem"></i> Itens do Jogo</a>
+                <a href="../index.html#patch" class="nav-item" data-section="patch"><i class="fa-solid fa-code-branch"></i> Patch Notes</a>
+                <a href="../index.html#glossario" class="nav-item" data-section="glossario"><i class="fa-solid fa-list"></i> Glossário</a>
+                <a href="../index.html#mapa" class="nav-item" data-section="mapa"><i class="fa-solid fa-map"></i> Mapa</a>
+                <a href="../index.html#mira" class="nav-item" data-section="mira"><i class="fa-solid fa-crosshairs"></i> Minha Mira</a>
+                </div>
+
+                <div class="nav-bloco">
+                <span class="nav-group">Comunidade</span>
+                <a href="../index.html#esports" class="nav-item" data-section="esports"><i class="fa-solid fa-trophy"></i> Esports</a>
+                <a href="../index.html#ranking" class="nav-item" data-section="ranking"><i class="fa-solid fa-ranking-star"></i> Ranking</a>
+                <a href="../index.html#favoritos" class="nav-item" data-section="favoritos"><i class="fa-solid fa-star"></i> Favoritos</a>
+                <a href="../index.html#eventos" class="nav-item" data-section="eventos"><i class="fa-regular fa-calendar"></i> Eventos</a>
+                <a href="../index.html#quiz" class="nav-item" data-section="quiz"><i class="fa-solid fa-wand-magic-sparkles"></i> Quiz</a>
+                <a href="../index.html#perfil" class="nav-item" data-section="perfil"><i class="fa-regular fa-user"></i> Meu Perfil</a>
+                </div>
+
+                <div class="nav-bloco">
+                <span class="nav-group">Links externos</span>
+                <a href="https://discord.gg/esy3uJAbkd" target="_blank" rel="noopener" class="nav-item external" title="Abre em outra aba — site externo"><i class="fa-brands fa-discord"></i> Nosso Discord <i class="fa-solid fa-arrow-up-right-from-square nav-ext" aria-hidden="true"></i></a>
+                <a href="https://deadlock.wiki" target="_blank" rel="noopener" class="nav-item external" title="Abre em outra aba — site externo"><i class="fa-solid fa-book-open"></i> Wiki do Deadlock <i class="fa-solid fa-arrow-up-right-from-square nav-ext" aria-hidden="true"></i></a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-instalar" id="btnInstalar" hidden><i class="fa-solid fa-circle-down"></i> INSTALAR O APP</button>
+                <a class="btn-download" href="https://store.steampowered.com/app/1422450/Deadlock/" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> BAIXAR DEADLOCK</a>
+                <div class="user-chip" id="userChip">
+                    <div class="user-chip-avatar" id="chipAvatar">?</div>
+                    <div class="user-chip-info">
+                        <span class="user-chip-name" id="chipName">Jogador</span>
+                        <span class="user-chip-id" id="chipId">CDL-0000</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-up"></i>
+                </div>
+            </div>
+        </aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<main class="content pg-conteudo">
+
         <div class="pg-wrap pg-topo">
-    <header class="pg-top">
-        <a class="pg-brand" href="../index.html"><img src="../assets/brand/icon-192.png" alt="Central Deadlock"><span>CENTRAL DEADLOCK</span></a>
+    <header class="pg-top" data-secao="herois">
         <nav class="pg-crumb"><a href="../index.html">Início</a> › <a href="../index.html#herois">Heróis</a> › <b>Paige</b></nav>
-        <a class="pg-busca" href="../index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
         <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
     </header>
         </div>
@@ -84,7 +159,7 @@
 
         <div class="pg-wrap">
         <div class="pg-cols">
-        <main class="pg-main">
+        <div class="pg-main">
             <p class="pg-desc">Mística que combina apoio e dano com habilidades em área.</p>
             <section class="pg-card pg-hist">
                 <h2 class="pg-sec"><i class="fa-solid fa-scroll"></i> História</h2>
@@ -201,7 +276,7 @@
                 <a class="pg-atalho" href="../index.html#ranking"><i class="fa-solid fa-ranking-star"></i><b>Ranking dos melhores</b><span>Os melhores de cada região, direto do jogo</span></a>
                 <a class="pg-atalho" href="../index.html#itens"><i class="fa-solid fa-store"></i><b>Loja de itens</b><span>Preço e efeito de todos os itens</span></a>
             </div>
-        </main>
+        </div>
         <aside class="pg-side">
             <div class="pg-card">
                 <div class="pg-lbl">Papel</div>
@@ -243,6 +318,8 @@
         Este site não tem ligação com a Valve. Números reais de partidas, via <b>deadlock-api.com</b>.</p>
     </footer>
 </div>
-<script src="../pwa.js?v=20261021g" defer></script>
+</main>
+<script src="../pagina.js?v=20261021i" data-prefixo="../" defer></script>
+<script src="../pwa.js?v=20261021i" defer></script>
 </body>
 </html>

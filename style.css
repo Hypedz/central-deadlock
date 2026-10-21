@@ -62,8 +62,8 @@
     --text-faint: #6b6b78;
     /* as cores de destaque ficam mais escuras no tema claro para o texto
        continuar legível (verde-limão claro sobre branco não passa no teste) */
-    --lime: #456f05;
-    --lime-rgb: 69, 111, 5;
+    --lime: #3b5c02;
+    --lime-rgb: 59, 92, 2;
     --on-lime: #ffffff;
     --ok: #0f7a52;
     --danger: #c81e1e;
@@ -1885,7 +1885,7 @@ body.compact .cards-grid { gap: 14px; }
 .pg-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-weight: 800; letter-spacing: .5px; }
 .pg-brand img { width: 34px; height: 34px; }
 .pg-crumb { color: var(--text-soft); font-size: .84rem; }
-.pg-crumb a { color: var(--lime); }
+.pg-crumb a { color: var(--lime); text-decoration: underline; text-underline-offset: 2px; }
 .pg-busca {
     display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
@@ -2156,6 +2156,15 @@ body.compact .cards-grid { gap: 14px; }
    PÁGINAS GERADAS (heroi/*.html e noticia/*.html)
    ======================================== */
 .pg-body { background: var(--bg); }
+
+/* ===== PÁGINAS INTERNAS: MESMA CASCA DA HOME ===== */
+/* O conteúdo entra na área da direita (o .content já reserva o espaço do menu)
+   e perde o padding próprio do .pg-wrap para não somar dois espaçamentos. */
+.pg-conteudo > .pg-wrap { padding: 0 0 40px; }
+.pg-conteudo > .pg-wrap.pg-topo { padding-bottom: 0; }
+.pg-brand-tipo { gap: 6px; font-size: 1.12rem; letter-spacing: .3px; }
+.pg-brand-tipo b { color: var(--lime); }
+.pg-brand-tipo span { color: var(--text); }
 .pg-foot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--border); }
 .pg-foot p { color: var(--text-faint); font-size: .78rem; margin-top: 14px; line-height: 1.6; max-width: 780px; }
 .pg-img { width: 100%; border-radius: 12px; border: 1px solid var(--border); margin: 10px 0 18px; display: block; }

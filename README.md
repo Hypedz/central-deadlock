@@ -65,7 +65,7 @@ meu-fansite/
 │   └── checar-segredos.py   # Trava que impede vazar o webhook no Git
 └── assets/
     ├── brand/
-    │   ├── favicon.svg        # Ícone da aba do navegador
+    │   ├── favicon-c.svg      # Ícone da aba do navegador (o "C")
     │   ├── icon-192.png       # Ícone do app (celular)
     │   ├── icon-512.png       # Ícone do app (grande)
     │   ├── icon-maskable-512.png # Ícone do app (Android recorta)
@@ -95,7 +95,8 @@ meu-fansite/
 
 - **Barra lateral** com grupos "Jogo", "Comunidade" e "Links externos" (no celular os títulos ficam fixos no topo do menu, separando as partes)
 - Item ativo em **verde-limão** (`#b6f24a`)
-- Fundo escuro com **marca d'água** do emblema próprio
+- **Páginas internas** (herói, notícia, item, counter e guia) usam a **mesma barra lateral e o mesmo topo do celular** da Home; o `pagina.js` liga o menu e marca a seção atual
+- Fundo escuro com a cor do site (sem emblema ou marca d'água)
 - **Marca** — só o nome, em tipografia: **CENTRAL** em lima + **DEADLOCK** em branco na mesma linha (barra lateral e topo do celular). O ícone (favicon e app instalável) é um **C** lima no fundo escuro. Sem emblema: é o mesmo caminho que o dlbr.gg usa
 - Botão **BAIXAR DEADLOCK** e chip de usuário
 - Fontes: Poppins (títulos), Inter (texto), Titan One (nomes dos heróis)
@@ -571,7 +572,7 @@ e acesse `http://localhost:8123`.
 
 ## 🔎 Detalhes que já estão prontos
 
-- **Favicon** (`assets/brand/favicon.svg`) — o emblema aparece na aba do navegador.
+- **Favicon** (`assets/brand/favicon-c.svg`) — o "C" lima aparece na aba do navegador (o nome do arquivo muda quando o ícone muda, para o navegador não guardar o antigo).
 - **Compartilhamento** — ao colar o link no Discord/WhatsApp aparece um cartão com imagem (`assets/brand/share.jpg`).
 - **Botão "voltar ao topo"** — aparece no canto quando você rola a página.
 - **`theme-color`** — a barra do navegador no celular fica na cor do site.
