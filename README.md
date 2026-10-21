@@ -1,6 +1,6 @@
 # 🎮 Central Deadlock
 
-Portal da comunidade brasileira de **Deadlock**, com identidade visual inspirada no **dlbr.gg** (barra lateral, tema escuro, verde-limão) e uma **logo própria** (emblema art déco feito por nós, em SVG).
+Portal da comunidade brasileira de **Deadlock**, com identidade visual inspirada no **dlbr.gg** (barra lateral, tema escuro, verde-limão) e uma **marca própria** — o nome **Central Deadlock** em tipografia, sem emblema.
 
 ---
 
@@ -93,7 +93,7 @@ meu-fansite/
 
 ## 🎨 Identidade visual
 
-- **Barra lateral** com grupos "Jogo" e "Comunidade" (no celular os títulos ficam fixos no topo do menu, separando as duas partes)
+- **Barra lateral** com grupos "Jogo", "Comunidade" e "Links externos" (no celular os títulos ficam fixos no topo do menu, separando as partes)
 - Item ativo em **verde-limão** (`#b6f24a`)
 - Fundo escuro com **marca d'água** do emblema próprio
 - **Marca** — só o nome, em tipografia: **CENTRAL** em lima + **DEADLOCK** em branco na mesma linha (barra lateral e topo do celular). O ícone (favicon e app instalável) é um **C** lima no fundo escuro. Sem emblema: é o mesmo caminho que o dlbr.gg usa
@@ -108,7 +108,9 @@ meu-fansite/
 ## 📑 Menu (seções)
 
 **Jogo:** Home · Heróis · Comparar · Counters · Notícias · Guias · **Começando** · Builds · Itens do Jogo · Patch Notes · Glossário · Mapa · Minha Mira
-**Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil · Nosso Discord · Wiki do Deadlock
+**Comunidade:** Esports · Ranking · Favoritos · Eventos · Quiz · Meu Perfil
+
+**Links externos:** Nosso Discord · Wiki do Deadlock (com o ícone ↗ e o aviso "abre em outra aba" — são sites de fora, não abas do site)
 
 ### Abas novas
 

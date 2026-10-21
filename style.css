@@ -1327,6 +1327,8 @@ body.compact .cards-grid { gap: 14px; }
 .toast i { color: var(--on-lime); }
 
 .nav-item.external i { opacity: 0.9; }
+.nav-item.external .nav-ext { width: auto; margin-left: auto; font-size: 0.68rem; opacity: 0.45; }
+.nav-item.external:hover .nav-ext { opacity: 0.85; }
 
 /* ===== LOGOS DE TIME (Esports) —
    hexágono com as cores do time + monograma (badge próprio, não é logo oficial) ===== */
@@ -1616,7 +1618,7 @@ body.compact .cards-grid { gap: 14px; }
     .sidebar-overlay.show { display: block; }
     .topbar { display: flex; }
 
-    /* menu do celular: separa os grupos "Jogo" e "Comunidade" */
+    /* menu do celular: separa os grupos "Jogo", "Comunidade" e "Links externos" */
     .sidebar-nav { padding: 4px 10px 18px; }
     .nav-group {
         position: sticky;
