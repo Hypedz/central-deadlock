@@ -32,10 +32,73 @@
         return tema === 'light' ? 'light' : (tema === 'dark' ? 'dark' : temaDoSistema());
     }
 
+    /* ===== cor de destaque escolhida em "Meu Perfil > Site" =====
+       A Home aplica essa cor no script.js. As páginas internas (herói,
+       notícia, item, counter, guia) não carregam o script.js, então ela
+       também precisa ser aplicada aqui - é o mesmo cálculo, para a cor
+       ficar igual em todo o site. */
+    function hexParaRgb(hex) {
+        var h = String(hex || '').replace('#', '').trim();
+        if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+        var n = parseInt(h, 16);
+        if (!isFinite(n)) return [182, 242, 74];
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function rgbParaHex(rgb) {
+        return '#' + rgb.map(function (c) {
+            return Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0');
+        }).join('');
+    }
+
+    function luminanciaRgb(rgb) {
+        function f(v) {
+            v /= 255;
+            return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
+    }
+
+    function misturarRgb(rgb, alvo, quanto) {
+        return rgb.map(function (c, i) { return c + (alvo[i] - c) * quanto; });
+    }
+
+    /* clareia (tema escuro) ou escurece (tema claro) até a cor ficar legível */
+    function ajustarDestaque(hex, tema) {
+        var rgb = hexParaRgb(hex);
+        var escuro = tema !== 'light';
+        var alvo = escuro ? [255, 255, 255] : [0, 0, 0];
+        for (var i = 0; i < 24; i++) {
+            var l = luminanciaRgb(rgb);
+            if (escuro ? l >= 0.30 : l <= 0.15) break;
+            rgb = misturarRgb(rgb, alvo, 0.09);
+        }
+        return rgb;
+    }
+
+    function aplicarDestaque(tema) {
+        var estilo = document.documentElement.style;
+        var perfil = lerPerfil();
+        var escolhida = (perfil.accent && perfil.accent !== 'auto') ? perfil.accent : '';
+
+        if (!escolhida) {
+            estilo.removeProperty('--lime');
+            estilo.removeProperty('--lime-rgb');
+            estilo.removeProperty('--on-lime');
+            return;
+        }
+
+        var rgb = ajustarDestaque(escolhida, tema);
+        estilo.setProperty('--lime', rgbParaHex(rgb));
+        estilo.setProperty('--lime-rgb', rgb.map(function (c) { return Math.round(c); }).join(', '));
+        estilo.setProperty('--on-lime', luminanciaRgb(rgb) > 0.18 ? '#0c0c0e' : '#ffffff');
+    }
+
     /* aplica o tema na página e deixa os botões com o texto/ícone certos */
     function aplicar(tema) {
         var escolhido = normalizar(tema);
         raiz.setAttribute('data-theme', escolhido);
+        aplicarDestaque(escolhido);
 
         var escuro = escolhido !== 'light';
         var rotulo = escuro ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';
