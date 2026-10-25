@@ -2309,3 +2309,146 @@ body.compact .cards-grid { gap: 14px; }
         to { opacity: 1; transform: translateY(0); }
     }
 }
+
+/* ========================================
+   CRIADOR DE BUILDS (aba Builds)
+   ======================================== */
+.build-cta {
+    display: flex; align-items: center; gap: 14px;
+    margin: 18px 0 16px; padding: 14px 16px;
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 3px solid var(--lime); border-radius: 12px;
+}
+.build-cta-ico {
+    width: 44px; height: 44px; flex: none; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--lime-dim); color: var(--lime); font-size: 1.1rem;
+}
+.build-cta-txt { flex: 1; min-width: 0; }
+.build-cta-txt b { display: block; font-family: var(--font-ui); font-size: 1rem; line-height: 1.2; }
+.build-cta-txt span { display: block; margin-top: 3px; font-size: .82rem; color: var(--text-faint); }
+.build-cta .btn { flex: none; white-space: nowrap; }
+
+.build-modal { max-width: 900px; padding: 26px; }
+.bc-head { padding-right: 34px; }
+.bc-kicker {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-bottom: 6px; color: var(--lime);
+    font-family: var(--font-ui); font-size: .72rem; font-weight: 700;
+    letter-spacing: .7px; text-transform: uppercase;
+}
+.bc-head .modal-text { margin-bottom: 0; }
+.bc-note {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-top: 12px; padding: 9px 12px;
+    border: 1px solid var(--lime); border-radius: 8px;
+    background: var(--lime-dim); color: var(--text);
+    font-size: .82rem; line-height: 1.4;
+}
+.bc-note i { color: var(--lime); margin-top: 3px; }
+.bc-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 22px; margin-top: 16px;
+}
+.bc-col { min-width: 0; }
+.bc-hero {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px; padding: 10px;
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
+}
+.bc-hero img, .bc-hero-vazio {
+    width: 52px; height: 52px; flex: none; border-radius: 10px;
+    object-fit: cover; object-position: center top;
+    background: var(--card);
+}
+.bc-hero-vazio { display: flex; align-items: center; justify-content: center; color: var(--text-faint); }
+.bc-hero b { display: block; font-family: var(--font-ui); font-size: .98rem; line-height: 1.2; }
+.bc-hero span { display: block; margin-top: 2px; color: var(--text-faint); font-size: .78rem; }
+.bc-slots {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px; margin: 14px 0 10px;
+}
+.bc-slot {
+    position: relative; min-height: 106px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    padding: 0; border: 1px dashed var(--border-2); border-radius: 10px;
+    background: var(--bg-2); cursor: pointer; text-align: center;
+    transition: var(--trans);
+}
+.bc-slot-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    width: 100%; min-height: 104px; padding: 12px 7px 8px;
+    background: none; border: 0; color: inherit; text-align: center; cursor: pointer;
+}
+.bc-slot-btn:focus-visible { outline: 2px solid var(--lime); outline-offset: -3px; border-radius: 9px; }
+.bc-slot:hover, .bc-slot.ativo { border-color: var(--lime); background: var(--lime-dim); }
+.bc-slot.cheio { border-style: solid; }
+.bc-slot img { width: 38px; height: 38px; object-fit: contain; }
+.bc-slot b {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; font-size: .72rem; font-weight: 600; line-height: 1.15;
+}
+.bc-slot small { color: var(--text-soft); font-size: .66rem; }
+.bc-num { position: absolute; top: 5px; left: 7px; color: var(--text-faint); font-size: .62rem; font-weight: 700; }
+.bc-plus {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--card); color: var(--lime); font-size: .8rem;
+}
+.bc-x {
+    position: absolute; top: 3px; right: 3px;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, .45); color: #fff; font-size: .68rem;
+}
+.bc-x:hover { background: var(--warn); }
+.bc-total { color: var(--text-soft); font-size: .82rem; }
+.bc-total b { color: var(--lime); }
+.bc-picker .search { margin-bottom: 10px; }
+.bc-cats { margin-bottom: 8px; }
+.bc-count { margin-bottom: 6px; color: var(--text-faint); font-size: .72rem; }
+.bc-items {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 358px; overflow-y: auto; padding-right: 4px;
+}
+.bc-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 7px 9px; text-align: left;
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 8px;
+    transition: var(--trans);
+}
+.bc-item:hover { border-color: var(--lime); }
+.bc-item img, .bc-item-ico {
+    width: 30px; height: 30px; flex: none; border-radius: 6px;
+    object-fit: contain; background: var(--bg-2);
+    display: flex; align-items: center; justify-content: center; color: var(--lime);
+}
+.bc-item-txt { flex: 1; min-width: 0; }
+.bc-item-txt b {
+    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: .82rem; line-height: 1.2;
+}
+.bc-item-txt small { color: var(--text-faint); font-size: .68rem; }
+.bc-item-cost { flex: none; color: var(--lime); font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.bc-vazio { padding: 14px 0; color: var(--text-faint); font-size: .85rem; }
+.bc-foot {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end;
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.bc-link-field input { font-size: .78rem; }
+.bc-actions { display: flex; gap: 8px; }
+.bc-actions .btn { white-space: nowrap; }
+
+@media (max-width: 760px) {
+    .build-cta { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .build-cta .btn { width: 100%; justify-content: center; }
+    .build-modal { padding: 22px 18px; }
+    .bc-grid { grid-template-columns: 1fr; gap: 16px; }
+    .bc-items { max-height: 260px; }
+    .bc-foot { grid-template-columns: 1fr; }
+    .bc-actions { width: 100%; }
+    .bc-actions .btn { flex: 1; justify-content: center; }
+}
+@media (max-width: 380px) {
+    .bc-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

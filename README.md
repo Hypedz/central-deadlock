@@ -356,6 +356,15 @@ Para atualizar as builds com os números de hoje:
 python tools/gerar-builds.py
 ```
 
+### Criar a sua build (link compartilhável)
+
+Na aba **Builds**, clique em **Criar build**. Você escolhe o herói, até **6 itens** e, se quiser, um nome. O próprio link guarda a build — não precisa de conta, banco de dados nem servidor.
+
+- **Copiar link** gera um endereço como `.../?build=...` que abre a build já montada para quem receber.
+- Quem abrir pode **editar**, trocar itens e copiar um link novo.
+- O link é só uma forma de compartilhar a build; ela não é uma build oficial do jogo.
+- Para mudar o limite de itens ou o visual, edite `BC_MAX` e as funções `bc*` no `script.js`. O modal fica em `index.html` (`#buildModal`) e o CSS no bloco **CRIADOR DE BUILDS** do `style.css`.
+
 ---
 
 ## 📚 Guias — um para cada herói (43)
@@ -547,7 +556,7 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Jogo** — heróis principais (**até 6**), que aparecem como estandartes no cartão
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
 - **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
-- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida**), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
+- **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida** — vale também nas páginas internas), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
   - Dica: o tema também tem um **botão no canto direito superior** (em todas as páginas do site), que troca a cor na hora e salva a escolha — é o mesmo ajuste desta aba.
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
 - **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)

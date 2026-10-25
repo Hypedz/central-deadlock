@@ -94,11 +94,85 @@
         estilo.setProperty('--on-lime', luminanciaRgb(rgb) > 0.18 ? '#0c0c0e' : '#ffffff');
     }
 
+    /* ===== fundo do site escolhido em "Meu Perfil > Site" =====
+       A Home aplica esse fundo no script.js. As páginas internas (herói,
+       notícia, item, counter, guia) não carregam o script.js, então ele
+       também precisa ser aplicado aqui - com os mesmos valores, para o
+       fundo não "sumir" quando a pessoa abre uma página interna. */
+    var PREFIXO = (function () {
+        var src = (document.currentScript && document.currentScript.src) || '';
+        /* .../tema.js?v=123 vira .../ (a raiz do site) */
+        return src.replace(/tema\.js(?:\?.*)?$/, '');
+    })();
+
+    function slugFundo(texto) {
+        return String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+    }
+
+    /* mesma ideia do destaque: escurece (tema escuro) ou clareia (claro)
+       até o texto continuar legível em cima da cor */
+    function ajustarFundo(hex, tema) {
+        var rgb = hexParaRgb(hex);
+        var escuro = tema !== 'light';
+        var alvo = escuro ? [0, 0, 0] : [255, 255, 255];
+        for (var i = 0; i < 24; i++) {
+            var l = luminanciaRgb(rgb);
+            if (escuro ? l <= 0.045 : l >= 0.86) break;
+            rgb = misturarRgb(rgb, alvo, 0.1);
+        }
+        return rgbParaHex(rgb);
+    }
+
+    function aplicarFundo(tema) {
+        var body = document.body;
+        if (!body) return; /* ainda estamos no <head>; aplica no DOMContentLoaded */
+
+        var perfil = lerPerfil();
+        body.classList.remove('fundo-heroi', 'fundo-cor');
+        body.style.backgroundImage = '';
+        body.style.backgroundColor = '';
+        body.style.backgroundSize = '';
+        body.style.backgroundPosition = '';
+        body.style.backgroundAttachment = '';
+        body.style.backgroundRepeat = '';
+
+        var modo = perfil.fundo || 'padrao';
+
+        if (modo === 'cor') {
+            body.style.backgroundColor = ajustarFundo(perfil.fundoCor || '#141419', tema);
+            body.classList.add('fundo-cor');
+            return;
+        }
+
+        if (modo !== 'heroi') return;
+
+        /* se a pessoa não escolheu um herói, usa o primeiro favorito
+           (é o mesmo critério da Home) */
+        var nome = perfil.fundoHeroi || '';
+        if (!nome) {
+            try {
+                var favoritos = JSON.parse(localStorage.getItem('cdl_favs') || '[]');
+                if (Array.isArray(favoritos) && favoritos.length) nome = favoritos[0];
+            } catch (e) { }
+        }
+        if (!nome) return;
+
+        var url = PREFIXO + 'assets/capas/' + slugFundo(nome) + '.webp';
+        body.style.backgroundImage = "linear-gradient(rgba(var(--bg-rgb), .84), rgba(var(--bg-rgb), .95)), url('" + url + "')";
+        body.style.backgroundSize = 'cover, cover';
+        body.style.backgroundPosition = 'center center, center top';
+        body.style.backgroundAttachment = 'fixed, fixed';
+        body.style.backgroundRepeat = 'no-repeat, no-repeat';
+        body.classList.add('fundo-heroi');
+    }
+
     /* aplica o tema na página e deixa os botões com o texto/ícone certos */
     function aplicar(tema) {
         var escolhido = normalizar(tema);
         raiz.setAttribute('data-theme', escolhido);
         aplicarDestaque(escolhido);
+        aplicarFundo(escolhido);
 
         var escuro = escolhido !== 'light';
         var rotulo = escuro ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';

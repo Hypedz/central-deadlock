@@ -35,7 +35,7 @@ PASTA_COUNTERS = os.path.join(BASE, "counter")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261021k"
+VERSAO_CSS = "20261021l"
 
 # --------------------------- casca do site ---------------------------
 # As páginas internas (herói, notícia, item, counter, guia) usam a mesma barra

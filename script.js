@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSections();
     initHeroes();
     initContents();
+    initBuildCreator();
     initCompare();
     initCounters();
     initStats();
@@ -1584,6 +1585,354 @@ function initBuilds() {
     }
     if (campo) campo.addEventListener('input', pintarBuilds);
     pintarBuilds();
+}
+
+/* ================= criador de builds (link compartilhável) =================
+   A pessoa escolhe o herói e até 6 itens e o próprio link vira a build:
+   ?build={"h":"Abrams","i":[123,...],"n":"Minha build"}. Não precisa de
+   conta, banco de dados nem servidor - o link é a build inteira. */
+const BC_MAX = 6;
+const BC_CATS = [['todos', 'Todos'], ['weapon', 'Arma'], ['vitality', 'Vitalidade'], ['spirit', 'Espírito']];
+let bcEstado = null;
+
+function bcHeroi(nome) {
+    return PLAYABLE.find(h => h.name === nome) || null;
+}
+
+function bcItensDisponiveis() {
+    const g = dadosJogo();
+    if (!g || !g.itens) return [];
+    return Object.entries(g.itens)
+        .filter(([, it]) => it && Number(it.t) >= 1 && Number(it.t) <= 4 && Number(it.c) < 9999)
+        .map(([id, it]) => ({ id, ...it }));
+}
+
+function bcNovoEstado(extra) {
+    return Object.assign({
+        hero: '', itens: Array(BC_MAX).fill(''), nome: '',
+        slot: 0, cat: 'todos', busca: '', compartilhada: false
+    }, extra || {});
+}
+
+function bcAbrir(dados) {
+    bcEstado = bcNovoEstado(dados);
+    if (!bcHeroi(bcEstado.hero)) {
+        const preferidos = [].concat(profile.mains || [], favs || []);
+        bcEstado.hero = preferidos.find(nome => bcHeroi(nome)) || '';
+    }
+    const originais = Array.isArray(bcEstado.itens) ? bcEstado.itens : [];
+    bcEstado.itens = Array.from({ length: BC_MAX }, (_, i) => {
+        const id = originais[i];
+        return id && itemDe(id) ? String(id) : '';
+    });
+    /* item repetido não existe no jogo: mantém só o primeiro */
+    const vistos = new Set();
+    bcEstado.itens = bcEstado.itens.map(id => {
+        if (!id || vistos.has(id)) return '';
+        vistos.add(id);
+        return id;
+    });
+    bcEstado.slot = bcEstado.itens.findIndex(x => !x);
+    if (bcEstado.slot < 0) bcEstado.slot = 0;
+    bcRender();
+    openOverlay($('#buildModal'));
+    const foco = $('#bcHero') || $('#buildModal [data-close]');
+    if (foco) foco.focus();
+}
+
+function bcRender() {
+    const caixa = $('#buildModalBox');
+    if (!caixa) return;
+
+    const hero = bcHeroi(bcEstado.hero);
+    const heroImg = hero ? `assets/heroes/${esc(hero.file)}` : '';
+    const heroNome = hero ? esc(hero.name) : 'Escolha um herói';
+    const heroPapel = hero ? esc(hero.role || '') : 'A build começa por ele';
+
+    caixa.innerHTML = `
+        <button class="modal-close" data-close="buildModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bc-head">
+            <span class="bc-kicker"><i class="fa-solid fa-hammer"></i> Criador de build</span>
+            <h2 class="modal-title" id="bcTitle">Monte sua build</h2>
+            <p class="modal-text">Escolha o herói e até ${BC_MAX} itens. O link guarda a build no próprio endereço — sem conta e sem servidor.</p>
+        </div>
+        ${bcEstado.compartilhada ? '<div class="bc-note"><i class="fa-solid fa-link"></i> Build compartilhada. Edite à vontade ou copie o link para mandar para alguém.</div>' : ''}
+        <div class="bc-grid">
+            <div class="bc-col">
+                <div class="bc-hero">
+                    ${hero ? `<img src="${heroImg}" alt="">` : '<span class="bc-hero-vazio"><i class="fa-solid fa-user"></i></span>'}
+                    <div><b>${heroNome}</b><span>${heroPapel}</span></div>
+                </div>
+                <label class="field">Herói
+                    <select id="bcHero" aria-label="Herói da build">
+                        <option value="">Escolha o herói...</option>
+                        ${PLAYABLE.map(h => `<option value="${esc(h.name)}" ${h.name === bcEstado.hero ? 'selected' : ''}>${esc(h.name)}</option>`).join('')}
+                    </select>
+                </label>
+                <label class="field">Nome da build (opcional)
+                    <input type="text" id="bcNome" maxlength="60" value="${esc(bcEstado.nome)}" placeholder="Ex.: Minha build de Abrams" autocomplete="off">
+                </label>
+                <div class="bc-slots" id="bcSlots" role="group" aria-label="Itens da build"></div>
+                <p class="bc-total" id="bcTotal" aria-live="polite"></p>
+            </div>
+            <div class="bc-col bc-picker">
+                <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="bcBusca" value="${esc(bcEstado.busca)}" placeholder="Buscar item pelo nome..." autocomplete="off" aria-label="Buscar item"></div>
+                <div class="roles-row bc-cats" id="bcCats">
+                    ${BC_CATS.map(([chave, rotulo]) => `<button type="button" class="pill ${chave === bcEstado.cat ? 'on' : ''}" data-bc-cat="${chave}">${rotulo}</button>`).join('')}
+                </div>
+                <p class="bc-count" id="bcItensCount"></p>
+                <div class="bc-items" id="bcItens"></div>
+            </div>
+        </div>
+        <div class="bc-foot">
+            <label class="field bc-link-field">Link da build
+                <input type="text" id="bcLink" readonly aria-label="Link da build">
+            </label>
+            <div class="bc-actions">
+                <button type="button" class="btn btn-dark" data-bc-limpar><i class="fa-solid fa-eraser"></i> Limpar</button>
+                <button type="button" class="btn btn-lime" data-bc-copiar><i class="fa-solid fa-link"></i> Copiar link</button>
+            </div>
+        </div>`;
+
+    const sel = $('#bcHero');
+    if (sel) sel.addEventListener('change', () => {
+        bcEstado.hero = sel.value;
+        bcRender();
+        const novo = $('#bcHero');
+        if (novo) novo.focus();
+    });
+
+    const nome = $('#bcNome');
+    if (nome) nome.addEventListener('input', () => { bcEstado.nome = nome.value; bcAtualizarLink(); });
+
+    const busca = $('#bcBusca');
+    if (busca) busca.addEventListener('input', () => { bcEstado.busca = busca.value; bcPintarItens(); });
+
+    bcPintarTudo();
+}
+
+function bcPintarSlots() {
+    const caixa = $('#bcSlots');
+    if (!caixa) return;
+
+    caixa.innerHTML = bcEstado.itens.map((id, i) => {
+        const item = id ? itemDe(id) : null;
+        const ativo = i === bcEstado.slot ? ' ativo' : '';
+        if (!item) {
+            return `<div class="bc-slot vazio${ativo}">
+                <button type="button" class="bc-slot-btn" data-bc-slot="${i}">
+                    <span class="sr-only">Escolher o item </span>
+                    <span class="bc-num">${i + 1}</span>
+                    <span class="bc-plus"><i class="fa-solid fa-plus"></i></span>
+                    <small>Escolher</small>
+                </button>
+            </div>`;
+        }
+        return `<div class="bc-slot cheio${ativo}">
+            <button type="button" class="bc-slot-btn" data-bc-slot="${i}">
+                <span class="sr-only">Trocar </span>
+                <span class="bc-num">${i + 1}</span>
+                ${item.i ? `<img src="${esc(item.i)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : ''}
+                <b>${esc(item.n)}</b>
+                <small>${item.c ? money(item.c) : 'grátis'}</small>
+            </button>
+            <button type="button" class="bc-x" data-bc-remove="${i}" aria-label="Remover ${esc(item.n)}"><i class="fa-solid fa-xmark"></i></button>
+        </div>`;
+    }).join('');
+
+    const total = bcEstado.itens.reduce((soma, id) => {
+        const item = id ? itemDe(id) : null;
+        return soma + (item && item.c ? item.c : 0);
+    }, 0);
+    const qtd = bcEstado.itens.filter(Boolean).length;
+    const totalCaixa = $('#bcTotal');
+    if (totalCaixa) totalCaixa.innerHTML = `<b>${qtd}</b> de ${BC_MAX} itens · <b>${money(total)}</b> almas`;
+}
+
+function bcPintarItens() {
+    const caixa = $('#bcItens');
+    if (!caixa) return;
+
+    const termo = semAcento(bcEstado.busca || '');
+    const selecionados = new Set(bcEstado.itens.filter(Boolean));
+    let lista = bcItensDisponiveis().filter(item => !selecionados.has(item.id));
+    if (bcEstado.cat !== 'todos') lista = lista.filter(item => item.s === bcEstado.cat);
+    if (termo) lista = lista.filter(item => semAcento(`${item.n} ${item.en || ''} ${item.d || ''}`).includes(termo));
+    lista.sort((a, b) => (a.t - b.t) || (a.c - b.c) || a.n.localeCompare(b.n, 'pt'));
+
+    caixa.innerHTML = lista.length
+        ? lista.map(item => `<button type="button" class="bc-item" data-bc-item="${esc(item.id)}" title="${esc(item.n)}">
+            ${item.i ? `<img src="${esc(item.i)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="bc-item-ico"><i class="fa-solid fa-gem"></i></span>'}
+            <span class="bc-item-txt"><b>${esc(item.n)}</b><small>${ITEM_TIPO_NOME[item.s] || ''} · Tier ${item.t}</small></span>
+            <span class="bc-item-cost">${item.c ? money(item.c) : 'grátis'}</span>
+        </button>`).join('')
+        : '<p class="bc-vazio">Nenhum item encontrado. Tente outro nome.</p>';
+
+    const contador = $('#bcItensCount');
+    if (contador) contador.textContent = lista.length === 1 ? '1 item disponível' : `${lista.length} itens disponíveis`;
+}
+
+function bcPintarCategorias() {
+    $$('#bcCats [data-bc-cat]').forEach(botao => {
+        botao.classList.toggle('on', botao.dataset.bcCat === bcEstado.cat);
+    });
+}
+
+function bcLinkAtual() {
+    const itens = bcEstado.itens.filter(Boolean);
+    if (!bcEstado.hero || !itens.length) return '';
+    const dados = { h: bcEstado.hero, i: itens };
+    const nome = (bcEstado.nome || '').trim();
+    if (nome) dados.n = nome.slice(0, 60);
+    const base = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '');
+    return base + '?build=' + encodeURIComponent(JSON.stringify(dados)) + '#builds';
+}
+
+function bcAtualizarLink() {
+    const campo = $('#bcLink');
+    if (!campo) return;
+    const link = bcLinkAtual();
+    campo.value = link;
+    campo.placeholder = link ? '' : 'Escolha o herói e pelo menos 1 item...';
+}
+
+function bcPintarTudo() {
+    bcPintarSlots();
+    bcPintarItens();
+    bcPintarCategorias();
+    bcAtualizarLink();
+}
+
+function bcAdicionar(id) {
+    const item = itemDe(id);
+    if (!item) return;
+    const alvo = bcEstado.slot;
+    const existente = bcEstado.itens.indexOf(String(id));
+    if (existente >= 0) {
+        bcEstado.slot = existente;
+        bcPintarSlots();
+        showToast('Esse item já está na build.', 'error');
+        return;
+    }
+    bcEstado.itens[alvo] = String(id);
+    const depois = bcEstado.itens.findIndex((x, i) => i > alvo && !x);
+    const qualquer = bcEstado.itens.findIndex(x => !x);
+    bcEstado.slot = depois >= 0 ? depois : (qualquer >= 0 ? qualquer : alvo);
+    bcPintarTudo();
+}
+
+function bcRemover(indice) {
+    if (indice < 0 || indice >= BC_MAX) return;
+    bcEstado.itens[indice] = '';
+    bcEstado.slot = indice;
+    bcPintarTudo();
+}
+
+function bcLimpar() {
+    bcEstado.itens = Array(BC_MAX).fill('');
+    bcEstado.slot = 0;
+    bcEstado.nome = '';
+    const nome = $('#bcNome');
+    if (nome) nome.value = '';
+    bcPintarTudo();
+    showToast('Build limpa. Escolha os itens de novo.');
+}
+
+function bcCopiar() {
+    const link = bcLinkAtual();
+    if (!link) {
+        showToast('Escolha o herói e pelo menos 1 item para gerar o link.', 'error');
+        return;
+    }
+    const campo = $('#bcLink');
+    const feito = () => {
+        if (campo) { campo.focus(); campo.select(); }
+        showToast('Link copiado! Cole no Discord ou no WhatsApp.');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(feito).catch(() => {
+            if (campo) { campo.focus(); campo.select(); }
+            try { document.execCommand('copy'); feito(); }
+            catch (e) { showToast('Copie o link no campo abaixo.', 'error'); }
+        });
+        return;
+    }
+    if (campo) { campo.focus(); campo.select(); }
+    try { document.execCommand('copy'); feito(); }
+    catch (e) { showToast('Copie o link no campo abaixo.', 'error'); }
+}
+
+function bcLerDaURL() {
+    let bruto = '';
+    try { bruto = new URLSearchParams(location.search).get('build') || ''; } catch (e) { return null; }
+    if (!bruto) return null;
+    let dados = null;
+    try { dados = JSON.parse(bruto); } catch (e) { return null; }
+    if (!dados || typeof dados !== 'object') return null;
+    const hero = typeof dados.h === 'string' ? dados.h : '';
+    if (!bcHeroi(hero)) return null;
+    const vistos = new Set();
+    const itens = (Array.isArray(dados.i) ? dados.i : []).map(String).filter(id => {
+        if (!itemDe(id) || vistos.has(id)) return false;
+        vistos.add(id);
+        return true;
+    }).slice(0, BC_MAX);
+    return {
+        hero,
+        itens,
+        nome: typeof dados.n === 'string' ? dados.n.slice(0, 60) : '',
+        compartilhada: true
+    };
+}
+
+function initBuildCreator() {
+    const modal = $('#buildModal');
+    if (!modal) return;
+
+    document.addEventListener('click', (e) => {
+        const botao = e.target.closest('[data-act="criar-build"]');
+        if (!botao) return;
+        e.preventDefault();
+        bcAbrir(null);
+    });
+
+    modal.addEventListener('click', (e) => {
+        const remover = e.target.closest('[data-bc-remove]');
+        if (remover) {
+            e.preventDefault();
+            e.stopPropagation();
+            bcRemover(Number(remover.dataset.bcRemove));
+            return;
+        }
+        const item = e.target.closest('[data-bc-item]');
+        if (item) { e.preventDefault(); bcAdicionar(item.dataset.bcItem); return; }
+        const slot = e.target.closest('[data-bc-slot]');
+        if (slot) {
+            e.preventDefault();
+            bcEstado.slot = Number(slot.dataset.bcSlot);
+            bcPintarSlots();
+            const busca = $('#bcBusca');
+            if (busca) busca.focus();
+            return;
+        }
+        const categoria = e.target.closest('[data-bc-cat]');
+        if (categoria) {
+            bcEstado.cat = categoria.dataset.bcCat;
+            bcPintarItens();
+            bcPintarCategorias();
+            return;
+        }
+        if (e.target.closest('[data-bc-copiar]')) { e.preventDefault(); bcCopiar(); return; }
+        if (e.target.closest('[data-bc-limpar]')) { e.preventDefault(); bcLimpar(); }
+    });
+
+    const compartilhada = bcLerDaURL();
+    if (compartilhada) {
+        showSection('builds');
+        bcAbrir(compartilhada);
+    } else if (new URLSearchParams(location.search).has('build')) {
+        showToast('Não consegui abrir essa build. O link pode estar incompleto.', 'error');
+    }
 }
 
 /* ================= conteúdos clicáveis ================= */
