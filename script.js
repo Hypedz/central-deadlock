@@ -160,23 +160,6 @@ function linksListTodos(p) {
     const c = customLink(p);
     return c ? [...lista, [c.label, c.url]] : lista;
 }
-function discordPreenchido(p) {
-    return String(((p || profile).links || {}).discord || '').trim().length > 0;
-}
-function exigirDiscord() {
-    if (discordPreenchido(profile)) return true;
-    pTab = 'id';
-    renderPTabs();
-    renderForm();
-    showToast('Preencha o link do seu Discord na aba Identidade antes de continuar.', 'error');
-    const campo = document.querySelector('[data-f="l_discord"]');
-    if (campo) {
-        campo.classList.add('campo-invalido');
-        campo.focus();
-        campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return false;
-}
 
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
@@ -4164,7 +4147,7 @@ function updateMeter() {
     const p = profile;
     const checks = [
         !!p.nick, !!p.bio, !!p.status, p.title !== 'Jogador', p.mains.length > 0,
-        discordPreenchido(p), !!(linksListTodos(p).length), !!p.av.img,
+        !!(linksListTodos(p).length), !!p.av.img,
         (p.banner !== 'lima' || p.pattern !== 'none' || !!p.bannerImg), p.accent !== 'auto'
     ];
     const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
@@ -4199,7 +4182,6 @@ function renderForm() {
             <span>${esc(h.name)}</span>${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
     }).join('');
     const custom = normalizarLinkCustom(p.links.custom);
-    const discordOk = discordPreenchido(p);
     let html = '';
 
     if (pTab === 'id') {
@@ -4213,7 +4195,7 @@ function renderForm() {
             <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
             <div class="pform-sec">Redes sociais</div>
-            <label class="field">Discord <span class="campo-obrigatorio">obrigatório</span><input data-f="l_discord" maxlength="120" value="${esc(p.links.discord)}" placeholder="cole o link do seu perfil do Discord" class="${discordOk ? '' : 'campo-invalido'}" aria-invalid="${discordOk ? 'false' : 'true'}" aria-describedby="discordErro" required><small class="field-erro" id="discordErro" ${discordOk ? 'hidden' : ''}>Preencha o link do seu Discord para liberar o compartilhamento.</small></label>
+            <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
             <label class="field">Twitch<input data-f="l_twitch" maxlength="30" value="${esc(p.links.twitch)}" placeholder="canal"></label>
             <label class="field">YouTube<input data-f="l_youtube" maxlength="30" value="${esc(p.links.youtube)}" placeholder="canal"></label>
             <label class="field">X (Twitter)<input data-f="l_x" maxlength="30" value="${esc(p.links.x || '')}" placeholder="@usuario"></label>
@@ -4414,13 +4396,6 @@ function initProfile() {
         if (f) {
             setField(f, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
             saveProfile(); applyProfile();
-            if (f === 'l_discord') {
-                const ok = discordPreenchido(profile);
-                e.target.classList.toggle('campo-invalido', !ok);
-                e.target.setAttribute('aria-invalid', ok ? 'false' : 'true');
-                const erro = $('#discordErro');
-                if (erro) erro.hidden = ok;
-            }
             if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'avail', 'lfg', 'l_discord', 'l_twitch', 'l_youtube', 'l_x', 'l_instagram', 'l_tiktok', 'l_steam', 'l_custom_label', 'l_custom_url', 'l_custom_icon'].includes(f)) touch('id_' + f);
             renderSideCard(); renderProfileView(); updateChip(); updateMeter();
             return;
@@ -4503,11 +4478,7 @@ function initProfile() {
             else if (a === 'avatar-clear-color') { profile.av.c1 = ''; profile.av.c2 = ''; touch('avatar'); commit(); showToast('Cores do avatar restauradas.'); }
             else if (a === 'accent-auto') { profile.accent = 'auto'; touch('accent'); commit(); showToast('Cor de destaque de volta ao verde padrão.'); }
             else if (a === 'menu-all') { profile.menuOculto = []; touch('menu'); commit(); showToast('Todas as abas de volta no menu.'); }
-            else if (a === 'save') {
-                if (!exigirDiscord()) return;
-                saveProfile();
-                showToast('Perfil salvo!');
-            }
+            else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
             else if (a === 'reset') resetProfile();
             else if (a === 'export') exportData();
             else if (a === 'showcase-add') {
@@ -4720,7 +4691,6 @@ function decShare(s) {
 }
 
 async function copyText() {
-    if (!exigirDiscord()) return;
     const txt = cardText(profile);
     if (typeof window.cdlTrack === 'function') window.cdlTrack('perfil_copiar_texto');
     try { await navigator.clipboard.writeText(txt); showToast('Texto do cartão copiado!'); }
@@ -4728,7 +4698,6 @@ async function copyText() {
 }
 
 async function copyLink() {
-    if (!exigirDiscord()) return;
     const url = location.href.split('#')[0] + '#share=' + encShare(profile);
     if (typeof window.cdlTrack === 'function') window.cdlTrack('perfil_copiar_link');
     try { await navigator.clipboard.writeText(url); showToast('Link do cartão copiado!'); }
@@ -4749,7 +4718,6 @@ async function compartilhar(dados) {
     return false;
 }
 function shareProfile() {
-    if (!exigirDiscord()) return;
     const url = location.href.split('#')[0] + '#share=' + encShare(profile);
     return compartilhar({
         title: (profile.nick || 'Meu perfil') + ' — Central Deadlock',
@@ -4919,7 +4887,6 @@ function drawPattern(ctx, padrao, x, y, w, h) {
 }
 
 async function downloadCard(formato) {
-    if (!exigirDiscord()) return;
     if (formato === 'story') return baixarCartaoStory(profile);
     if (formato === 'banner') return baixarCartaoBanner(profile);
     const p = profile;

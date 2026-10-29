@@ -35,7 +35,7 @@ PASTA_COUNTERS = os.path.join(BASE, "counter")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261029d"
+VERSAO_CSS = "20261029c"
 
 # Cartões sociais 1200x630 (gerados por tools/gerar-og.py)
 OG_PADRAO = "assets/brand/share.jpg"
