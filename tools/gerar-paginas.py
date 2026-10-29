@@ -35,7 +35,13 @@ PASTA_COUNTERS = os.path.join(BASE, "counter")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261021l"
+VERSAO_CSS = "20261028a"
+
+# Cartões sociais 1200x630 (gerados por tools/gerar-og.py)
+OG_PADRAO = "assets/brand/share.jpg"
+OG_ITEM = "assets/og/item.jpg"
+OG_COUNTER = "assets/og/counter.jpg"
+OG_GUIA = "assets/og/guia-iniciante.jpg"
 
 # --------------------------- casca do site ---------------------------
 # As páginas internas (herói, notícia, item, counter, guia) usam a mesma barra
@@ -129,6 +135,48 @@ def moeda(valor):
         return str(valor)
 
 
+MESES = {
+    "jan": 1, "fev": 2, "mar": 3, "abr": 4, "mai": 5, "jun": 6,
+    "jul": 7, "ago": 8, "set": 9, "out": 10, "nov": 11, "dez": 12,
+}
+
+
+def data_iso(valor):
+    """Converte as datas que os robôs gravam ('25/10/2026 as 19:12' ou
+    '20 out 2026') para o formato do sitemap/JSON-LD (2026-10-25)."""
+    if isinstance(valor, (int, float)):
+        try:
+            return datetime.datetime.fromtimestamp(valor, datetime.timezone.utc).date().isoformat()
+        except Exception:
+            return ""
+    texto = str(valor or "").strip()
+    achado = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", texto)
+    if achado:
+        dia, mes, ano = (int(x) for x in achado.groups())
+        try:
+            return datetime.date(ano, mes, dia).isoformat()
+        except ValueError:
+            return ""
+    achado = re.search(r"(\d{1,2})\s+([a-z]{3})\.?\s+(\d{4})", texto.lower())
+    if achado and achado.group(2) in MESES:
+        dia, mes, ano = int(achado.group(1)), MESES[achado.group(2)], int(achado.group(3))
+        try:
+            return datetime.date(ano, mes, dia).isoformat()
+        except ValueError:
+            return ""
+    return ""
+
+
+def data_noticia(noticia):
+    """A data de publicação real da notícia (timestamp da Steam ou texto)."""
+    return data_iso(noticia.get("ts")) or data_iso(noticia.get("date"))
+
+
+def maior_data(*datas):
+    validas = [d for d in datas if d]
+    return max(validas) if validas else ""
+
+
 def luminancia(cor):
     """O quanto uma cor é clara (0 = preto, 1 = branco). Serve para escolher
     se o texto em cima dela deve ser escuro ou claro."""
@@ -176,8 +224,66 @@ def estilo_da_cor(cor):
 
 # --------------------------- moldura da página ---------------------------
 
-def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../"):
+def organizacao_schema():
+    return {
+        "@type": "Organization",
+        "name": "Central Deadlock",
+        "url": SITE,
+        "logo": {
+            "@type": "ImageObject",
+            "url": SITE + "assets/brand/icon-512.png",
+            "width": 512,
+            "height": 512,
+        },
+    }
+
+
+def dados_estruturados(titulo, descricao, url, imagem, tipo="Article", publicado="", modificado=""):
+    """Dados para o Google entender a página (JSON-LD)."""
+    dados = {
+        "@context": "https://schema.org",
+        "@type": tipo,
+        "headline": titulo,
+        "name": titulo,
+        "description": descricao,
+        "image": imagem,
+        "url": url,
+        "mainEntityOfPage": {"@type": "WebPage", "@id": url},
+        "inLanguage": "pt-BR",
+        "author": organizacao_schema(),
+        "publisher": organizacao_schema(),
+        "isPartOf": {"@type": "WebSite", "name": "Central Deadlock", "url": SITE},
+    }
+    if publicado:
+        dados["datePublished"] = publicado
+    if modificado:
+        dados["dateModified"] = modificado
+    return dados
+
+
+def script_jsonld(dados):
+    texto = json.dumps(dados, ensure_ascii=False, separators=(",", ":"))
+    texto = texto.replace("</", "<\\/")
+    return '<script type="application/ld+json">' + texto + '</script>'
+
+
+def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../",
+              tipo="Article", publicado="", modificado="", imagem_alt="", jsonld=None):
     topbar, sidebar = casca(prefixo)
+    og_tipo = "article" if tipo in ("Article", "NewsArticle") else "website"
+    alt_imagem = imagem_alt or titulo
+    if jsonld is None:
+        jsonld = script_jsonld(dados_estruturados(titulo, descricao, url, imagem, tipo, publicado, modificado))
+    elif isinstance(jsonld, dict):
+        jsonld = script_jsonld(jsonld)
+    meta_publicado = (
+        '<meta property="article:published_time" content="{}">'.format(e(publicado))
+        if publicado else ""
+    )
+    meta_modificado = (
+        '<meta property="article:modified_time" content="{}">'.format(e(modificado))
+        if modificado else ""
+    )
     return f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -185,17 +291,27 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(titulo)}</title>
 <meta name="description" content="{e(descricao)}">
+<meta name="author" content="Central Deadlock">
 <link rel="canonical" href="{e(url)}">
-<meta property="og:type" content="article">
+<meta property="og:type" content="{og_tipo}">
 <meta property="og:site_name" content="Central Deadlock">
+<meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="{e(titulo)}">
 <meta property="og:description" content="{e(descricao)}">
 <meta property="og:image" content="{e(imagem)}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{e(alt_imagem)}">
 <meta property="og:url" content="{e(url)}">
+{meta_publicado}
+{meta_modificado}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{e(titulo)}">
 <meta name="twitter:description" content="{e(descricao)}">
 <meta name="twitter:image" content="{e(imagem)}">
+<meta name="twitter:image:alt" content="{e(alt_imagem)}">
+{jsonld}
 <meta name="theme-color" content="#b6f24a">
 <link rel="icon" type="image/svg+xml" href="{prefixo}assets/brand/favicon-c.svg?v={VERSAO_CSS}">
 <link rel="apple-touch-icon" href="{prefixo}assets/brand/icon-192.png?v={VERSAO_CSS}">
@@ -211,10 +327,11 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <script src="{prefixo}tema.js?v={VERSAO_CSS}"></script>
 </head>
 <body class="pg-body {classe}"{estilo}>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 {topbar}
 {sidebar}
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-<main class="content pg-conteudo">
+<main class="content pg-conteudo" id="conteudo">
 """
 
 
@@ -226,6 +343,7 @@ def rodape(voltar_para, voltar_nome, prefixo="../"):
     </footer>
 </div>
 </main>
+<script src="{prefixo}analytics.js?v={VERSAO_CSS}" defer></script>
 <script src="{prefixo}pagina.js?v={VERSAO_CSS}" data-prefixo="{prefixo}" defer></script>
 <script src="{prefixo}pwa.js?v={VERSAO_CSS}" defer></script>
 </body>
@@ -290,6 +408,7 @@ def pagina_404():
 <script src="tema.js?v={VERSAO_CSS}"></script>
 </head>
 <body class="pg-body pg-404">
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
     <div class="pg-wrap">
         <header class="pg-top">
             <a class="pg-brand pg-brand-tipo" href="index.html" aria-label="Central Deadlock"><b>CENTRAL</b><span>DEADLOCK</span></a>
@@ -297,7 +416,7 @@ def pagina_404():
             <a class="pg-busca" href="index.html#buscar" title="Buscar herói, item ou notícia (Ctrl + K)"><i class="fa-solid fa-magnifying-glass"></i> Buscar no site</a>
             <button type="button" class="btn btn-dark btn-sm tema-btn" data-tema-btn aria-label="Mudar para o tema claro" title="Mudar para o tema claro"><i class="fa-solid fa-sun"></i><span data-tema-texto>Tema claro</span></button>
         </header>
-        <main class="n404">
+        <main class="n404" id="conteudo">
             <div class="n404-num">404</div>
             <h1>Essa página não existe (ou mudou de endereço)</h1>
             <p>O endereço que você abriu não está no Central Deadlock. Escolha um dos atalhos abaixo ou use a busca
@@ -396,9 +515,11 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
         descricao = ("{} ({}): win rate real {}%, habilidades, counters e as builds mais usadas. "
                      "Dados de verdade, direto das partidas.").format(nome, h["role"], s.get("win", h.get("win")))
         url = "{}heroi/{}.html".format(SITE, apelido)
-        imagem = "{}assets/heroes/{}".format(SITE, h["file"])
+        imagem = "{}assets/og/heroi-{}.jpg".format(SITE, apelido)
+        modificado = data_iso(stats.get("updated"))
 
-        pagina = [cabecalho(titulo, descricao, url, imagem, "pg-heroi", estilo_da_cor(cor)),
+        pagina = [cabecalho(titulo, descricao, url, imagem, "pg-heroi", estilo_da_cor(cor),
+                            tipo="Article", modificado=modificado, imagem_alt=nome),
                   '        <div class="pg-wrap pg-topo">',
                   topo("herois", "Heróis", nome).rstrip("\n"),
                   '        </div>',
@@ -727,13 +848,13 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
         pagina.append(rodape("../index.html#herois", "Ver todos os heróis no site"))
         with open(os.path.join(PASTA_HEROIS, apelido + ".html"), "w", encoding="utf-8") as arquivo:
             arquivo.write("\n".join(pagina))
-        gerados.append({"url": url, "img": imagem, "alt": nome})
+        gerados.append({"url": url, "img": imagem, "alt": nome, "lastmod": modificado})
     return gerados
 
 
 # --------------------------- páginas das notícias ---------------------------
 
-def paginas_noticias(noticias):
+def paginas_noticias(noticias, atualizado=""):
     os.makedirs(PASTA_NOTICIAS, exist_ok=True)
     gerados = []
     for n in noticias:
@@ -744,8 +865,12 @@ def paginas_noticias(noticias):
         titulo = f"{titulo_pt} | Central Deadlock"
         resumo = (n.get("desc_pt") or n.get("desc") or "")[:180]
         url = f"{SITE}noticia/{ident}.html"
-        imagem = n.get("image") or f"{SITE}assets/brand/share.jpg"
-        pagina = [cabecalho(titulo, resumo, url, imagem, "pg-noticia"),
+        imagem = f"{SITE}assets/og/noticia-{ident}.jpg"
+        publicado = data_noticia(n)
+        modificado = data_iso(atualizado) or publicado
+        pagina = [cabecalho(titulo, resumo, url, imagem, "pg-noticia",
+                            tipo="NewsArticle", publicado=publicado,
+                            modificado=modificado, imagem_alt=titulo_pt),
                   '        <div class="pg-wrap pg-wrap-noticia">',
                   topo("noticias", "Notícias", n.get("date", "")).rstrip("\n")]
         pagina.append(f"""        <article class="pg-noticia-body">
@@ -779,7 +904,7 @@ def paginas_noticias(noticias):
         pagina.append(rodape("../index.html#noticias", "Ver todas as notícias no site"))
         with open(os.path.join(PASTA_NOTICIAS, str(ident) + ".html"), "w", encoding="utf-8") as arquivo:
             arquivo.write("\n".join(pagina))
-        gerados.append({"url": url, "img": imagem, "alt": titulo_pt})
+        gerados.append({"url": url, "img": imagem, "alt": titulo_pt, "lastmod": publicado})
     return gerados
 
 
@@ -825,11 +950,14 @@ def paginas_itens(jogo, builds, herois):
         custo = moeda(it.get("c")) if it.get("c") else "grátis"
         url = "{}item/{}.html".format(SITE, apelido)
         imagem = it.get("i") or "{}assets/brand/icon-192.png".format(SITE)
+        imagem_og = "{}assets/og/item.jpg".format(SITE)
         descricao = (it.get("d") or TEXTO_TIPO.get(it.get("s"), ""))[:180]
         titulo = "{} — item de Deadlock ({} almas) | Central Deadlock".format(nome, custo)
+        modificado = data_iso(jogo.get("updated"))
 
         pagina = [cabecalho(titulo, "{}: {} Tier {} — {} almas. Veja o efeito, os números reais e em quais heróis ele aparece.".format(
-            nome, tipo, it.get("t", "?"), custo), url, imagem, "pg-item")]
+            nome, tipo, it.get("t", "?"), custo), url, imagem_og, "pg-item",
+            tipo="Article", modificado=modificado, imagem_alt=nome)]
 
         pagina.append('        <div class="pg-wrap pg-wrap-item">')
         pagina.append(topo("itens", "Itens", nome).rstrip("\n"))
@@ -884,7 +1012,7 @@ def paginas_itens(jogo, builds, herois):
         pagina.append(rodape("../index.html#itens", "Ver todos os itens no site"))
         with open(os.path.join(PASTA_ITENS, apelido + ".html"), "w", encoding="utf-8") as arquivo:
             arquivo.write("\n".join(pagina))
-        gerados.append({"url": url, "img": imagem, "alt": nome})
+        gerados.append({"url": url, "img": imagem_og, "alt": nome, "lastmod": modificado})
     return gerados
 
 
@@ -943,12 +1071,15 @@ def paginas_counters(herois, stats, jogo):
         apelido = slug(nome)
         s = stats_herois.get(nome) or {}
         url = "{}counter/{}.html".format(SITE, apelido)
-        imagem = "{}assets/heroes/{}".format(SITE, h.get("file"))
+        imagem = "{}assets/og/counter.jpg".format(SITE)
+        modificado = data_iso(stats.get("updated"))
         titulo = "Counters de {} — quem ele ganha e perde | Central Deadlock".format(nome)
         descricao = ("Counters de {}: os heróis que ele mais vence e os que ele mais perde, "
                      "com win rate real e número de partidas. Dados de verdade.").format(nome)
 
-        pagina = [cabecalho(titulo, descricao, url, imagem, "pg-counter")]
+        pagina = [cabecalho(titulo, descricao, url, imagem, "pg-counter",
+                            tipo="Article", modificado=modificado,
+                            imagem_alt="Counters de " + nome)]
         pagina.append('        <div class="pg-wrap">')
         pagina.append(topo("counters", "Counters", nome).rstrip("\n"))
         pagina.append('            <h1 class="pg-title">Counters de {}</h1>'.format(e(nome)))
@@ -990,7 +1121,7 @@ def paginas_counters(herois, stats, jogo):
 
         with open(os.path.join(PASTA_COUNTERS, apelido + ".html"), "w", encoding="utf-8") as arquivo:
             arquivo.write("\n".join(pagina))
-        gerados.append({"url": url, "img": imagem, "alt": nome})
+        gerados.append({"url": url, "img": imagem, "alt": nome, "lastmod": modificado})
     return gerados
 
 
@@ -1046,14 +1177,17 @@ SECOES_GUIA = [
 ]
 
 
-def pagina_guia(herois):
+def pagina_guia(herois, atualizado=""):
     """Guia para iniciantes (página fixa, ligada ao menu do site)."""
     url = SITE + "guia-iniciante.html"
     titulo = "Começando no Deadlock — guia para iniciantes | Central Deadlock"
     descricao = ("Guia em português para quem está começando no Deadlock: o básico da partida, funções, almas, "
                  "itens, objetivos e os erros mais comuns.")
-    imagem = SITE + "assets/brand/icon-192.png"
-    pagina = [cabecalho(titulo, descricao, url, imagem, "pg-guia", prefixo="")]
+    imagem = SITE + OG_GUIA
+    modificado = data_iso(atualizado)
+    pagina = [cabecalho(titulo, descricao, url, imagem, "pg-guia", prefixo="",
+                        tipo="Article", modificado=modificado,
+                        imagem_alt="Guia para iniciantes")]
     pagina.append('        <div class="pg-wrap pg-wrap-guia">')
     pagina.append(topo("", "", "Começando", prefixo="", secao_ativa="comecando").rstrip("\n"))
     pagina.append('')
@@ -1088,7 +1222,7 @@ def pagina_guia(herois):
     pagina.append(rodape("index.html#comecando", "Abrir o guia no site", prefixo=""))
     with open(os.path.join(BASE, "guia-iniciante.html"), "w", encoding="utf-8") as arquivo:
         arquivo.write("\n".join(pagina))
-    return {"url": url, "img": imagem, "alt": "Guia para iniciantes"}
+    return {"url": url, "img": imagem, "alt": "Guia para iniciantes", "lastmod": modificado}
 
 
 def limpar_paginas_antigas(pasta, manter):
@@ -1113,30 +1247,23 @@ def limpar_paginas_antigas(pasta, manter):
 
 # --------------------------- sitemap ---------------------------
 
-def escrever_sitemap(paginas):
-    hoje = datetime.date.today()
-    # o robô do GitHub roda em UTC e você roda no horário de Brasília: perto da
-    # meia-noite a data local pode ser "mais velha" que a do sitemap. Nunca deixa
-    # a data andar para trás (senão o Google vê a página "rejuvenescendo").
-    caminho = os.path.join(BASE, "sitemap.xml")
-    try:
-        with open(caminho, encoding="utf-8") as arquivo:
-            antigas = re.findall(r"<lastmod>(\d{4}-\d{2}-\d{2})</lastmod>", arquivo.read())
-        if antigas:
-            maior = max(datetime.date.fromisoformat(d) for d in antigas)
-            if maior > hoje:
-                hoje = maior
-    except Exception:
-        pass
-    hoje = hoje.isoformat()
-    urls = [SITE, f"{SITE}index.html"] + [p["url"] for p in paginas]
+def escrever_sitemap(paginas, home_lastmod=""):
+    """Usa a data real de atualização de cada conteúdo (não a data do build).
+    Quando não há data confiável, o lastmod fica de fora - melhor do que
+    inventar que todas as páginas mudaram no mesmo dia."""
+    datas = {p["url"]: (p.get("lastmod") or "") for p in paginas}
+    # A Home é uma página só: o canonical é a raiz. Incluir "index.html"
+    # criaria duas URLs para o mesmo conteúdo no sitemap.
+    urls = [SITE] + [p["url"] for p in paginas]
     vistos, linhas = set(), []
     for u in urls:
         if u in vistos:
             continue
         vistos.add(u)
         prioridade = "1.0" if u.rstrip("/") == SITE.rstrip("/") or u.endswith("index.html") else "0.7"
-        linhas.append(f"    <url><loc>{u}</loc><lastmod>{hoje}</lastmod><priority>{prioridade}</priority></url>")
+        lastmod = home_lastmod if u in (SITE, f"{SITE}index.html") else datas.get(u, "")
+        data_tag = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        linhas.append(f"    <url><loc>{u}</loc>{data_tag}<priority>{prioridade}</priority></url>")
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
            + "\n".join(linhas) + "\n</urlset>\n")
@@ -1160,21 +1287,31 @@ def main():
     hist = ler_js("data/hero-history.js")
     extra = ler_js("data/hero-extra.js")
     analitico = ler_js("data/hero-analytics.js")
-    noticias = ler_js("data/steam-news.js")
-    noticias = noticias.get("items") or []
+    noticias_dados = ler_js("data/steam-news.js")
+    noticias = noticias_dados.get("items") or []
     top = ler_js("data/top-jogadores.js")
     builds = ler_js("data/builds.js")
+    guias = ler_js("data/guias.js")
 
     paginas = paginas_herois(herois, stats, jogo, hist, extra, analitico, top)
     print("   {} paginas de herois".format(len(paginas)))
-    paginas_not = paginas_noticias(noticias)
+    paginas_not = paginas_noticias(noticias, noticias_dados.get("updated"))
     print("   {} paginas de noticias".format(len(paginas_not)))
     paginas_item = paginas_itens(jogo, builds, herois)
     print("   {} paginas de itens".format(len(paginas_item)))
     paginas_cnt = paginas_counters(herois, stats, jogo)
     print("   {} paginas de counters".format(len(paginas_cnt)))
-    guia = pagina_guia(herois)
+    guia = pagina_guia(herois, guias.get("updated"))
     print("   guia-iniciante.html (guia para iniciantes)")
+
+    home_lastmod = maior_data(
+        data_iso(stats.get("updated")),
+        data_iso(jogo.get("updated")),
+        data_iso(guias.get("updated")),
+        data_iso(builds.get("updated")),
+        data_iso(noticias_dados.get("updated")),
+        max((data_noticia(n) for n in noticias), default=""),
+    )
 
     # apaga as paginas que sobraram (noticia que saiu da lista, heroi renomeado...)
     slugs_herois = {p["url"].rsplit("/", 1)[-1][:-5] for p in paginas}
@@ -1188,7 +1325,7 @@ def main():
     pagina_404()
     print("   404.html (pagina de endereco que nao existe)")
 
-    total = escrever_sitemap(paginas + paginas_not + paginas_item + paginas_cnt + [guia])
+    total = escrever_sitemap(paginas + paginas_not + paginas_item + paginas_cnt + [guia], home_lastmod)
     print("   sitemap.xml com {} enderecos".format(total))
     print("OK! Rode de novo sempre que mudar os herois ou chegarem noticias novas.")
     return 0

@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Central Deadlock</title>
     <meta name="description" content="Central Deadlock - Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
+    <link rel="canonical" href="https://hypedz.github.io/central-deadlock/">
     <meta name="theme-color" content="#0c0c0e">
     <meta name="author" content="Central Deadlock">
     <meta name="keywords" content="Deadlock, Valve, heróis, guias, builds, itens, tier list, comunidade brasileira">
-    <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-c.svg?v=20261021l">
-    <link rel="apple-touch-icon" href="assets/brand/icon-192.png?v=20261021l">
+    <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-c.svg?v=20261028a">
+    <link rel="apple-touch-icon" href="assets/brand/icon-192.png?v=20261028a">
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,18 +26,44 @@
     <meta property="og:description" content="Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
     <meta property="og:url" content="https://hypedz.github.io/central-deadlock/">
     <meta property="og:image" content="https://hypedz.github.io/central-deadlock/assets/brand/share.jpg">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Central Deadlock — notícias, guias, itens e heróis de Deadlock">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Central Deadlock | Portal da Comunidade">
     <meta name="twitter:description" content="Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).">
     <meta name="twitter:image" content="https://hypedz.github.io/central-deadlock/assets/brand/share.jpg">
+    <meta name="twitter:image:alt" content="Central Deadlock — notícias, guias, itens e heróis de Deadlock">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Central Deadlock",
+      "alternateName": "Central Deadlock — Portal da Comunidade",
+      "url": "https://hypedz.github.io/central-deadlock/",
+      "description": "Notícias, guias, itens, todos os heróis e perfil personalizável para a comunidade de Deadlock (Valve).",
+      "inLanguage": "pt-BR",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Central Deadlock",
+        "url": "https://hypedz.github.io/central-deadlock/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://hypedz.github.io/central-deadlock/assets/brand/icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+        "sameAs": ["https://discord.gg/esy3uJAbkd"]
+      }
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261021l">
-    <script src="tema.js?v=20261021l"></script>
+    <link rel="stylesheet" href="style.css?v=20261028a">
+    <script src="tema.js?v=20261028a"></script>
 </head>
 <body data-theme="dark">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -49,7 +76,7 @@
 
     <!-- ===== TOPBAR MOBILE ===== -->
     <header class="topbar">
-        <button class="topbar-burger" id="menuBurger" aria-label="Menu">
+        <button class="topbar-burger" id="menuBurger" aria-label="Menu" aria-expanded="false" aria-controls="sidebar">
             <span></span><span></span><span></span>
         </button>
         <a href="#home" class="topbar-logo" data-section="home">
@@ -857,7 +884,7 @@
     </div>
 
     <!-- ===== BUSCA GLOBAL (Ctrl + K) ===== -->
-    <div class="modal-overlay busca-overlay" id="buscaModal">
+    <div class="modal-overlay busca-overlay" id="buscaModal" role="dialog" aria-modal="true" aria-label="Buscar no site">
         <div class="busca-janela">
             <div class="busca-topo">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -870,27 +897,27 @@
     </div>
 
     <!-- ===== MODAL: DETALHE DO HERÓI ===== -->
-    <div class="modal-overlay hero-modal-overlay" id="heroModal">
+    <div class="modal-overlay hero-modal-overlay" id="heroModal" role="dialog" aria-modal="true" aria-label="Detalhes do herói">
         <div class="hero-modal" id="heroModalBox"></div>
     </div>
 
     <!-- ===== MODAL: DETALHE DO ITEM ===== -->
-    <div class="modal-overlay" id="itemModal">
+    <div class="modal-overlay" id="itemModal" role="dialog" aria-modal="true" aria-label="Detalhes do item">
         <div class="modal im-modal" id="itemModalBox"></div>
     </div>
 
     <!-- ===== MODAL: CONTEÚDO (notícias / guias / partidas) ===== -->
-    <div class="modal-overlay" id="contentModal">
+    <div class="modal-overlay" id="contentModal" role="dialog" aria-modal="true" aria-label="Conteúdo">
         <div class="modal content-modal" id="contentModalBox"></div>
     </div>
 
     <!-- ===== MODAL: CRIADOR DE BUILD ===== -->
-    <div class="modal-overlay" id="buildModal">
-        <div class="modal build-modal" id="buildModalBox" role="dialog" aria-modal="true" aria-label="Monte sua build"></div>
+    <div class="modal-overlay" id="buildModal" role="dialog" aria-modal="true" aria-label="Monte sua build">
+        <div class="modal build-modal" id="buildModalBox"></div>
     </div>
 
     <!-- ===== MODAL: BAIXAR DEADLOCK ===== -->
-    <div class="modal-overlay" id="downloadModal">
+    <div class="modal-overlay" id="downloadModal" role="dialog" aria-modal="true" aria-label="Deadlock é por convite">
         <div class="modal">
             <button class="modal-close" id="modalClose" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -917,12 +944,12 @@
     </div>
 
     <!-- ===== MODAL: CARTÃO COMPARTILHADO ===== -->
-    <div class="modal-overlay" id="shareModal">
+    <div class="modal-overlay" id="shareModal" role="dialog" aria-modal="true" aria-label="Compartilhar">
         <div class="modal content-modal" id="shareModalBox"></div>
     </div>
 
     <!-- ===== MODAL: CARTÃO DO HERÓI (IMAGEM) ===== -->
-    <div class="modal-overlay" id="cartaoModal">
+    <div class="modal-overlay" id="cartaoModal" role="dialog" aria-modal="true" aria-label="Cartão do herói">
         <div class="modal cartao-modal" id="cartaoBox"></div>
     </div>
 
@@ -934,17 +961,18 @@
     <!-- O "?v=..." no fim de cada arquivo serve para o navegador NUNCA
          mostrar uma versão velha do site. Ao publicar uma mudança grande,
          troque a data aqui (ex.: v=20261101a). -->
-    <script src="heroes-data.js?v=20261021l"></script>
-    <script src="data/game-data.js?v=20261021l"></script>
-    <script src="data/hero-history.js?v=20261021l"></script>
-    <script src="data/hero-stats.js?v=20261021l"></script>
-    <script src="data/steam-news.js?v=20261021l"></script>
-    <script src="data/elos.js?v=20261021l"></script>
-    <script src="data/guias.js?v=20261021l"></script>
-    <script src="data/builds.js?v=20261021l"></script>
-    <script src="data/esports.js?v=20261021l"></script>
-<script src="data/top-jogadores.js?v=20261021l"></script>
-    <script src="data/hero-analytics.js?v=20261021l"></script>
-    <script src="script.js?v=20261021l"></script>
+    <script src="heroes-data.js?v=20261028a"></script>
+    <script src="data/game-data.js?v=20261028a"></script>
+    <script src="data/hero-history.js?v=20261028a"></script>
+    <script src="data/hero-stats.js?v=20261028a"></script>
+    <script src="data/steam-news.js?v=20261028a"></script>
+    <script src="data/elos.js?v=20261028a"></script>
+    <script src="data/guias.js?v=20261028a"></script>
+    <script src="data/builds.js?v=20261028a"></script>
+    <script src="data/esports.js?v=20261028a"></script>
+<script src="data/top-jogadores.js?v=20261028a"></script>
+    <script src="data/hero-analytics.js?v=20261028a"></script>
+    <script src="analytics.js?v=20261028a"></script>
+    <script src="script.js?v=20261028a"></script>
 </body>
 </html>

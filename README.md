@@ -17,6 +17,8 @@ meu-fansite/
 ├── tema.js                  # Botão de tema claro/escuro (canto direito superior)
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
 ├── sw.js                    # Guarda o site no navegador (abre mais rápido)
+├── analytics.js             # Estatísticas sem cookies (opcional; desligado por padrão)
+├── offline.html             # Tela mostrada quando o navegador está sem internet
 ├── sitemap.xml              # Mapa do site para o Google - GERADO sozinho
 ├── 404.html                 # Página de "endereço não existe" - GERADO sozinho
 ├── robots.txt               # Regras para os buscadores
@@ -26,6 +28,7 @@ meu-fansite/
 ├── README.md
 ├── heroi/                   # 1 página por herói (ajuda o Google) — GERADO sozinho
 ├── item/                    # 1 página por item da loja — GERADO sozinho
+├── counter/                 # 1 página de counters por herói — GERADO sozinho
 ├── noticia/                 # 1 página por notícia — GERADO sozinho
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
@@ -55,6 +58,7 @@ meu-fansite/
 │   ├── baixar-artes.py      # Baixa as artes dos heróis (carta, capa, letreiro e ícones das habilidades)
 │   ├── traduzir-jogo.py     # Traduz o nome das habilidades em heroes-data.js
 │   ├── gerar-paginas.py     # Cria as páginas de cada herói/notícia + sitemap
+│   ├── gerar-og.py          # Cria os cartões sociais 1200x630 (OG/Twitter)
 │   ├── gerar-guias.py       # Escreve o guia de cada herói (com os números reais)
 │   ├── gerar-builds.py      # Escreve as builds mais usadas de cada herói
 │   ├── update-esports.py    # Busca os torneios e resultados reais (Liquipedia)
@@ -73,10 +77,12 @@ meu-fansite/
     │   ├── library_hero.jpg   # Capa usada no banner da Home
     │   ├── deadlock-cover.jpg # Capa vertical (reserva)
     │   └── deadlock-header.jpg # Banner horizontal (reserva)
-    └── heroes/                # 44 artes dos heróis (cartas 280x380)
-    ├── capas/                 # 43 banners prontos do topo das páginas dos heróis
+    ├── heroes/                # 44 artes dos heróis (cartas 280x380)
+    ├── capas/                 # 44 banners prontos do topo das páginas dos heróis
     ├── nomes/                 # 44 nomes desenhados (o letreiro de cada herói)
-    └── habilidades/           # 170 ícones das habilidades
+    ├── habilidades/           # 170 ícones das habilidades
+    ├── og/                    # cartões sociais 1200x630 — GERADO sozinho
+    └── fonts/                 # fontes Poppins dos cartões (licença OFL)
 ```
 
 > ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
@@ -117,7 +123,7 @@ meu-fansite/
 
 - **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
 - **Counters** — escolha o seu herói e veja, de um lado, **contra quem ele ganha** e, do outro, **com quem ele precisa tomar cuidado**. São os **6 melhores e os 6 piores confrontos** de verdade (win rate real com pelo menos 400 partidas contra cada inimigo), com barra comparativa e o número de partidas. O último herói escolhido fica salvo. Botão **Sortear herói** para descobrir um novo.
-- **Builds** — **as builds mais usadas de cada um dos 42 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
+- **Builds** — **as builds mais usadas de cada um dos 44 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
 - **Mapa** — **mapa esquemático do jogo** (não é o mapa oficial): desenho próprio em SVG montado a partir do mapa real, na posição do minimapa do time Âmbar — as **3 rotas de verdade** (**York/amarela**, **Broadway/azul** no meio e **Greenwich/verde**), as **duas bases** (Âmbar embaixo, Safira em cima), **Guardians e Walkers** marcados em cada rota, o **Midboss** no centro (no esgoto, embaixo da Broadway) e os **4 distritos** da selva (**Praça**, **Teatro**, **Lote Assombrado** e **Chinatown**). Clique (ou use **Tab + Enter**) em qualquer área para ver a explicação e **2 dicas** no painel. Cada rota tem também um **padrão de linha** próprio — York **pontilhada**, Broadway **contínua** e Greenwich **tracejada** — para quem tem daltonismo saber qual é qual mesmo sem distinguir as cores. Abaixo do mapa, o cartão **Confrontos de rota — dados reais** mostra os piores duelos de rota do momento (números de verdade da deadlock-api.com).
 - **Tema claro / escuro** — botão no **canto direito superior** (em todas as páginas, inclusive nas de herói, item e notícia): troca a cor do site na hora e **fica salvo** no navegador. Se você nunca mexeu, o site segue o tema do seu sistema.
@@ -143,7 +149,7 @@ Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a 
 
 > 🙏 **Uma visita por dia:** a Liquipedia é mantida por voluntários e pede poucas visitas. Por isso o `update-esports.py` só busca **uma vez por dia** (ele olha a data que ficou gravada no `data/esports.js`; o robô do GitHub roda de hora em hora, mas nas outras vezes ele para antes de visitar). Quando **você** roda o `atualizar-tudo.bat`, ele usa `--forcar` e busca na hora. Se a busca falhar, o arquivo antigo é mantido — nunca apagamos os torneios.
 >
-> 👑 O **top de jogadores de cada herói** (`tools/update-top-jogadores.py` → `data/top-jogadores.js`) também é buscado **1x por dia**: são 215 consultas (43 heróis × 5 regiões), feitas em paralelo em ~25 segundos, e a lista muda devagar. O `atualizar-tudo.bat` também usa `--forcar` nele. Se a busca falhar, o arquivo antigo é mantido.
+> 👑 O **top de jogadores de cada herói** (`tools/update-top-jogadores.py` → `data/top-jogadores.js`) também é buscado **1x por dia**: são 220 consultas (44 heróis × 5 regiões), feitas em paralelo em ~25 segundos, e a lista muda devagar. O `atualizar-tudo.bat` também usa `--forcar` nele. Se a busca falhar, o arquivo antigo é mantido.
 
 ### Heróis (44)
 
@@ -231,7 +237,7 @@ O que isso muda no site:
 | Ficha do herói | "Estatísticas (exemplo)" | "Estatísticas reais" + nº de partidas, posição e banimento |
 | **Histórico de win rate** | não existia | gráfico com **58 semanas** de partidas reais |
 | **Itens da loja** | lista de exemplo | **173 itens reais**, com preço, efeito e win rate |
-| **Builds** | 5 builds genéricas escritas à mão | as **builds mais usadas de cada um dos 42 heróis**, na ordem real de compra, com win rate e partidas de cada uma |
+| **Builds** | 5 builds genéricas escritas à mão | as **builds mais usadas de cada um dos 44 heróis**, na ordem real de compra, com win rate e partidas de cada uma |
 | **Confrontos** | exemplo | win rate real contra **cada inimigo** |
 | **Ranking** | exemplo | **top 50 real** de 5 regiões — e **clicar no jogador** mostra os heróis dele e busca o perfil no Steam |
 | **Esports** | partidas inventadas (FURIA 3 x 1 LOUD) | **torneios e resultados reais** (Liquipedia): próximos torneios, campeões, vice, prêmios e os **logos oficiais** |
@@ -241,7 +247,7 @@ O que isso muda no site:
 | **Minha Mira** | não existia | cole o código da sua mira (`DL.…`) e o site desenha ela e explica cada ajuste |
 | **Instalar o app** | não existia | botão que instala o site como app no celular e no computador |
 | **Busca global** | não existia | **Ctrl + K** acha herói, item, notícia, guia, build, tela e termo do glossário num lugar só |
-| **Guias** | só 3 guias escritos à mão | **um guia para cada um dos 43 heróis**, montado sozinho com os números reais das partidas, com filtro por nome/papel/tier |
+| **Guias** | só 3 guias escritos à mão | **um guia para cada um dos 44 heróis**, montado sozinho com os números reais das partidas, com filtro por nome/papel/tier |
 | **Painel do Steam** (em Meu Perfil) | não existia | digite o seu **nick**, cole o **link do perfil** ou o **ID da conta** e veja **as suas partidas de verdade**: elo, win rate de todo o histórico, KDA, heróis mais jogados e os últimos 20 jogos |
 | **Cartão do herói** | não existia | um botão na ficha do herói gera um **cartão em imagem (1080×1350)** com nome, tier, win rate, pick rate e a build mais usada — pronto para WhatsApp, Discord ou Instagram |
 
@@ -255,8 +261,8 @@ O que isso muda no site:
 | `data/hero-extra.js` | `tools/update-game-data.py` | etiquetas, dificuldade, cor e história de cada herói (usado nas páginas dos heróis) |
 | `data/hero-analytics.js` | `tools/update-analytics.py` | ordem das habilidades, melhores duplas e confrontos de rota (usado nas páginas dos heróis) |
 | `data/elos.js` | `tools/update-elos.py` | brasões de elo oficiais + quantos jogadores há em cada elo (usado na aba Estatísticas e no Ranking) |
-| `data/guias.js` | `tools/gerar-guias.py` | o guia de cada um dos 43 heróis, já escrito em português e com os números reais (usado na aba Guias e na busca) |
-| `data/builds.js` | `tools/gerar-builds.py` | as builds mais usadas de cada um dos 42 heróis, na ordem real de compra, com win rate e partidas. Guarda só o **id** de cada item (o nome, o preço e o ícone vêm da loja que o site já tem) — assim o arquivo fica leve (67 KB em vez de 237 KB) e a página abre mais rápido (usado na aba Builds e na busca) |
+| `data/guias.js` | `tools/gerar-guias.py` | o guia de cada um dos 44 heróis, já escrito em português e com os números reais (usado na aba Guias e na busca) |
+| `data/builds.js` | `tools/gerar-builds.py` | as builds mais usadas de cada um dos 44 heróis, na ordem real de compra, com win rate e partidas. Guarda só o **id** de cada item (o nome, o preço e o ícone vêm da loja que o site já tem) — assim o arquivo fica leve (67 KB em vez de 237 KB) e a página abre mais rápido (usado na aba Builds e na busca) |
 | `data/esports.js` | `tools/update-esports.py` | torneios de Deadlock e resultados recentes, com logos, datas, prêmios e campeões (fonte: Liquipedia). Também alimenta a aba **Eventos** (próximos torneios + contagem regressiva) |
 
 > 💡 Se o site ficar sem internet por muito tempo, ele simplesmente continua mostrando os últimos números baixados.
@@ -306,15 +312,60 @@ Os arquivos que fazem isso: `manifest.webmanifest` (nome, ícone, cores), `sw.js
 >
 > **Aviso de nova versão:** quando você publica uma mudança, quem já tem o site instalado vê um avisinho **"Nova versão do site disponível!"** com o botão **Atualizar agora** — assim ninguém fica preso numa versão antiga. Isso é automático (está no `script.js` e no `pwa.js`).
 >
+> **Sem internet:** se a pessoa abrir uma página que ainda não visitou enquanto estiver offline, o `sw.js` mostra o `offline.html` — uma tela simples, sem depender de fontes ou bibliotecas externas, com botão para tentar de novo.
+>
 > Para gerar os ícones de novo (se algum dia mudar a logo): `python tools/make-icons.py` (precisa da biblioteca Pillow).
+
+---
+
+## 📊 Estatísticas sem cookies (opcional)
+
+O site **não coleta nada por padrão**. O arquivo `analytics.js` tem um adaptador pronto para o **GoatCounter**, um serviço gratuito que **não usa cookies** e não guarda o IP dos visitantes.
+
+Para ativar:
+
+1. Crie uma conta gratuita em [goatcounter.com](https://www.goatcounter.com) e escolha um código (ex.: `centraldeadlock`).
+2. Abra `analytics.js` e preencha:
+
+```js
+window.CDL_ANALYTICS = {
+    provider: 'goatcounter',
+    goatcounter: 'centraldeadlock', // seu código, sem .goatcounter.com
+    debug: false
+};
+```
+
+3. Publique o site. As visitas e os eventos aparecem no painel do GoatCounter.
+
+O script conta a página **sem o `?build=...`** (para não criar uma URL gigante por build compartilhada) e registra eventos como `secao`, `busca_abrir`, `busca_escolher`, `heroi_abrir`, `item_abrir`, `build_abrir`, `build_copiar`, `perfil_copiar_texto`, `perfil_copiar_link` e `compartilhar`.
+
+Para testar sem enviar nada, abra o site com `?analytics=debug` e veja o console do navegador. Se `provider` ficar vazio, nenhum pedido de rede é feito — o site funciona igual.
+
+---
+
+## 🖼️ Cartões sociais (1200×630)
+
+Quando alguém cola um link no Discord, WhatsApp, X ou Facebook, aparece um cartão grande. A Home usa `assets/brand/share.jpg`; as páginas internas usam cartões próprios em `assets/og/`:
+
+- **Herói:** arte de capa + nome + win rate, tier e partidas
+- **Notícia:** título em português + categoria + data
+- **Guia, item e counter:** cartões temáticos com a marca
+
+O gerador é `tools/gerar-og.py` (Pillow + fontes Poppins em `assets/fonts`). Ele roda sozinho no robô depois de atualizar as notícias:
+
+```powershell
+python tools/gerar-og.py
+```
+
+Todas as páginas têm `og:image`, `og:image:width`, `og:image:height`, `og:image:alt`, `twitter:image` e `twitter:image:alt`. A Home e as páginas internas também têm **canonical** e **JSON-LD** (`WebSite`, `Article` ou `NewsArticle`) para o Google entender o conteúdo.
 
 ---
 
 ## 🔎 Aparecer no Google
 
-- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **229 endereços** hoje: Home, 43 heróis, 173 itens, 10 notícias, o guia para iniciantes e a página 404 fica de fora)
+- **`sitemap.xml`** — a lista de páginas para os buscadores (gerada sozinha, com **273 endereços** hoje: Home, 44 heróis, 173 itens, 10 notícias, 44 counters, o guia para iniciantes e a página 404 fica de fora)
 - **`robots.txt`** — libera a leitura e aponta para o sitemap
-- **`heroi/<nome>.html`** — **uma página para cada herói** (43 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de fundo do jogo **e o personagem recortado** por cima, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
+- **`heroi/<nome>.html`** — **uma página para cada herói** (44 no total), no **estilo do dlbr.gg**: um **banner grande** com a arte de fundo do jogo **e o personagem recortado** por cima, o **nome desenhado**, as **etiquetas do jogo** (Tanque, Lutador, Cabeça-Dura…) e os **ícones das 4 habilidades** na cor do herói; abaixo vem o conteúdo em **duas colunas** — o texto e as habilidades à esquerda e os quadros **Papel**, **Dificuldade** e **Resumo** (tier, vida, velocidade, banimento) à direita. Tem ainda a **História** oficial do personagem, os números reais, as builds e os confrontos. É o que aparece quando alguém pesquisa "Abrams Deadlock build"
   - 💡 **Passe o mouse (ou toque) no ícone de uma habilidade** no banner: abre uma caixinha com o **nome em português e inglês**, as etiquetas (**Suprema**, **Passiva**, **Recarga**) e a **descrição completa** — sem precisar rolar a página.
 
 > A **cor de cada herói** vem do próprio jogo (`data/hero-extra.js`) e pinta as etiquetas, a linha do banner e a barra de dificuldade. Se a cor for muito escura, o site clareia sozinho o que precisa e escolhe a cor do texto, para nada ficar ilegível.
@@ -337,9 +388,9 @@ Nada de conteúdo inventado no site: as notícias são **oficiais do Steam**, os
 
 ---
 
-## 🛠️ Builds — as mais usadas de cada herói (42)
+## 🛠️ Builds — as mais usadas de cada herói (44)
 
-A aba **Builds** mostra as **builds mais usadas de cada um dos 42 heróis que já receberam dados**, na **ordem real de compra** dos itens, com o **win rate** e o **número de partidas** de cada build. Nada foi escrito à mão: o script `tools/gerar-builds.py` monta tudo com os dados das partidas e escreve o arquivo `data/builds.js`.
+A aba **Builds** mostra as **builds mais usadas de cada um dos 44 heróis que já receberam dados**, na **ordem real de compra** dos itens, com o **win rate** e o **número de partidas** de cada build. Nada foi escrito à mão: o script `tools/gerar-builds.py` monta tudo com os dados das partidas e escreve o arquivo `data/builds.js`.
 
 Cada build traz:
 
@@ -367,9 +418,9 @@ Na aba **Builds**, clique em **Criar build**. Você escolhe o herói, até **6 i
 
 ---
 
-## 📚 Guias — um para cada herói (43)
+## 📚 Guias — um para cada herói (44)
 
-A aba **Guias** tem **um guia para cada um dos 43 heróis** (antes eram só 3). Nada foi escrito à mão: cada guia é montado sozinho, com os **números reais das partidas**, pelo script `tools/gerar-guias.py`, que escreve o arquivo `data/guias.js`.
+A aba **Guias** tem **um guia para cada um dos 44 heróis** (antes eram só 3). Nada foi escrito à mão: cada guia é montado sozinho, com os **números reais das partidas**, pelo script `tools/gerar-guias.py`, que escreve o arquivo `data/guias.js`.
 
 Cada guia traz:
 

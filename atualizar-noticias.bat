@@ -28,6 +28,8 @@ python "tools\traduzir-jogo.py"
 echo.
 python "tools\gerar-paginas.py"
 echo.
+python "tools\gerar-og.py"
+echo.
 
 if not exist "discord-webhook.txt" goto fim
 

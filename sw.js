@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-21l';
+const VERSAO = 'central-deadlock-2026-10-28a';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -26,7 +26,10 @@ const ESSENCIAIS = [
     './data/top-jogadores.js',
     './data/hero-analytics.js',
     './manifest.webmanifest',
+    './analytics.js',
     './pagina.js',
+    './pwa.js',
+    './offline.html',
     './assets/brand/favicon-c.svg',
     './assets/brand/icon-192.png'
 ];
@@ -90,7 +93,12 @@ self.addEventListener('fetch', (evento) => {
         evento.respondWith(
             fetch(pedido)
                 .then((resposta) => guardar(pedido, resposta))
-                .catch(() => caches.match(pedido, { ignoreSearch: true }).then((r) => r || caches.match('./index.html')))
+                .catch(() => caches.match(pedido, { ignoreSearch: true }).then((r) => {
+                    if (r) return r;
+                    /* página que ainda não foi visitada: mostra o aviso offline */
+                    if (pedido.mode === 'navigate') return caches.match('./offline.html');
+                    return caches.match('./index.html');
+                }))
         );
         return;
     }

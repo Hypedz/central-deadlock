@@ -15,20 +15,41 @@
 
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
+    var burger = document.getElementById('menuBurger');
+    var focoAnterior = null;
+
+    function focaveis() {
+        if (!sidebar) return [];
+        var seletor = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        return Array.prototype.filter.call(sidebar.querySelectorAll(seletor), function (el) {
+            return !el.hidden && el.getAttribute('aria-hidden') !== 'true'
+                && (el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+        });
+    }
 
     function abrirMenu() {
+        focoAnterior = document.activeElement;
         if (sidebar) sidebar.classList.add('open');
         if (overlay) overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
+        if (burger) burger.setAttribute('aria-expanded', 'true');
+        setTimeout(function () {
+            var alvo = sidebar && (sidebar.querySelector('.sidebar-close') || focaveis()[0]);
+            if (alvo) alvo.focus();
+        }, 30);
     }
 
     function fecharMenu() {
         if (sidebar) sidebar.classList.remove('open');
         if (overlay) overlay.classList.remove('show');
         document.body.style.overflow = '';
+        if (burger) burger.setAttribute('aria-expanded', 'false');
+        if (focoAnterior && document.contains(focoAnterior)) {
+            try { focoAnterior.focus({ preventScroll: true }); } catch (e) { focoAnterior.focus(); }
+        }
+        focoAnterior = null;
     }
 
-    var burger = document.getElementById('menuBurger');
     if (burger) burger.addEventListener('click', abrirMenu);
 
     var fechar = document.getElementById('closeSidebar');
@@ -40,6 +61,27 @@
     });
 
     if (overlay) overlay.addEventListener('click', fecharMenu);
+
+    document.addEventListener('keydown', function (e) {
+        if (!sidebar || !sidebar.classList.contains('open')) return;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            fecharMenu();
+            return;
+        }
+        if (e.key !== 'Tab') return;
+        var lista = focaveis();
+        if (!lista.length) return;
+        var primeiro = lista[0];
+        var ultimo = lista[lista.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+            e.preventDefault();
+            ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+            e.preventDefault();
+            primeiro.focus();
+        }
+    });
 
     ['btnBusca', 'btnBuscaTop'].forEach(function (id) {
         var botao = document.getElementById(id);

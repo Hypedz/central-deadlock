@@ -48,6 +48,8 @@
         var cx = document.createElement('div');
         cx.id = 'avisoVersao';
         cx.className = 'aviso-versao';
+        cx.setAttribute('role', 'status');
+        cx.setAttribute('aria-live', 'polite');
         cx.innerHTML = '<i class="fa-solid fa-rotate"></i>' +
             '<span>Nova versão do site disponível!</span>' +
             '<button type="button" class="btn btn-lime btn-sm" id="avisoAtualizar">Atualizar agora</button>' +

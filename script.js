@@ -375,6 +375,8 @@ function mostrarAvisoVersao() {
     const cx = document.createElement('div');
     cx.id = 'avisoVersao';
     cx.className = 'aviso-versao';
+    cx.setAttribute('role', 'status');
+    cx.setAttribute('aria-live', 'polite');
     cx.innerHTML = `<i class="fa-solid fa-rotate"></i>
         <span>Nova versão do site disponível!</span>
         <button type="button" class="btn btn-lime btn-sm" id="avisoAtualizar">Atualizar agora</button>
@@ -935,6 +937,7 @@ function pintarBusca() {
 function escolherBusca(i) {
     const item = buscaAchados[i];
     if (!item) return;
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('busca_escolher', { tipo: item.tipo || '' });
     fecharBusca();
     setTimeout(() => item.abrir(), 90);
 }
@@ -942,6 +945,7 @@ function escolherBusca(i) {
 function abrirBusca() {
     const modal = $('#buscaModal');
     if (!modal) return;
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('busca_abrir');
     const campo = $('#buscaCampo');
     if (campo) campo.value = '';
     renderBusca('');
@@ -994,6 +998,7 @@ function showSection(id) {
     $$('.section').forEach(s => s.classList.toggle('active', s.id === id));
     $$('.nav-item[data-section]').forEach(n => n.classList.toggle('active', n.getAttribute('data-section') === id));
     if (!stats.visited[id]) { stats.visited[id] = 1; saveStats(); }
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('secao', { secao: id });
     window.scrollTo({ top: 0, behavior: 'auto' });
     if (id === 'favoritos') renderFavs();
     if (id === 'perfil') renderProfileUI();
@@ -1017,6 +1022,8 @@ function fixShareMeta() {
     if (!/^https?:/.test(location.protocol)) return;
     const base = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '');
     const trocar = (sel, valor) => { const m = document.querySelector(sel); if (m) m.setAttribute('content', valor); };
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', base);
     trocar('meta[property="og:url"]', base);
     trocar('meta[property="og:image"]', base + 'assets/brand/share.jpg');
     trocar('meta[name="twitter:image"]', base + 'assets/brand/share.jpg');
@@ -1025,7 +1032,31 @@ function fixShareMeta() {
 function initSections() {
     const sidebar = $('#sidebar');
     const overlay = $('#sidebarOverlay');
-    const closeSidebar = () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; };
+    const menuBurger = $('#menuBurger');
+    let focoSidebarAnterior = null;
+
+    const abrirSidebar = () => {
+        focoSidebarAnterior = document.activeElement;
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        if (menuBurger) menuBurger.setAttribute('aria-expanded', 'true');
+        setTimeout(() => {
+            const alvo = sidebar.querySelector('.sidebar-close') || focaveisEm(sidebar)[0];
+            if (alvo) alvo.focus();
+        }, 30);
+    };
+
+    const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+        if (menuBurger) menuBurger.setAttribute('aria-expanded', 'false');
+        if (focoSidebarAnterior && document.contains(focoSidebarAnterior)) {
+            try { focoSidebarAnterior.focus({ preventScroll: true }); } catch (e) { focoSidebarAnterior.focus(); }
+        }
+        focoSidebarAnterior = null;
+    };
 
     document.addEventListener('click', (e) => {
         const el = e.target.closest('[data-section],[data-goto]');
@@ -1035,8 +1066,33 @@ function initSections() {
         closeSidebar();
     });
 
-    $('#menuBurger').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
-    $('#closeSidebar').addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (e) => {
+        if (!sidebar.classList.contains('open')) return;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeSidebar();
+            return;
+        }
+        if (e.key !== 'Tab') return;
+        const lista = focaveisEm(sidebar);
+        if (!lista.length) return;
+        const primeiro = lista[0];
+        const ultimo = lista[lista.length - 1];
+        if (e.shiftKey && document.activeElement === primeiro) {
+            e.preventDefault();
+            ultimo.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+            e.preventDefault();
+            primeiro.focus();
+        }
+    });
+
+    if (menuBurger) menuBurger.addEventListener('click', abrirSidebar);
+    $('#closeSidebar').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSidebar();
+    });
     overlay.addEventListener('click', closeSidebar);
     $('#userChip').addEventListener('click', () => showSection('perfil'));
     $('#btnProfileTop').addEventListener('click', () => showSection('perfil'));
@@ -1236,6 +1292,7 @@ const BUILD_PRESETS = {
 
 function openHero(name) {
     const h = heroByName(name); if (!h) return;
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('heroi_abrir');
     heroCurrent = h;
     if (!stats.heroesSeen.includes(name)) { stats.heroesSeen.push(name); saveStats(); }
     heroTab = 'visao';
@@ -1615,6 +1672,9 @@ function bcNovoEstado(extra) {
 }
 
 function bcAbrir(dados) {
+    if (typeof window.cdlTrack === 'function') {
+        window.cdlTrack('build_abrir', { compartilhada: !!(dados && dados.compartilhada) });
+    }
     bcEstado = bcNovoEstado(dados);
     if (!bcHeroi(bcEstado.hero)) {
         const preferidos = [].concat(profile.mains || [], favs || []);
@@ -1847,6 +1907,7 @@ function bcCopiar() {
     const campo = $('#bcLink');
     const feito = () => {
         if (campo) { campo.focus(); campo.select(); }
+        if (typeof window.cdlTrack === 'function') window.cdlTrack('build_copiar');
         showToast('Link copiado! Cole no Discord ou no WhatsApp.');
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2344,6 +2405,7 @@ function openItem(id) {
     const item = itemDe(id);
     const caixa = $('#itemModalBox');
     if (!item || !caixa) return;
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('item_abrir');
     caixa.innerHTML = `
         <button class="modal-close" data-close="itemModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
         <div class="im">
@@ -3528,9 +3590,50 @@ function bindQuizResult() {
     if (open) open.addEventListener('click', () => openHero(open.dataset.hero));
 }
 
-/* ================= modais (fechar) ================= */
-function openOverlay(el) { el.classList.add('show'); document.body.style.overflow = 'hidden'; }
-function closeOverlay(el) { el.classList.remove('show'); if (!document.querySelector('.modal-overlay.show')) document.body.style.overflow = ''; }
+/* ================= modais (fechar, foco preso e Esc) ================= */
+const focoAnterior = new WeakMap();
+
+function focaveisEm(el) {
+    const seletor = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.prototype.filter.call(el.querySelectorAll(seletor), (x) => {
+        return !x.hidden && x.getAttribute('aria-hidden') !== 'true'
+            && (x.offsetWidth || x.offsetHeight || x.getClientRects().length);
+    });
+}
+
+function openOverlay(el) {
+    if (!el || el.classList.contains('show')) return;
+    focoAnterior.set(el, document.activeElement);
+    el.classList.add('show');
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    document.body.style.overflow = 'hidden';
+
+    /* espera a janela aparecer para levar o foco ao primeiro controle */
+    setTimeout(() => {
+        if (!el.classList.contains('show')) return;
+        const alvo = el.querySelector('[autofocus]') || focaveisEm(el)[0] || el;
+        if (alvo === el && !el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+        try { alvo.focus({ preventScroll: true }); } catch (e) { alvo.focus(); }
+    }, 30);
+}
+
+function closeOverlay(el) {
+    if (!el) return;
+    const estavaAberto = el.classList.contains('show');
+    el.classList.remove('show');
+    el.removeAttribute('aria-modal');
+    if (!document.querySelector('.modal-overlay.show')) document.body.style.overflow = '';
+
+    /* devolve o foco para o botão que abriu a janela */
+    if (estavaAberto) {
+        const anterior = focoAnterior.get(el);
+        focoAnterior.delete(el);
+        if (anterior && document.contains(anterior)) {
+            try { anterior.focus({ preventScroll: true }); } catch (e) { anterior.focus(); }
+        }
+    }
+}
 
 function initModals() {
     document.addEventListener('click', (e) => {
@@ -3540,9 +3643,35 @@ function initModals() {
         if (generic) { const ov = generic.closest('.modal-overlay'); if (ov) closeOverlay(ov); return; }
         if (e.target.classList && e.target.classList.contains('modal-overlay')) closeOverlay(e.target);
     });
+
     document.addEventListener('keydown', (e) => {
-        if (e.key !== 'Escape') return;
-        $$('.modal-overlay.show').forEach(closeOverlay);
+        const abertos = $$('.modal-overlay.show');
+        if (!abertos.length) return;
+        const atual = abertos[abertos.length - 1];
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeOverlay(atual);
+            return;
+        }
+
+        if (e.key !== 'Tab') return;
+        const lista = focaveisEm(atual);
+        if (!lista.length) {
+            e.preventDefault();
+            atual.focus();
+            return;
+        }
+        const primeiro = lista[0];
+        const ultimo = lista[lista.length - 1];
+        const fora = !atual.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === primeiro || fora)) {
+            e.preventDefault();
+            ultimo.focus();
+        } else if (!e.shiftKey && (document.activeElement === ultimo || fora)) {
+            e.preventDefault();
+            primeiro.focus();
+        }
     });
 }
 
@@ -4248,12 +4377,14 @@ function decShare(s) {
 
 async function copyText() {
     const txt = cardText(profile);
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('perfil_copiar_texto');
     try { await navigator.clipboard.writeText(txt); showToast('Texto do cartão copiado!'); }
     catch (e) { window.prompt('Copie o texto do cartão:', txt); }
 }
 
 async function copyLink() {
     const url = location.href.split('#')[0] + '#share=' + encShare(profile);
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('perfil_copiar_link');
     try { await navigator.clipboard.writeText(url); showToast('Link do cartão copiado!'); }
     catch (e) { window.prompt('Copie o link do cartão:', url); }
 }
@@ -4261,6 +4392,7 @@ async function copyLink() {
 /* Compartilhar: no celular abre o menu do próprio aparelho (WhatsApp, Discord...);
    no computador, copia o link. */
 async function compartilhar(dados) {
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('compartilhar');
     if (navigator.share) {
         try { await navigator.share(dados); return true; }
         catch (erro) { if (erro && erro.name === 'AbortError') return false; }

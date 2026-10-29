@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0c0c0e">
+<title>Sem internet | Central Deadlock</title>
+<style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+        background: radial-gradient(900px 500px at 50% -10%, rgba(182, 242, 74, .13), transparent 70%), #0c0c0e;
+        color: #f2f2f5; font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .card {
+        width: min(560px, 100%); padding: 34px 30px 30px; border: 1px solid #2b2b34;
+        border-radius: 22px; background: #141419; box-shadow: 0 24px 70px rgba(0, 0, 0, .45);
+        text-align: center;
+    }
+    .brand { font-weight: 800; letter-spacing: .04em; font-size: 1.05rem; }
+    .brand span { color: #b6f24a; }
+    .icone {
+        width: 64px; height: 64px; margin: 26px auto 16px; border-radius: 20px;
+        display: grid; place-items: center; background: rgba(182, 242, 74, .12);
+        border: 1px solid rgba(182, 242, 74, .35); color: #b6f24a; font-size: 1.7rem;
+    }
+    h1 { margin: 0 0 12px; font-size: clamp(1.55rem, 5vw, 2rem); line-height: 1.15; }
+    p { margin: 0 auto 12px; max-width: 42ch; color: #b9b9c4; line-height: 1.6; }
+    .estado { color: #b6f24a; font-size: .92rem; font-weight: 600; }
+    .acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+        padding: 10px 18px; border-radius: 10px; border: 1px solid #34343f;
+        background: #1c1c23; color: #f2f2f5; font: inherit; font-weight: 700;
+        text-decoration: none; cursor: pointer;
+    }
+    .btn.principal { background: #b6f24a; border-color: #b6f24a; color: #0c0c0e; }
+    .btn:focus-visible { outline: 2px solid #b6f24a; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+</style>
+</head>
+<body>
+<main class="card" id="conteudo">
+    <div class="brand">CENTRAL <span>DEADLOCK</span></div>
+    <div class="icone" aria-hidden="true">!</div>
+    <h1>Você está sem internet</h1>
+    <p>O site guardou as páginas que você já visitou. Quando a conexão voltar, tente abrir de novo.</p>
+    <p class="estado" id="estado" role="status" aria-live="polite">Sem conexão.</p>
+    <div class="acoes">
+        <a class="btn principal" href="./index.html">Ir para a Home</a>
+        <button class="btn" type="button" onclick="location.reload()">Tentar de novo</button>
+    </div>
+</main>
+<script>
+    (function () {
+        var estado = document.getElementById('estado');
+        function atualizar() {
+            if (!estado) return;
+            estado.textContent = navigator.onLine
+                ? 'Conexão de volta. Toque em “Tentar de novo”.'
+                : 'Sem conexão.';
+        }
+        window.addEventListener('online', atualizar);
+        window.addEventListener('offline', atualizar);
+        atualizar();
+    })();
+</script>
+</body>
+</html>
