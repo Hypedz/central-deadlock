@@ -16,7 +16,7 @@ const HEROES_SOON = [];
 
 // Habilidades traduzidas automaticamente para portugues pelo script
 // tools/traduzir-jogo.py (o nome original em ingles fica no campo "name_en").
-// Ultima traducao: 29/10/2026 as 10:33
+// Ultima traducao: 29/10/2026 as 17:12
 const HEROES_DATA = [
   {
     "name": "Abrams",
