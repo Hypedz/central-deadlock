@@ -284,6 +284,18 @@ O painel já existia e continua no mesmo lugar — agora ele ficou melhor:
 
 ---
 
+## ✨ Para você, vitrine e link pessoal
+
+Três jeitos novos de deixar o perfil com a sua cara — tudo salvo **só neste navegador**, sem conta e sem servidor:
+
+- **Para você (Home):** um bloco depois das últimas notícias que junta **guias, builds e notícias** dos seus **mains**. Se você ainda não escolheu mains, ele usa os **favoritos** e mostra um atalho para escolher. O conteúdo vem dos arquivos reais do site; nada de números inventados.
+- **Vitrine do perfil (Meu Perfil → Cartão):** escolha até **3 destaques** entre heróis, builds, guias e itens. Eles aparecem no seu cartão, no perfil público e no link compartilhado. Dá para mudar a ordem ou remover.
+- **Link pessoal (Meu Perfil → Identidade):** um link opcional com nome e ícone. Só aceita endereços que começam com **http://** ou **https://**; ao clicar, o site avisa que vai abrir um site externo em outra aba.
+
+A vitrine e o link pessoal também entram no **Exportar dados** e no **Copiar link** do perfil. Se você importar um arquivo antigo, ele continua funcionando: os campos novos ficam vazios até você preencher.
+
+---
+
 ## 🖼️ Cartão do herói (imagem para compartilhar)
 
 Na ficha de qualquer herói, o botão **"Baixar cartão"** monta um **cartão em imagem, 1080×1350** (o tamanho que o Instagram, o WhatsApp e o Discord gostam), com:

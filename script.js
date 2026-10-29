@@ -111,6 +111,16 @@ POLY.hexflat = [[-1, 0], [-0.5, -0.866], [0.5, -0.866], [1, 0], [0.5, 0.866], [-
 POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17; const r = 0.87 + 0.13 * Math.cos(6 * a); return [r * Math.sin(a), -r * Math.cos(a)]; });
 
 const MAX_MAINS = 6;
+const SHOWCASE_MAX = 3;
+const SHOWCASE_TIPOS = [['hero', 'Herói'], ['build', 'Build'], ['guide', 'Guia'], ['item', 'Item']];
+const CUSTOM_LINK_ICONS = [
+    ['globe', 'Site', 'fa-solid fa-globe'],
+    ['link', 'Link', 'fa-solid fa-link'],
+    ['github', 'GitHub', 'fa-brands fa-github'],
+    ['kofi', 'Ko-fi', 'fa-solid fa-mug-hot'],
+    ['video', 'Vídeo', 'fa-solid fa-video'],
+    ['star', 'Outro', 'fa-solid fa-star']
+];
 const TEMA_SISTEMA = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
 const LINK_LABELS = [
     ['discord', 'Discord'], ['twitch', 'Twitch'], ['youtube', 'YouTube'],
@@ -119,11 +129,46 @@ const LINK_LABELS = [
 function linksList(p) {
     return LINK_LABELS.map(([k, n]) => [n, (p.links || {})[k]]).filter(x => x[1]);
 }
+function normalizarLinkCustom(raw) {
+    const base = { label: '', url: '', icon: 'globe' };
+    if (!raw || typeof raw !== 'object') return base;
+    return {
+        label: String(raw.label || '').trim().slice(0, 24),
+        url: String(raw.url || '').trim().slice(0, 300),
+        icon: CUSTOM_LINK_ICONS.some(([k]) => k === raw.icon) ? raw.icon : 'globe'
+    };
+}
+function urlExternaSegura(url) {
+    const s = String(url || '').trim();
+    if (!s || !/^https?:\/\//i.test(s)) return '';
+    try {
+        const u = new URL(s);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
+    } catch (e) { return ''; }
+}
+function customLink(p) {
+    const c = normalizarLinkCustom((p.links || {}).custom);
+    const url = urlExternaSegura(c.url);
+    if (!url) return null;
+    let host = '';
+    try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { }
+    const icone = (CUSTOM_LINK_ICONS.find(([k]) => k === c.icon) || CUSTOM_LINK_ICONS[0])[2];
+    return { label: c.label || host || 'Link', url, icon: icone };
+}
+function linksListTodos(p) {
+    const lista = linksList(p);
+    const c = customLink(p);
+    return c ? [...lista, [c.label, c.url]] : lista;
+}
 
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
     nick: '', pronouns: '', status: '', bio: '', title: 'Jogador', region: 'Brasil',
-    mains: [], links: { discord: '', twitch: '', youtube: '', x: '', instagram: '', tiktok: '', steam: '' },
+    mains: [], links: {
+        discord: '', twitch: '', youtube: '', x: '', instagram: '', tiktok: '', steam: '',
+        custom: { label: '', url: '', icon: 'globe' }
+    },
+    showcase: [],
     lfg: false, avail: '',
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
     accent: 'auto',
@@ -135,14 +180,23 @@ const PROFILE_DEF = {
 };
 let profile = (() => {
     const raw = store.get('cdl_profile', null);
-    if (!raw || typeof raw !== 'object') return { ...PROFILE_DEF, av: { ...PROFILE_DEF.av }, cards: { ...PROFILE_DEF.cards } };
+    if (!raw || typeof raw !== 'object') return {
+        ...PROFILE_DEF,
+        av: { ...PROFILE_DEF.av },
+        cards: { ...PROFILE_DEF.cards },
+        links: { ...PROFILE_DEF.links, custom: normalizarLinkCustom() },
+        showcase: []
+    };
     return {
         ...PROFILE_DEF, ...raw,
-        links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
+        links: { ...PROFILE_DEF.links, ...(raw.links || {}), custom: normalizarLinkCustom((raw.links || {}).custom) },
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
         cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
         menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
-        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
+        showcase: Array.isArray(raw.showcase)
+            ? raw.showcase.filter(x => x && typeof x === 'object' && x.type && x.id).slice(0, SHOWCASE_MAX)
+            : []
     };
 })();
 const saveProfile = () => store.set('cdl_profile', profile);
@@ -1258,6 +1312,7 @@ function toggleFav(name) {
     $$(`[data-fav="${CSS.escape(name)}"]`).forEach(b => b.classList.toggle('on', favs.includes(name)));
     if ($('#favoritos').classList.contains('active')) renderFavs();
     renderProfileUI();
+    renderHomeFeed();
     showToast(favs.includes(name) ? name + ' adicionado aos favoritos ★' : name + ' removido dos favoritos');
 }
 
@@ -2701,6 +2756,19 @@ function initHome() {
             : '<p class="muted-txt">As notícias oficiais aparecem aqui assim que o robô do GitHub rodar pela primeira vez.</p>';
     }
 
+    // ---- feed pessoal (mains/favoritos) ----
+    renderHomeFeed();
+    const feed = $('#homeFeedBlock');
+    if (feed) feed.addEventListener('click', (e) => {
+        const b = e.target.closest('#homeFeedEdit, [data-feed-mains]');
+        if (!b) return;
+        pTab = 'game';
+        showSection('perfil');
+        renderPTabs(); renderForm();
+        const el = $('#editorPerfil');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
     // ---- movimento da semana (quem subiu, quem caiu) ----
     renderMovimento();
 
@@ -2733,6 +2801,51 @@ function initHome() {
             <p class="mini-sub">partidas analisadas · atualizado em ${esc(STATS_INFO.updated || '')}</p>
             <button type="button" class="btn btn-dark btn-sm" data-goto="estatisticas">Ver tabela completa <i class="fa-solid fa-arrow-right"></i></button>
         </div>`;
+}
+
+/* Home: feed "Para você" com guias, builds e notícias dos seus mains */
+function renderHomeFeed() {
+    const bloco = $('#homeFeedBlock'), grade = $('#homeFeed'), sub = $('#homeFeedSub'), edit = $('#homeFeedEdit');
+    if (!bloco || !grade) return;
+    bloco.hidden = false;
+    const temMains = profile.mains.length > 0;
+    const base = (temMains ? profile.mains : favs).map(heroByName).filter(h => h && !h.soon);
+    if (!base.length) {
+        if (sub) sub.textContent = 'Escolha seus mains para montar um feed com guias, builds e notícias que têm a ver com você.';
+        if (edit) edit.innerHTML = '<i class="fa-solid fa-sliders"></i> Escolher mains';
+        grade.innerHTML = '<div class="card" style="grid-column:1/-1;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap"><span class="muted-txt">Você ainda não escolheu seus mains.</span><button type="button" class="btn btn-lime btn-sm" data-feed-mains><i class="fa-solid fa-gamepad"></i> Escolher agora</button></div>';
+        return;
+    }
+    if (edit) edit.innerHTML = '<i class="fa-solid fa-sliders"></i> Editar mains';
+    if (sub) sub.textContent = `Baseado nos seus ${temMains ? 'mains' : 'favoritos'}: ${base.map(h => h.name).join(', ')}.`;
+
+    const recomendados = [];
+    base.forEach(h => {
+        const pagina = 'heroi/' + slugJS(h.name) + '.html';
+        const guia = GUIDES.find(a => a.heroPage === pagina);
+        if (guia) recomendados.push({ html: guiaCardHTML(guia), chave: guia.id });
+        const build = BUILDS.find(a => a.heroPage === pagina);
+        if (build) recomendados.push({ html: buildCardHTML(build), chave: build.id });
+    });
+    const noticias = (STEAM_ARTICLES.length ? STEAM_ARTICLES : NEWS).filter(a => {
+        const texto = semAcento([a.title, a.titlePT, a.desc, a.descPT].filter(Boolean).join(' '));
+        return base.some(h => texto.includes(semAcento(h.name)));
+    });
+
+    const itens = [], vistos = new Set();
+    const add = (html, chave) => {
+        if (!html || vistos.has(chave) || itens.length >= 6) return;
+        vistos.add(chave);
+        itens.push(html);
+    };
+    // deixa espaço para até 2 notícias; o resto completa com guias/builds
+    recomendados.slice(0, 4).forEach(x => add(x.html, x.chave));
+    noticias.slice(0, 2).forEach(a => add(newsCardHTML(a), a.id));
+    recomendados.slice(4).forEach(x => add(x.html, x.chave));
+
+    grade.innerHTML = itens.length
+        ? itens.join('')
+        : '<p class="muted-txt" style="grid-column:1/-1">Ainda não há conteúdo novo para os seus mains. Enquanto isso, veja as últimas notícias e os guias.</p>';
 }
 
 function miniStatRow(h, pos, ruim) {
@@ -3754,7 +3867,7 @@ function avatarBox(size, p) {
 }
 
 /* abas do editor de perfil */
-let pTab = 'id', avAdjustOpen = false;
+let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero';
 const PROFILE_TABS = [
     ['id', 'fa-user', 'Identidade'],
     ['game', 'fa-gamepad', 'Jogo'],
@@ -3769,11 +3882,130 @@ function renderPTabs() {
         `<button type="button" data-pt="${k}" class="${pTab === k ? 'on' : ''}"><i class="fa-solid ${ic}"></i> ${n}</button>`).join('');
 }
 
+/* vitrine do perfil: até 3 heróis, builds, guias ou itens escolhidos */
+function showcaseItem(tipo, id) {
+    tipo = String(tipo || '');
+    id = String(id || '');
+    if (tipo === 'hero') {
+        const h = heroByName(id);
+        if (!h || h.soon) return null;
+        return { type: 'hero', id, nome: h.name, sub: h.role || 'Herói', img: 'assets/heroes/' + h.file, abrir: () => openHero(h.name) };
+    }
+    if (tipo === 'build') {
+        const a = BUILDS.find(x => x.id === id);
+        if (!a) return null;
+        return { type: 'build', id, nome: a.title, sub: 'Build · ' + (a.role || 'Herói'), img: 'assets/heroes/' + a.img, abrir: () => openArticle(a.id) };
+    }
+    if (tipo === 'guide') {
+        const a = GUIDES.find(x => x.id === id);
+        if (!a) return null;
+        return { type: 'guide', id, nome: a.title, sub: 'Guia · ' + (a.role || 'Herói'), img: 'assets/heroes/' + a.img, abrir: () => openArticle(a.id) };
+    }
+    if (tipo === 'item') {
+        const it = itemDe(id);
+        if (!it) return null;
+        const tipoNome = { weapon: 'Arma', vitality: 'Vitalidade', spirit: 'Espírito' }[it.s] || '';
+        return { type: 'item', id, nome: it.n || 'Item', sub: 'Item · ' + tipoNome, img: it.i || '', abrir: () => openItem(id) };
+    }
+    return null;
+}
+function showcaseNormalizado(lista) {
+    if (!Array.isArray(lista)) return [];
+    const vistos = new Set(), out = [];
+    lista.forEach(x => {
+        if (!x || typeof x !== 'object') return;
+        const tipo = String(x.type || ''), id = String(x.id || '');
+        if (!SHOWCASE_TIPOS.some(([k]) => k === tipo) || !id) return;
+        const chave = tipo + ':' + id;
+        if (vistos.has(chave) || !showcaseItem(tipo, id)) return;
+        vistos.add(chave);
+        out.push({ type: tipo, id });
+    });
+    return out.slice(0, SHOWCASE_MAX);
+}
+function showcaseOpcoes(tipo) {
+    if (tipo === 'hero') return PLAYABLE.map(h => ({ v: h.name, n: h.name }));
+    if (tipo === 'build') return BUILDS.map(a => ({ v: a.id, n: a.title }));
+    if (tipo === 'guide') return GUIDES.map(a => ({ v: a.id, n: a.title }));
+    if (tipo === 'item') {
+        const g = dadosJogo();
+        if (!g || !g.itens) return [];
+        return Object.entries(g.itens)
+            .map(([id, it]) => ({ v: id, n: it.n || id }))
+            .sort((a, b) => a.n.localeCompare(b.n, 'pt'));
+    }
+    return [];
+}
+function showcaseOptionsHTML(tipo) {
+    return showcaseOpcoes(tipo).map(x => `<option value="${esc(x.v)}">${esc(x.n)}</option>`).join('');
+}
+function showcaseItemHTML(x) {
+    const it = showcaseItem(x.type, x.id);
+    if (!it) return '';
+    const img = it.img
+        ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
+        : '<span class="pshowcase-ico"><i class="fa-solid fa-gem"></i></span>';
+    return `<button type="button" class="pshowcase-item" data-showcase-open="${esc(it.type + ':' + it.id)}" title="Abrir ${esc(it.nome)}">${img}<span><b>${esc(it.nome)}</b><small>${esc(it.sub)}</small></span></button>`;
+}
+function showcaseGridHTML(p) {
+    const lista = showcaseNormalizado(p && p.showcase);
+    if (!lista.length) return '';
+    return `<div class="pshowcase-grid">${lista.map(showcaseItemHTML).join('')}</div>`;
+}
+function showcaseCardBlockHTML(p) {
+    const grade = showcaseGridHTML(p);
+    return grade ? `<div class="pshowcase"><small>Destaques</small>${grade}</div>` : '';
+}
+function showcaseTexto(p) {
+    return showcaseNormalizado(p && p.showcase)
+        .map(x => { const it = showcaseItem(x.type, x.id); return it ? it.nome : ''; })
+        .filter(Boolean).join(' · ');
+}
+function showcaseSlotHTML(x, i, total) {
+    const it = showcaseItem(x.type, x.id);
+    if (!it) return '';
+    const img = it.img
+        ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
+        : '<span class="showcase-ico"><i class="fa-solid fa-gem"></i></span>';
+    return `<div class="showcase-slot">${img}
+        <div class="showcase-slot-info"><small>${esc(it.sub)}</small><b>${esc(it.nome)}</b></div>
+        <div class="showcase-slot-actions">
+            <button type="button" data-act="showcase-up" data-index="${i}" aria-label="Mover para cima" ${i === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+            <button type="button" data-act="showcase-down" data-index="${i}" aria-label="Mover para baixo" ${i === total - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+            <button type="button" data-act="showcase-remove" data-index="${i}" aria-label="Remover destaque"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>`;
+}
+function showcaseEditorHTML(p) {
+    const lista = showcaseNormalizado(p.showcase);
+    const slots = lista.length
+        ? lista.map((x, i) => showcaseSlotHTML(x, i, lista.length)).join('')
+        : '<p class="field-note">Nenhum destaque ainda. Escolha um conteúdo abaixo.</p>';
+    const tipos = SHOWCASE_TIPOS.map(([k, n]) => `<option value="${k}" ${showcasePickType === k ? 'selected' : ''}>${n}</option>`).join('');
+    const opcoes = showcaseOptionsHTML(showcasePickType);
+    return `<div class="pform-sec">Vitrine do perfil (até ${SHOWCASE_MAX})</div>
+        <p class="field-note">Escolha até ${SHOWCASE_MAX} conteúdos para aparecer no seu cartão e no perfil compartilhado.</p>
+        <div class="showcase-grid">${slots}</div>
+        <div class="showcase-add">
+            <label class="field">Tipo<select id="showcaseType">${tipos}</select></label>
+            <label class="field">Conteúdo<select id="showcasePick">${opcoes}</select></label>
+            <button type="button" class="btn btn-lime" data-act="showcase-add" ${opcoes ? '' : 'disabled'}><i class="fa-solid fa-plus"></i> Adicionar</button>
+        </div>`;
+}
+
 /* cartão do jogador (pré-visualização e link compartilhado) */
+function profileLinksHTML(p) {
+    const lk = linksList(p), c = customLink(p);
+    if (!lk.length && !c) return '';
+    const fixos = lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('');
+    const custom = c
+        ? `<a class="plink-custom" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" data-external-link title="Abre em outra aba - site externo"><i class="${esc(c.icon)}"></i> ${esc(c.label)} <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
+        : '';
+    return `<div class="plinks">${fixos}${custom}</div>`;
+}
 function profileCardHTML(p) {
     const mains = p.mains.map(heroByName).filter(Boolean);
     const lv = level();
-    const lk = linksList(p);
     return `<div class="pcard">
         <div class="pban" style="${bannerStyle(p)}"></div>
         <div class="pbody">
@@ -3789,7 +4021,8 @@ function profileCardHTML(p) {
             </div>
             <p class="pbio">${esc(p.bio || 'Escreva uma bio para aparecer aqui.')}</p>
             ${mains.length ? `<div class="pmains">${mains.map((h, i) => `<div class="pm">${pennant(h, 74)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>` : ''}
-            ${lk.length ? `<div class="plinks">${lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
+            ${showcaseCardBlockHTML(p)}
+            ${profileLinksHTML(p)}
             <div class="plvl"><span>${esc(p.id)}</span><span>${lv.xp} XP</span></div>
         </div>
     </div>`;
@@ -3800,7 +4033,7 @@ function renderSideCard() { $('#pprev').innerHTML = profileCardHTML(profile); }
 function renderProfileView() {
     const p = profile, lv = level();
     const mains = p.mains.map(heroByName).filter(Boolean);
-    const lk = linksList(p);
+    const showGrid = showcaseGridHTML(p);
     const done = ACH.filter(x => x.p() >= x.max).length;
     const seen = stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length;
     const tile = (n, l) => `<div class="pv-t"><b>${n}</b><span>${l}</span></div>`;
@@ -3822,7 +4055,7 @@ function renderProfileView() {
                 <h2>Sobre</h2>
                 <p class="muted-txt">${esc(p.bio || 'Sem bio ainda.')}</p>
                 ${p.avail ? `<p class="muted-txt" style="font-size:13px">Disponível: <b style="color:var(--text)">${esc(p.avail)}</b></p>` : ''}
-                ${lk.length ? `<div class="plinks">${lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
+                ${profileLinksHTML(p)}
             </section>
             <section class="card pv-sec">
                 <h2>Heróis principais</h2>
@@ -3830,6 +4063,7 @@ function renderProfileView() {
                     ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 132)}<small>${i === 0 ? '★ Principal' : (i + 1) + 'º herói'}</small></div>`).join('')}</div>`
                     : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
             </section>
+            ${showGrid ? `<section class="card pv-sec"><h2>Destaques</h2>${showGrid}</section>` : ''}
         </div>
         <div class="pv-col">
             <section class="card pv-sec">
@@ -3913,7 +4147,7 @@ function updateMeter() {
     const p = profile;
     const checks = [
         !!p.nick, !!p.bio, !!p.status, p.title !== 'Jogador', p.mains.length > 0,
-        !!(linksList(p).length), !!p.av.img,
+        !!(linksListTodos(p).length), !!p.av.img,
         (p.banner !== 'lima' || p.pattern !== 'none' || !!p.bannerImg), p.accent !== 'auto'
     ];
     const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
@@ -3947,6 +4181,7 @@ function renderForm() {
             <img src="assets/heroes/${h.file}" alt="" onerror="socorroImagem(this)">
             <span>${esc(h.name)}</span>${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
     }).join('');
+    const custom = normalizarLinkCustom(p.links.custom);
     let html = '';
 
     if (pTab === 'id') {
@@ -3966,7 +4201,12 @@ function renderForm() {
             <label class="field">X (Twitter)<input data-f="l_x" maxlength="30" value="${esc(p.links.x || '')}" placeholder="@usuario"></label>
             <label class="field">Instagram<input data-f="l_instagram" maxlength="30" value="${esc(p.links.instagram || '')}" placeholder="@usuario"></label>
             <label class="field">TikTok<input data-f="l_tiktok" maxlength="30" value="${esc(p.links.tiktok || '')}" placeholder="@usuario"></label>
-            <label class="field">Steam<input data-f="l_steam" maxlength="40" value="${esc(p.links.steam || '')}" placeholder="link ou nome"></label>`;
+            <label class="field">Steam<input data-f="l_steam" maxlength="40" value="${esc(p.links.steam || '')}" placeholder="link ou nome"></label>
+            <div class="pform-sec">Link pessoal (opcional)</div>
+            <p class="field-note span2">Aparece no seu cartão e no perfil compartilhado. Abre em outra aba, como um site externo.</p>
+            <label class="field">Nome do link<input data-f="l_custom_label" maxlength="24" value="${esc(custom.label)}" placeholder="ex.: Meu portfólio"></label>
+            <label class="field">Ícone<select data-f="l_custom_icon">${CUSTOM_LINK_ICONS.map(([k, n]) => `<option value="${k}" ${custom.icon === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+            <label class="field span2">Endereço<input data-f="l_custom_url" type="url" maxlength="300" value="${esc(custom.url)}" placeholder="https://..."></label>`;
     } else if (pTab === 'game') {
         html = `
             <div class="pform-sec">Heróis principais (até ${MAX_MAINS})</div>
@@ -4036,6 +4276,7 @@ function renderForm() {
                 <label class="field" style="cursor:pointer">Enviar imagem<input type="file" id="bannerFile" accept="image/*" style="padding:8px"></label>
                 <button type="button" class="btn btn-dark btn-block" data-act="banner-remove" style="align-self:end;height:44px">Remover imagem</button>
             </div>
+            ${showcaseEditorHTML(p)}
             <div class="pform-sec">Baixar o cartão</div>
             <p class="field-note">Escolha o tamanho da imagem. O cartão do link compartilhado continua o de sempre.</p>
             <div class="picker-row">
@@ -4155,7 +4396,7 @@ function initProfile() {
         if (f) {
             setField(f, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
             saveProfile(); applyProfile();
-            if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'avail', 'lfg', 'l_discord', 'l_twitch', 'l_youtube', 'l_x', 'l_instagram', 'l_tiktok', 'l_steam'].includes(f)) touch('id_' + f);
+            if (['nick', 'pronouns', 'status', 'bio', 'title', 'region', 'avail', 'lfg', 'l_discord', 'l_twitch', 'l_youtube', 'l_x', 'l_instagram', 'l_tiktok', 'l_steam', 'l_custom_label', 'l_custom_url', 'l_custom_icon'].includes(f)) touch('id_' + f);
             renderSideCard(); renderProfileView(); updateChip(); updateMeter();
             return;
         }
@@ -4174,6 +4415,21 @@ function initProfile() {
         if (e.target.id === 'bannerFile') handleBanner(e.target.files[0]);
         else if (e.target.id === 'pavFile') handleAvatar(e.target.files[0]);
         else if (e.target.id === 'importFile') importData(e.target.files[0]);
+        else if (e.target.id === 'showcaseType') {
+            showcasePickType = e.target.value;
+            const pick = $('#showcasePick');
+            if (pick) pick.innerHTML = showcaseOptionsHTML(showcasePickType);
+            const add = form.querySelector('[data-act="showcase-add"]');
+            if (add) add.disabled = !pick || !pick.options.length;
+        }
+        else if (e.target.dataset.f === 'l_custom_url') {
+            let v = e.target.value.trim();
+            if (v && !/^https?:\/\//i.test(v) && /^[\w.-]+\.[a-z]{2,}(?:[/:?#].*)?$/i.test(v)) v = 'https://' + v;
+            e.target.value = v;
+            profile.links.custom = { ...normalizarLinkCustom(profile.links.custom), url: v };
+            saveProfile(); renderSideCard(); renderProfileView(); updateMeter();
+            if (v && !urlExternaSegura(v)) showToast('Use um endereço começando com http:// ou https://', 'error');
+        }
         else if (e.target.dataset.f === 'bc1' || e.target.dataset.f === 'bc2') { profile.banner = 'custom'; touch('banner'); commit(); }
         else if (e.target.dataset.f === 'accent') { touch('accent'); commit(); }
         else if (e.target.dataset.menusec) {
@@ -4225,6 +4481,32 @@ function initProfile() {
             else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
             else if (a === 'reset') resetProfile();
             else if (a === 'export') exportData();
+            else if (a === 'showcase-add') {
+                const tipo = ($('#showcaseType') || {}).value;
+                const id = ($('#showcasePick') || {}).value;
+                if (!tipo || !id) return;
+                if (!showcaseItem(tipo, id)) { showToast('Esse conteúdo não está disponível.', 'error'); return; }
+                const lista = showcaseNormalizado(profile.showcase);
+                if (lista.length >= SHOWCASE_MAX) { showToast('A vitrine já tem ' + SHOWCASE_MAX + ' destaques.', 'error'); return; }
+                if (lista.some(x => x.type === tipo && x.id === id)) { showToast('Esse destaque já está na vitrine.', 'error'); return; }
+                lista.push({ type: tipo, id });
+                profile.showcase = lista;
+                touch('showcase');
+                commit();
+                showToast('Destaque adicionado!');
+            }
+            else if (a === 'showcase-remove' || a === 'showcase-up' || a === 'showcase-down') {
+                const i = Number(act.dataset.index);
+                const lista = showcaseNormalizado(profile.showcase);
+                if (!Number.isInteger(i) || !lista[i]) return;
+                if (a === 'showcase-remove') { lista.splice(i, 1); showToast('Destaque removido.'); }
+                else if (a === 'showcase-up' && i > 0) { [lista[i - 1], lista[i]] = [lista[i], lista[i - 1]]; }
+                else if (a === 'showcase-down' && i < lista.length - 1) { [lista[i + 1], lista[i]] = [lista[i], lista[i + 1]]; }
+                else return;
+                profile.showcase = lista;
+                touch('showcase');
+                commit();
+            }
         }
     });
 
@@ -4249,6 +4531,31 @@ function initProfile() {
         const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
+    // vitrine: abrir o conteúdo e avisar quando o link pessoal leva para fora
+    document.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-showcase-open]');
+        if (b) {
+            e.preventDefault();
+            const partes = String(b.dataset.showcaseOpen || '').split(':');
+            const tipo = partes.shift();
+            const id = partes.join(':');
+            const it = showcaseItem(tipo, id);
+            if (!it) return;
+            const share = $('#shareModal');
+            if (share && share.classList.contains('show')) closeOverlay(share);
+            it.abrir();
+            return;
+        }
+        const a = e.target.closest('[data-external-link]');
+        if (!a) return;
+        e.preventDefault();
+        const url = urlExternaSegura(a.getAttribute('href'));
+        if (!url) { showToast('Esse link não é válido.', 'error'); return; }
+        if (confirm('Você vai abrir um site externo:\n' + url + '\n\nContinuar?')) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    });
+
     // arrastar imagem sobre o cartão
     const prev = $('#pprev');
     ['dragover', 'dragleave', 'drop'].forEach(ev => prev.addEventListener(ev, (e) => {
@@ -4262,13 +4569,18 @@ function initProfile() {
 }
 
 function setField(f, v) {
-    if (f.startsWith('l_')) profile.links[f.slice(2)] = v;
+    if (f.startsWith('l_custom_')) {
+        const chave = f.slice(9);
+        const atual = normalizarLinkCustom(profile.links.custom);
+        if (chave === 'label' || chave === 'url' || chave === 'icon') atual[chave] = v;
+        profile.links.custom = normalizarLinkCustom(atual);
+    } else if (f.startsWith('l_')) profile.links[f.slice(2)] = v;
     else if (f === 'compact' || f === 'lfg') profile[f] = !!v;
     else profile[f] = v;
 }
 
-function commit() { saveProfile(); applyProfile(); renderSideCard(); renderProfileUI(); }
-function commitLight() { saveProfile(); applyProfile(); renderSideCard(); renderProfileView(); updateChip(); updateMeter(); }
+function commit() { saveProfile(); applyProfile(); renderSideCard(); renderProfileUI(); renderHomeFeed(); }
+function commitLight() { saveProfile(); applyProfile(); renderSideCard(); renderProfileView(); updateChip(); updateMeter(); renderHomeFeed(); }
 
 function toggleMain(name) {
     const i = profile.mains.indexOf(name);
@@ -4324,12 +4636,13 @@ function resetProfile() {
     profile = {
         ...PROFILE_DEF, id,
         av: { ...PROFILE_DEF.av },
-        links: { ...PROFILE_DEF.links },
+        links: { ...PROFILE_DEF.links, custom: normalizarLinkCustom(PROFILE_DEF.links.custom) },
         cards: { ...PROFILE_DEF.cards },
-        menuOculto: []
+        menuOculto: [],
+        showcase: []
     };
     avAdjustOpen = false;
-    saveProfile(); applyProfile(); renderProfileUI();
+    saveProfile(); applyProfile(); renderProfileUI(); renderHomeFeed();
     showToast('Perfil redefinido.');
 }
 
@@ -4351,7 +4664,8 @@ function randomizeProfile() {
 function cardText(p) {
     const lv = level();
     const mains = p.mains.map(heroByName).filter(Boolean).map(h => h.name).join(', ');
-    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    const destaques = showcaseTexto(p);
     return [
         `${p.nick || 'Jogador'} — Central Deadlock`,
         p.title ? `Título: ${p.title}` : '',
@@ -4361,6 +4675,7 @@ function cardText(p) {
         p.avail ? `Disponível: ${p.avail}` : '',
         p.bio ? `Bio: ${p.bio}` : '',
         mains ? `Heróis favoritos: ${mains}` : '',
+        destaques ? `Destaques: ${destaques}` : '',
         lk,
         `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)`,
         `ID ${p.id}`
@@ -4430,17 +4745,18 @@ function importData(file) {
             const d = JSON.parse(ev.target.result);
             if (d.profile) {
                 profile = Object.assign({}, PROFILE_DEF, d.profile, {
-                    links: { ...PROFILE_DEF.links, ...(d.profile.links || {}) },
+                    links: { ...PROFILE_DEF.links, ...(d.profile.links || {}), custom: normalizarLinkCustom((d.profile.links || {}).custom) },
                     av: { ...PROFILE_DEF.av, ...(d.profile.av || {}) },
                     cards: { ...PROFILE_DEF.cards, ...(d.profile.cards || {}) },
                     menuOculto: Array.isArray(d.profile.menuOculto) ? d.profile.menuOculto.filter(x => typeof x === 'string') : [],
-                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
+                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
+                    showcase: showcaseNormalizado(d.profile.showcase)
                 });
                 saveProfile();
             }
             if (Array.isArray(d.favs)) { favs = d.favs; store.set('cdl_favs', favs); }
             if (d.stats) { stats = Object.assign(stats, d.stats); saveStats(); }
-            applyProfile(); renderProfileUI(); renderFavs();
+            applyProfile(); renderProfileUI(); renderFavs(); renderHomeFeed();
             showToast('Dados importados!');
         } catch (e) { showToast('Arquivo inválido.', 'error'); }
     };
@@ -4659,7 +4975,7 @@ async function downloadCard(formato) {
     }
 
     // rodapé
-    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 850), 66, 524); }
     ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
     ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 552);
@@ -4796,7 +5112,7 @@ async function baixarCartaoStory(p) {
         yLinks = Math.max(1600, 1435 + linhas * (altura + 12) + 50);
     }
 
-    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yLinks); }
     ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
     ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yLinks + 70);
@@ -4844,7 +5160,7 @@ async function baixarCartaoBanner(p) {
         cartaoPrincipais(ctx, mainsBanner, x, 340, largura, 64, acento, font);
     }
 
-    const lk = linksList(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
     ctx.textAlign = 'right';
     ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
     ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
@@ -4866,9 +5182,10 @@ function checkSharedCard() {
     try { raw = decShare(m[1]); } catch (e) { return; }
     if (!raw || typeof raw !== 'object') return;
     const p = Object.assign({}, PROFILE_DEF, raw, {
-        links: { ...PROFILE_DEF.links, ...(raw.links || {}) },
+        links: { ...PROFILE_DEF.links, ...(raw.links || {}), custom: normalizarLinkCustom((raw.links || {}).custom) },
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
-        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : []
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
+        showcase: showcaseNormalizado(raw.showcase)
     });
     const box = $('#shareModalBox'); if (!box) return;
     box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
