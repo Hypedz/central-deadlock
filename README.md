@@ -13,6 +13,7 @@ meu-fansite/
 ├── style.css
 ├── heroes-data.js           # Ficha dos heróis (nomes, atributos, habilidades)
 ├── script.js
+├── qrcode.js                # Gera o QR Code do perfil (biblioteca local, MIT)
 ├── pwa.js                   # Liga o "app instalável" nas páginas geradas
 ├── tema.js                  # Botão de tema claro/escuro (canto direito superior)
 ├── manifest.webmanifest     # Faz o site virar "app" no celular
@@ -284,15 +285,22 @@ O painel já existia e continua no mesmo lugar — agora ele ficou melhor:
 
 ---
 
-## ✨ Para você, vitrine e link pessoal
+## ✨ Para você, vitrine, privacidade e mais
 
-Três jeitos novos de deixar o perfil com a sua cara — tudo salvo **só neste navegador**, sem conta e sem servidor:
+Vários jeitos novos de deixar o perfil com a sua cara — tudo salvo **só neste navegador**, sem conta e sem servidor:
 
 - **Para você (Home):** um bloco depois das últimas notícias que junta **guias, builds e notícias** dos seus **mains**. Se você ainda não escolheu mains, ele usa os **favoritos** e mostra um atalho para escolher. O conteúdo vem dos arquivos reais do site; nada de números inventados.
 - **Vitrine do perfil (Meu Perfil → Cartão):** escolha até **3 destaques** entre heróis, builds, guias e itens. Eles aparecem no seu cartão, no perfil público e no link compartilhado. Dá para mudar a ordem ou remover.
 - **Link pessoal (Meu Perfil → Identidade):** um link opcional com nome e ícone. Só aceita endereços que começam com **http://** ou **https://**; ao clicar, o site avisa que vai abrir um site externo em outra aba.
+- **Redes sociais clicáveis:** Discord, Twitch, YouTube, X, Instagram, TikTok e Steam viram links de verdade no cartão e no perfil público. Se você escrever só o usuário (ex.: `meucanal`), o site monta o endereço daquela rede. Todos abrem em outra aba, com o mesmo aviso de site externo.
+- **Cartão quadrado 1080×1080 (Meu Perfil → Cartão):** além de paisagem, story e banner, agora existe o formato quadrado para feed do Instagram e do Discord. A opção **Incluir vitrine no PNG** coloca (ou tira) os 3 destaques do cartão baixado.
+- **QR Code do perfil (Meu Perfil → Cartão):** o site gera o QR Code **no próprio navegador**, sem serviço de fora. Dá para baixar em PNG e apontar a câmera do celular. Para caber no QR, o link usa uma versão leve do cartão, **sem as fotos enviadas** (avatar e banner).
+- **Privacidade do cartão público (Meu Perfil → Cartão):** desmarque **Nível e XP**, **Atividade**, **Conquistas** ou **Redes sociais e link pessoal** para esconder esses dados do perfil compartilhado, do cartão público e do texto copiado. O que fica desmarcado não aparece para quem abre o seu link.
+- **Minhas builds (Meu Perfil → Jogo):** na aba **Builds**, cada build tem o botão **Salvar no perfil**. Você pode guardar até **5 builds** e elas aparecem no cartão, no perfil público e no link compartilhado. Dá para adicionar ou remover também pela aba **Jogo**.
+- **Presets de visual (Meu Perfil → Cartão):** salve até **3 combinações** de banner, cores, padrão e moldura com um nome (ex.: "Neon"). Depois é só clicar em **Aplicar** para trocar o visual inteiro de uma vez.
+- **Comparar perfis (Meu Perfil → Dados):** cole o link do cartão compartilhado de um amigo. O site mostra **mains em comum**, **só você**, **só a outra pessoa**, destaques, builds salvas e uma tabela comparando banner, padrão, cor, avatar e moldura. Também dá para abrir o cartão do amigo ali mesmo.
 
-A vitrine e o link pessoal também entram no **Exportar dados** e no **Copiar link** do perfil. Se você importar um arquivo antigo, ele continua funcionando: os campos novos ficam vazios até você preencher.
+A vitrine, as builds salvas, os presets, a privacidade e o link pessoal também entram no **Exportar dados** e no **Copiar link** do perfil. Se você importar um arquivo antigo, ele continua funcionando: os campos novos ficam vazios (ou com os padrões) até você preencher.
 
 ---
 
@@ -612,19 +620,19 @@ Como o jogo está em **playtest fechado (por convite)**, o botão **não** leva 
 
 Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas partes:
 
-1. **Perfil grande (topo)** — banner grande, **avatar grande**, nome, tags, status e os botões **Editar perfil**, **Copiar link** e **Baixar cartão**. Embaixo vêm os cards **Sobre**, **Heróis principais**, **Nível/XP**, **Atividade** e **Conquistas** — igual à página de perfil do protótipo.
+1. **Perfil grande (topo)** — banner grande, **avatar grande**, nome, tags, status e os botões **Editar perfil**, **Copiar link** e **Baixar cartão**. Embaixo vêm os cards **Sobre**, **Heróis principais**, **Destaques**, **Minhas builds**, **Nível/XP**, **Atividade** e **Conquistas** — igual à página de perfil do protótipo. Os cards de nível, atividade, conquistas e redes podem ser escondidos na privacidade do cartão.
 2. **Editor (abaixo)** — o cartão de pré-visualização fica fixo à esquerda (com os botões Alterar foto, Surpreenda-me, Baixar, Copiar link e Copiar texto) e, à direita, as **abas arredondadas com ícones**:
 
-- **Identidade** — apelido, pronomes, status, bio, título, região, **disponibilidade** (ex.: "depois das 20h") e a opção **"Estou procurando time"** (mostra um selo **LFG** no perfil e no cartão); redes **Discord, Twitch, YouTube, X (Twitter), Instagram, TikTok e Steam**, em duas colunas
-- **Jogo** — heróis principais (**até 6**), que aparecem como estandartes no cartão
+- **Identidade** — apelido, pronomes, status, bio, título, região, **disponibilidade** (ex.: "depois das 20h") e a opção **"Estou procurando time"** (mostra um selo **LFG** no perfil e no cartão); redes **Discord, Twitch, YouTube, X (Twitter), Instagram, TikTok e Steam**, em duas colunas; os links viram botões clicáveis que abrem em outra aba
+- **Jogo** — heróis principais (**até 6**), que aparecem como estandartes no cartão, e **Minhas builds** (até **5** builds reais salvas pela aba Builds)
 - **Avatar** — caixa de foto com **Trocar / Reajustar / Remover**, forma (círculo, hexágono, hexágono deitado, octógono, losango, pentágono, escudo, estrela…) e moldura (dourada, neon, cor de destaque, dupla)
-- **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria** — e o padrão escolhido aparece igualzinho no PNG baixado
+- **Cartão** — 8 temas de banner, **13 padrões** (nenhum, grade, pontos, pontos grandes, listras, listras verticais, xadrez, losangos, zigue-zague, raios, anéis, brilho e granulado), cores personalizadas **ou** uma **imagem própria**; **presets de visual** (até 3 combinações salvas), **privacidade do cartão público** (esconder nível/XP, atividade, conquistas e redes), **vitrine** (até 3 destaques), **QR Code** do link compartilhado e download em **4 tamanhos** (paisagem, story, quadrado e banner). O padrão escolhido aparece igualzinho no PNG baixado
 - **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida** — vale também nas páginas internas), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
   - Dica: o tema também tem um **botão no canto direito superior** (em todas as páginas do site), que troca a cor na hora e salva a escolha — é o mesmo ajuste desta aba.
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
-- **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`)
+- **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`) e **comparar com um amigo** colando o link do cartão compartilhado dele
 
-Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **3 tamanhos**: paisagem 1000×600, **story 1080×1920** e **banner 1500×500** para Discord), **Copiar link** (link com o cartão dentro), **Compartilhar** (no celular abre o menu do aparelho — WhatsApp, Discord… — e no computador copia o link) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
+Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **4 tamanhos**: paisagem 1000×600, **story 1080×1920**, **quadrado 1080×1080** e **banner 1500×500** para Discord; a opção **Incluir vitrine no PNG** controla os destaques), **Baixar QR Code** (link compartilhado, gerado no próprio navegador), **Copiar link** (link com o cartão dentro), **Compartilhar** (no celular abre o menu do aparelho — WhatsApp, Discord… — e no computador copia o link) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
 
 3. **Meu painel do Steam (no fim da aba)** — digite o seu **nick do Steam** e o site mostra **as suas partidas de verdade**: win rate pessoal, KDA médio, elo atual (com o brasão oficial), os heróis que você mais joga e os **últimos 20 jogos** (vitória/derrota, K/D/A, duração e data). Se aparecerem vários jogadores com o mesmo nome, é só escolher o seu. O jogador escolhido fica salvo no navegador e volta sozinho na próxima visita; os botões **Atualizar** e **Trocar jogador** ficam ao lado do nome. Os números vêm do serviço público **deadlock-api.com** — nada é enviado para lugar nenhum.
 

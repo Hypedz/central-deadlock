@@ -113,6 +113,8 @@ POLY.flower = Array.from({ length: 34 }, (_, i) => { const a = i * Math.PI / 17;
 const MAX_MAINS = 6;
 const SHOWCASE_MAX = 3;
 const SHOWCASE_TIPOS = [['hero', 'Herói'], ['build', 'Build'], ['guide', 'Guia'], ['item', 'Item']];
+const SAVED_BUILDS_MAX = 5;
+const PRESETS_MAX = 3;
 const CUSTOM_LINK_ICONS = [
     ['globe', 'Site', 'fa-solid fa-globe'],
     ['link', 'Link', 'fa-solid fa-link'],
@@ -161,6 +163,48 @@ function linksListTodos(p) {
     return c ? [...lista, [c.label, c.url]] : lista;
 }
 
+/* Redes sociais viram links clicáveis. Se a pessoa escreveu só o usuário,
+   o site monta o endereço público daquela rede. Nunca aceita javascript:,
+   data: ou file:. */
+const LINK_ICONS = {
+    discord: 'fa-brands fa-discord',
+    twitch: 'fa-brands fa-twitch',
+    youtube: 'fa-brands fa-youtube',
+    x: 'fa-brands fa-x-twitter',
+    instagram: 'fa-brands fa-instagram',
+    tiktok: 'fa-brands fa-tiktok',
+    steam: 'fa-brands fa-steam'
+};
+function linkSocialURL(chave, valor) {
+    const v = String(valor || '').trim();
+    if (!v) return '';
+    if (/^(javascript|data|file):/i.test(v)) return '';
+    if (/^https?:\/\//i.test(v)) return v;
+    if (/^[\w.-]+\.[a-z]{2,}(?:[/:?#].*)?$/i.test(v)) return 'https://' + v;
+    const limpo = v.replace(/^@+/, '');
+    if (!limpo) return '';
+    if (chave === 'discord') return 'https://discord.com/users/' + encodeURIComponent(limpo);
+    if (chave === 'twitch') return 'https://www.twitch.tv/' + encodeURIComponent(limpo);
+    if (chave === 'youtube') return 'https://www.youtube.com/@' + encodeURIComponent(limpo);
+    if (chave === 'x') return 'https://x.com/' + encodeURIComponent(limpo);
+    if (chave === 'instagram') return 'https://www.instagram.com/' + encodeURIComponent(limpo);
+    if (chave === 'tiktok') return 'https://www.tiktok.com/@' + encodeURIComponent(limpo);
+    if (chave === 'steam') {
+        return /^\d+$/.test(limpo)
+            ? 'https://steamcommunity.com/profiles/' + limpo
+            : 'https://steamcommunity.com/id/' + encodeURIComponent(limpo);
+    }
+    return '';
+}
+function socialLinksList(p) {
+    return LINK_LABELS.map(([k, n]) => {
+        const v = String(((p.links || {})[k] || '')).trim();
+        if (!v) return null;
+        const url = urlExternaSegura(linkSocialURL(k, v));
+        return url ? [n, v, url, LINK_ICONS[k]] : null;
+    }).filter(Boolean);
+}
+
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
     nick: '', pronouns: '', status: '', bio: '', title: 'Jogador', region: 'Brasil',
@@ -169,6 +213,10 @@ const PROFILE_DEF = {
         custom: { label: '', url: '', icon: 'globe' }
     },
     showcase: [],
+    savedBuilds: [],
+    presets: [],
+    privacy: { level: true, activity: true, achievements: true, links: true },
+    cardShowcase: true,
     lfg: false, avail: '',
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
     accent: 'auto',
@@ -178,6 +226,171 @@ const PROFILE_DEF = {
     av: { img: '', shape: 'squircle', frame: 'none', zoom: 1, px: 50, py: 50, c1: '', c2: '' },
     theme: TEMA_SISTEMA, lang: 'pt-BR', compact: false, texto: 'padrao'
 };
+
+function privacidade(p) {
+    return { ...PROFILE_DEF.privacy, ...((p && p.privacy) || {}) };
+}
+function nivelCompartilhadoDe(p) {
+    const n = p && p.nivelCompartilhado;
+    if (!n || typeof n !== 'object') return null;
+    const nivel = Math.floor(Number(n.n));
+    if (!Number.isFinite(nivel) || nivel < 1) return null;
+    return { n: nivel, xp: Math.max(0, Math.floor(Number(n.xp) || 0)) };
+}
+function savedBuildsNormalizado(lista) {
+    if (!Array.isArray(lista)) return [];
+    const vistos = new Set();
+    return lista.map(x => String(x || '')).filter(id => {
+        if (!id || vistos.has(id) || !BUILDS.some(a => a.id === id)) return false;
+        vistos.add(id);
+        return true;
+    }).slice(0, SAVED_BUILDS_MAX);
+}
+function savedBuildsList(p) {
+    return savedBuildsNormalizado(p && p.savedBuilds)
+        .map(id => BUILDS.find(a => a.id === id))
+        .filter(Boolean);
+}
+function presetsNormalizados(lista) {
+    if (!Array.isArray(lista)) return [];
+    return lista.filter(x => x && typeof x === 'object').map((x, i) => {
+        const av = x.av && typeof x.av === 'object' ? x.av : {};
+        return {
+            id: String(x.id || 'preset-' + i),
+            name: String(x.name || 'Visual ' + (i + 1)).slice(0, 20),
+            banner: BANNERS[x.banner] ? x.banner : 'lima',
+            bc1: /^#[0-9a-f]{6}$/i.test(x.bc1 || '') ? x.bc1 : '#b6f24a',
+            bc2: /^#[0-9a-f]{6}$/i.test(x.bc2 || '') ? x.bc2 : '#2f7a1a',
+            pattern: PATTERNS.some(([k]) => k === x.pattern) ? x.pattern : 'none',
+            bannerImg: typeof x.bannerImg === 'string' ? x.bannerImg : '',
+            accent: typeof x.accent === 'string' ? x.accent : 'auto',
+            av: {
+                shape: SHAPES.some(([k]) => k === av.shape) ? av.shape : 'squircle',
+                frame: FRAMES.some(([k]) => k === av.frame) ? av.frame : 'none',
+                c1: typeof av.c1 === 'string' ? av.c1 : '',
+                c2: typeof av.c2 === 'string' ? av.c2 : ''
+            }
+        };
+    }).slice(0, PRESETS_MAX);
+}
+function presetAtual(nome) {
+    return {
+        id: 'pr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        name: String(nome || 'Visual').trim().slice(0, 20) || 'Visual',
+        banner: profile.banner,
+        bc1: profile.bc1,
+        bc2: profile.bc2,
+        pattern: profile.pattern,
+        bannerImg: profile.bannerImg || '',
+        accent: profile.accent,
+        av: {
+            shape: profile.av.shape,
+            frame: profile.av.frame,
+            c1: profile.av.c1 || '',
+            c2: profile.av.c2 || ''
+        }
+    };
+}
+function nomeBanner(k) { return (BANNERS[k] && BANNERS[k][0]) || 'Lima'; }
+function nomePattern(k) { const x = PATTERNS.find(([v]) => v === k); return x ? x[1] : 'Nenhum'; }
+function nomeShape(k) { const x = SHAPES.find(([v]) => v === k); return x ? x[1] : 'Arredondado'; }
+function nomeFrame(k) { const x = FRAMES.find(([v]) => v === k); return x ? x[1] : 'Sem moldura'; }
+function presetListHTML(p) {
+    const lista = presetsNormalizados(p.presets);
+    if (!lista.length) return '<p class="field-note">Nenhum preset salvo ainda.</p>';
+    return `<div class="preset-list">${lista.map(pr =>
+        `<div class="preset-item">
+            <span class="preset-swatch" style="background:linear-gradient(120deg,${pr.bc1},${pr.bc2})"></span>
+            <div class="preset-info"><b>${esc(pr.name)}</b><small>${esc(nomeBanner(pr.banner))} · ${esc(nomePattern(pr.pattern))} · ${esc(nomeFrame(pr.av.frame))}</small></div>
+            <button type="button" class="btn btn-dark btn-sm" data-act="preset-apply" data-id="${esc(pr.id)}">Aplicar</button>
+            <button type="button" class="preset-del" data-act="preset-remove" data-id="${esc(pr.id)}" aria-label="Remover preset"><i class="fa-solid fa-xmark"></i></button>
+        </div>`).join('')}</div>`;
+}
+function normalizarPerfilCompartilhado(raw) {
+    return Object.assign({}, PROFILE_DEF, raw, {
+        links: { ...PROFILE_DEF.links, ...(raw.links || {}), custom: normalizarLinkCustom((raw.links || {}).custom) },
+        av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
+        cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
+        privacy: privacidade(raw),
+        nivelCompartilhado: nivelCompartilhadoDe(raw),
+        menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
+        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
+        showcase: showcaseNormalizado(raw.showcase),
+        savedBuilds: Array.isArray(raw.savedBuilds)
+            ? raw.savedBuilds.filter(x => typeof x === 'string').slice(0, SAVED_BUILDS_MAX)
+            : [],
+        presets: presetsNormalizados(raw.presets),
+        cardShowcase: raw.cardShowcase !== false
+    });
+}
+function perfilDoLinkCompartilhado(valor) {
+    const raw = String(valor || '').trim();
+    if (!raw) return null;
+    let hash = raw;
+    try { const u = new URL(raw); hash = u.hash || ''; } catch (e) { }
+    if (!/^#share=/.test(hash)) {
+        const m = raw.match(/#share=(.+)$/);
+        if (!m) return null;
+        hash = '#share=' + m[1];
+    }
+    const m = hash.match(/^#share=(.+)$/);
+    if (!m) return null;
+    try {
+        const p = decShare(m[1]);
+        return p && typeof p === 'object' ? normalizarPerfilCompartilhado(p) : null;
+    } catch (e) { return null; }
+}
+function compararPerfisHTML(p) {
+    const meu = profile;
+    const nomeDele = p.nick || 'Amigo';
+    const meusMains = meu.mains.map(heroByName).filter(Boolean);
+    const mainsDele = p.mains.map(heroByName).filter(Boolean);
+    const chavesMe = new Set(meusMains.map(h => h.name));
+    const chavesDele = new Set(mainsDele.map(h => h.name));
+    const comuns = meusMains.filter(h => chavesDele.has(h.name));
+    const soMeus = meusMains.filter(h => !chavesDele.has(h.name));
+    const soDele = mainsDele.filter(h => !chavesMe.has(h.name));
+    const heroTag = h => `<span class="compare-hero"><img src="assets/heroes/${esc(h.file)}" alt="" loading="lazy">${esc(h.name)}</span>`;
+    const listaHerois = lista => lista.length ? `<div class="compare-heroes">${lista.map(heroTag).join('')}</div>` : '<span class="muted-txt">Nenhum</span>';
+    const destaquesMe = showcaseTexto(meu) || 'Nenhum';
+    const destaquesDele = showcaseTexto(p) || 'Nenhum';
+    const buildsMe = savedBuildsList(meu).map(a => a.title).join(' · ') || 'Nenhuma';
+    const buildsDele = savedBuildsList(p).map(a => a.title).join(' · ') || 'Nenhuma';
+    const privMe = privacidade(meu), privDele = privacidade(p);
+    const linksMe = privMe.links ? socialLinksList(meu).length + ' rede(s)' : 'Oculto';
+    const linksDele = privDele.links ? socialLinksList(p).length + ' rede(s)' : 'Oculto';
+    const cor = v => v === 'auto' ? 'Verde padrão' : v;
+    const linhas = [
+        ['Banner', nomeBanner(meu.banner), nomeBanner(p.banner)],
+        ['Padrão', nomePattern(meu.pattern), nomePattern(p.pattern)],
+        ['Destaque', cor(meu.accent), cor(p.accent)],
+        ['Avatar', nomeShape(meu.av.shape), nomeShape(p.av.shape)],
+        ['Moldura', nomeFrame(meu.av.frame), nomeFrame(p.av.frame)],
+        ['Redes', linksMe, linksDele]
+    ];
+    return `<div class="compare-box">
+        <div class="compare-title"><span>Você</span><b>vs</b><span>${esc(nomeDele)}</span></div>
+        <div class="compare-grid">
+            <section><h3>Mains em comum (${comuns.length})</h3>${listaHerois(comuns)}</section>
+            <section><h3>Só você</h3>${listaHerois(soMeus)}</section>
+            <section><h3>Só ${esc(nomeDele)}</h3>${listaHerois(soDele)}</section>
+            <section><h3>Destaques</h3><p><b>Você:</b> ${esc(destaquesMe)}</p><p><b>${esc(nomeDele)}:</b> ${esc(destaquesDele)}</p></section>
+            <section><h3>Builds salvas</h3><p><b>Você:</b> ${esc(buildsMe)}</p><p><b>${esc(nomeDele)}:</b> ${esc(buildsDele)}</p></section>
+            <section><h3>Estilo</h3><table class="compare-table"><thead><tr><th></th><th>Você</th><th>${esc(nomeDele)}</th></tr></thead><tbody>${linhas.map(([n, a, b]) => `<tr><th>${esc(n)}</th><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</tbody></table></section>
+        </div>
+        <div class="compare-actions"><button type="button" class="btn btn-dark btn-sm" data-act="compare-card"><i class="fa-solid fa-id-card"></i> Ver cartão de ${esc(nomeDele)}</button></div>
+    </div>`;
+}
+function abrirCartaoComparado() {
+    if (!perfilComparado) return;
+    const box = $('#shareModalBox');
+    if (!box) return;
+    box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
+        <div class="modal-head"><h2>Cartão de ${esc(perfilComparado.nick || 'amigo')}</h2><p>Este cartão veio do link compartilhado.</p></div>
+        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(perfilComparado)}</div>
+        <div class="modal-foot"><button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button></div>`;
+    openOverlay($('#shareModal'));
+}
 let profile = (() => {
     const raw = store.get('cdl_profile', null);
     if (!raw || typeof raw !== 'object') return {
@@ -185,18 +398,27 @@ let profile = (() => {
         av: { ...PROFILE_DEF.av },
         cards: { ...PROFILE_DEF.cards },
         links: { ...PROFILE_DEF.links, custom: normalizarLinkCustom() },
-        showcase: []
+        privacy: { ...PROFILE_DEF.privacy },
+        nivelCompartilhado: null,
+        showcase: [],
+        savedBuilds: [],
+        presets: []
     };
     return {
         ...PROFILE_DEF, ...raw,
         links: { ...PROFILE_DEF.links, ...(raw.links || {}), custom: normalizarLinkCustom((raw.links || {}).custom) },
         av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
         cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
+        privacy: privacidade(raw),
+        nivelCompartilhado: null,
         menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
         mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
         showcase: Array.isArray(raw.showcase)
             ? raw.showcase.filter(x => x && typeof x === 'object' && x.type && x.id).slice(0, SHOWCASE_MAX)
-            : []
+            : [],
+        savedBuilds: Array.isArray(raw.savedBuilds) ? raw.savedBuilds.filter(x => typeof x === 'string').slice(0, SAVED_BUILDS_MAX) : [],
+        presets: presetsNormalizados(raw.presets),
+        cardShowcase: raw.cardShowcase !== false
     };
 })();
 const saveProfile = () => store.set('cdl_profile', profile);
@@ -1587,7 +1809,7 @@ const STEAM_ARTICLES = buildSteamArticles();
 let guiaPapel = 'Todos';
 
 /* Cartão usado pelos Guias e pelas Builds (mesma cara, muda só a etiqueta). */
-function cartaoHeroiHTML(a, rotulo) {
+function cartaoHeroiHTML(a, rotulo, extra = '') {
     const titulo = a.heroPage
         ? `<a href="${esc(a.heroPage)}">${esc(a.title)}</a>`
         : esc(a.title);
@@ -1597,6 +1819,7 @@ function cartaoHeroiHTML(a, rotulo) {
         <h3 class="news-title">${titulo}</h3>
         <p class="news-desc">${esc(a.desc)}</p>
         <span class="news-more">${rotulo} <i class="fa-solid fa-arrow-right"></i></span>
+        ${extra}
     </article>`;
 }
 
@@ -1652,7 +1875,10 @@ function initGuias() {
    Aqui só montamos os cartões e deixamos filtrar por nome, papel ou tier. */
 let buildPapel = 'Todos';
 
-function buildCardHTML(a) { return cartaoHeroiHTML(a, 'Ver build'); }
+function buildCardHTML(a) {
+    const salva = savedBuildsNormalizado(profile.savedBuilds).includes(a.id);
+    return cartaoHeroiHTML(a, 'Ver build', `<button type="button" class="guide-save ${salva ? 'on' : ''}" data-save-build="${esc(a.id)}"><i class="fa-solid fa-bookmark"></i> ${salva ? 'Salva no perfil' : 'Salvar no perfil'}</button>`);
+}
 
 function buildsFiltrados() {
     const campo = $('#buildsBusca');
@@ -2121,6 +2347,13 @@ function initContents() {
     initEsports();                     // esports: torneios reais (data/esports.js)
 
     document.addEventListener('click', (e) => {
+        const saveBuild = e.target.closest('[data-save-build]');
+        if (saveBuild) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveBuildToProfile(saveBuild.dataset.saveBuild);
+            return;
+        }
         const art = e.target.closest('[data-article]');
         if (art) {
             // se a pessoa segurou Ctrl/Shift (ou clicou com o meio do mouse),
@@ -3867,7 +4100,7 @@ function avatarBox(size, p) {
 }
 
 /* abas do editor de perfil */
-let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero';
+let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null;
 const PROFILE_TABS = [
     ['id', 'fa-user', 'Identidade'],
     ['game', 'fa-gamepad', 'Jogo'],
@@ -3961,6 +4194,48 @@ function showcaseTexto(p) {
         .map(x => { const it = showcaseItem(x.type, x.id); return it ? it.nome : ''; })
         .filter(Boolean).join(' · ');
 }
+
+/* builds salvas no perfil (dados reais da aba Builds) */
+function savedBuildsGridHTML(p) {
+    const lista = savedBuildsList(p);
+    if (!lista.length) return '';
+    return `<div class="psavedbuilds-list">${lista.map(a =>
+        `<button type="button" class="psavedbuild" data-article="${esc(a.id)}" title="Abrir ${esc(a.title)}">
+            <img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <span><b>${esc(a.title)}</b><small>${esc(a.role || 'Build')}</small></span>
+        </button>`).join('')}</div>`;
+}
+function savedBuildsCardHTML(p) {
+    const grade = savedBuildsGridHTML(p);
+    return grade ? `<div class="psavedbuilds"><small>Minhas builds</small>${grade}</div>` : '';
+}
+function savedBuildsEditorHTML(p) {
+    const lista = savedBuildsList(p);
+    const slots = lista.length
+        ? lista.map(a => `<div class="showcase-slot">
+            <img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div class="showcase-slot-info"><small>${esc(a.role || 'Build')}</small><b>${esc(a.title)}</b></div>
+            <div class="showcase-slot-actions"><button type="button" data-act="savedbuild-remove" data-id="${esc(a.id)}" aria-label="Remover build"><i class="fa-solid fa-xmark"></i></button></div>
+        </div>`).join('')
+        : '<p class="field-note">Nenhuma build salva ainda. Use o botão "Salvar no perfil" na aba Builds.</p>';
+    const opcoes = BUILDS.map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
+    return `<div class="showcase-grid">${slots}</div>
+        <div class="showcase-add">
+            <label class="field">Build<select id="savedBuildPick">${opcoes}</select></label>
+            <button type="button" class="btn btn-lime" data-act="savedbuild-add" ${lista.length >= SAVED_BUILDS_MAX ? 'disabled' : ''}><i class="fa-solid fa-plus"></i> Adicionar</button>
+        </div>`;
+}
+function saveBuildToProfile(id) {
+    const a = BUILDS.find(x => x.id === id);
+    if (!a) { showToast('Essa build não está disponível.', 'error'); return; }
+    const lista = savedBuildsNormalizado(profile.savedBuilds);
+    if (lista.includes(id)) { showToast('Essa build já está no seu perfil.'); return; }
+    if (lista.length >= SAVED_BUILDS_MAX) { showToast('Seu perfil já tem ' + SAVED_BUILDS_MAX + ' builds salvas.', 'error'); return; }
+    profile.savedBuilds = [...lista, id];
+    touch('savedBuilds');
+    commit();
+    showToast('Build salva no seu perfil!');
+}
 function showcaseSlotHTML(x, i, total) {
     const it = showcaseItem(x.type, x.id);
     if (!it) return '';
@@ -3995,9 +4270,10 @@ function showcaseEditorHTML(p) {
 
 /* cartão do jogador (pré-visualização e link compartilhado) */
 function profileLinksHTML(p) {
-    const lk = linksList(p), c = customLink(p);
+    const lk = socialLinksList(p), c = customLink(p);
     if (!lk.length && !c) return '';
-    const fixos = lk.map(([k, v]) => `<span>${k}: <b>${esc(v)}</b></span>`).join('');
+    const fixos = lk.map(([k, v, url, icon]) =>
+        `<a class="plink-social" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-external-link title="Abrir ${esc(k)} em outra aba - site externo"><i class="${esc(icon)}"></i> ${esc(k)}: <b>${esc(v)}</b></a>`).join('');
     const custom = c
         ? `<a class="plink-custom" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer" data-external-link title="Abre em outra aba - site externo"><i class="${esc(c.icon)}"></i> ${esc(c.label)} <i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
         : '';
@@ -4005,7 +4281,8 @@ function profileLinksHTML(p) {
 }
 function profileCardHTML(p) {
     const mains = p.mains.map(heroByName).filter(Boolean);
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
+    const priv = privacidade(p);
     return `<div class="pcard">
         <div class="pban" style="${bannerStyle(p)}"></div>
         <div class="pbody">
@@ -4015,15 +4292,16 @@ function profileCardHTML(p) {
             ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}
             <div class="prow">
                 <span class="tag acc">${esc(p.title || 'Jogador')}</span>
-                <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
+                ${priv.level && lv ? `<span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>` : ''}
                 ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
                 ${p.lfg ? '<span class="tag vio">Procurando time</span>' : ''}
             </div>
             <p class="pbio">${esc(p.bio || 'Escreva uma bio para aparecer aqui.')}</p>
             ${mains.length ? `<div class="pmains">${mains.map((h, i) => `<div class="pm">${pennant(h, 74)}<small>${i === 0 ? 'Principal' : (i + 1) + 'º'}</small></div>`).join('')}</div>` : ''}
             ${showcaseCardBlockHTML(p)}
-            ${profileLinksHTML(p)}
-            <div class="plvl"><span>${esc(p.id)}</span><span>${lv.xp} XP</span></div>
+            ${savedBuildsCardHTML(p)}
+            ${priv.links ? profileLinksHTML(p) : ''}
+            <div class="plvl"><span>${esc(p.id)}</span>${priv.level && lv ? `<span>${lv.xp} XP</span>` : ''}</div>
         </div>
     </div>`;
 }
@@ -4032,40 +4310,16 @@ function renderSideCard() { $('#pprev').innerHTML = profileCardHTML(profile); }
 /* perfil grande (topo da aba Perfil) */
 function renderProfileView() {
     const p = profile, lv = level();
+    const priv = privacidade(p);
     const mains = p.mains.map(heroByName).filter(Boolean);
     const showGrid = showcaseGridHTML(p);
+    const buildsGrid = savedBuildsGridHTML(p);
     const done = ACH.filter(x => x.p() >= x.max).length;
     const seen = stats.heroesSeen.filter(n => !HEROES_SOON.includes(n)).length;
     const tile = (n, l) => `<div class="pv-t"><b>${n}</b><span>${l}</span></div>`;
-
-    $('#pvBan').setAttribute('style', bannerStyle(p));
-    $('#pvAv').innerHTML = avatarBox(112, p);
-    $('#pvId').innerHTML = `
-        <h1>${esc(p.nick || 'Seu apelido')}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
-        <div class="prow" style="margin:10px 0 6px">
-            <span class="tag acc">${esc(p.title || 'Jogador')}</span>
-            <span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>
-            ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
-            ${p.lfg ? '<span class="tag vio">Procurando time</span>' : ''}
-        </div>
-        ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}`;
-    $('#pvGrid').innerHTML = `
-        <div class="pv-col">
-            <section class="card pv-sec">
-                <h2>Sobre</h2>
-                <p class="muted-txt">${esc(p.bio || 'Sem bio ainda.')}</p>
-                ${p.avail ? `<p class="muted-txt" style="font-size:13px">Disponível: <b style="color:var(--text)">${esc(p.avail)}</b></p>` : ''}
-                ${profileLinksHTML(p)}
-            </section>
-            <section class="card pv-sec">
-                <h2>Heróis principais</h2>
-                ${mains.length
-                    ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 132)}<small>${i === 0 ? '★ Principal' : (i + 1) + 'º herói'}</small></div>`).join('')}</div>`
-                    : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
-            </section>
-            ${showGrid ? `<section class="card pv-sec"><h2>Destaques</h2>${showGrid}</section>` : ''}
-        </div>
-        <div class="pv-col">
+    const links = priv.links ? profileLinksHTML(p) : '';
+    const levelTag = priv.level ? `<span class="tag">Nível ${lv.n} · ${rankName(lv.n)}</span>` : '';
+    const levelSection = priv.level ? `
             <section class="card pv-sec">
                 <div style="display:flex;justify-content:space-between;align-items:baseline">
                     <h2 style="margin:0">Nível ${lv.n} · ${rankName(lv.n)}</h2>
@@ -4073,16 +4327,18 @@ function renderProfileView() {
                 </div>
                 <div class="bar"><i style="width:${Math.round(lv.cur / lv.next * 100)}%"></i></div>
                 <p class="muted-txt" style="font-size:13px">Faltam ${lv.next - lv.cur} XP para o nível ${lv.n + 1}.</p>
-            </section>
+            </section>` : '';
+    const activitySection = priv.activity ? `
             <section class="card pv-sec">
                 <h2>Atividade</h2>
                 <div class="pv-tiles">
                     ${tile(Object.keys(stats.visited).length, 'páginas')}
                     ${tile(seen + '/' + PLAYABLE.length, 'heróis vistos')}
                     ${tile(favs.length, 'favoritos')}
-                    ${tile(done + '/' + ACH.length, 'conquistas')}
+                    ${priv.achievements ? tile(done + '/' + ACH.length, 'conquistas') : ''}
                 </div>
-            </section>
+            </section>` : '';
+    const achievementsSection = priv.achievements ? `
             <section class="card pv-sec">
                 <div style="display:flex;justify-content:space-between;align-items:baseline">
                     <h2 style="margin:0">Conquistas</h2>
@@ -4100,7 +4356,40 @@ function renderProfileView() {
                             : `<span class="ach-prog">${v}/${x.max}</span><span class="ach-track"><i style="width:${pct}%"></i></span>`}
                     </div>`;
                 }).join('')}</div>
+            </section>` : '';
+
+    $('#pvBan').setAttribute('style', bannerStyle(p));
+    $('#pvAv').innerHTML = avatarBox(112, p);
+    $('#pvId').innerHTML = `
+        <h1>${esc(p.nick || 'Seu apelido')}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
+        <div class="prow" style="margin:10px 0 6px">
+            <span class="tag acc">${esc(p.title || 'Jogador')}</span>
+            ${levelTag}
+            ${p.region ? `<span class="tag cy">${esc(p.region)}</span>` : ''}
+            ${p.lfg ? '<span class="tag vio">Procurando time</span>' : ''}
+        </div>
+        ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}`;
+    $('#pvGrid').innerHTML = `
+        <div class="pv-col">
+            <section class="card pv-sec">
+                <h2>Sobre</h2>
+                <p class="muted-txt">${esc(p.bio || 'Sem bio ainda.')}</p>
+                ${p.avail ? `<p class="muted-txt" style="font-size:13px">Disponível: <b style="color:var(--text)">${esc(p.avail)}</b></p>` : ''}
+                ${links}
             </section>
+            <section class="card pv-sec">
+                <h2>Heróis principais</h2>
+                ${mains.length
+                    ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 132)}<small>${i === 0 ? '★ Principal' : (i + 1) + 'º herói'}</small></div>`).join('')}</div>`
+                    : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
+            </section>
+            ${showGrid ? `<section class="card pv-sec"><h2>Destaques</h2>${showGrid}</section>` : ''}
+            ${buildsGrid ? `<section class="card pv-sec"><h2>Minhas builds</h2>${buildsGrid}</section>` : ''}
+        </div>
+        <div class="pv-col">
+            ${levelSection}
+            ${activitySection}
+            ${achievementsSection}
         </div>`;
 }
 
@@ -4182,6 +4471,8 @@ function renderForm() {
             <span>${esc(h.name)}</span>${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
     }).join('');
     const custom = normalizarLinkCustom(p.links.custom);
+    const priv = privacidade(p);
+    const presets = presetsNormalizados(p.presets);
     let html = '';
 
     if (pTab === 'id') {
@@ -4212,7 +4503,10 @@ function renderForm() {
             <div class="pform-sec">Heróis principais (até ${MAX_MAINS})</div>
             <p class="field-note">Escolha até ${MAX_MAINS} heróis. Eles aparecem no seu cartão e na sua lista de destaques.</p>
             <input id="mainsSearch" placeholder="Buscar herói..." style="width:100%;margin:10px 0;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;padding:10px 12px;color:var(--text)">
-            <div class="mp-pick" id="mpPick">${mainsHTML}</div>`;
+            <div class="mp-pick" id="mpPick">${mainsHTML}</div>
+            <div class="pform-sec">Minhas builds (até ${SAVED_BUILDS_MAX})</div>
+            <p class="field-note">Salve builds na aba Builds com o botão <b>Salvar no perfil</b>. Elas aparecem no seu cartão e no perfil compartilhado.</p>
+            ${savedBuildsEditorHTML(p)}`;
     } else if (pTab === 'avatar') {
         const has = !!p.av.img;
         html = `
@@ -4276,13 +4570,36 @@ function renderForm() {
                 <label class="field" style="cursor:pointer">Enviar imagem<input type="file" id="bannerFile" accept="image/*" style="padding:8px"></label>
                 <button type="button" class="btn btn-dark btn-block" data-act="banner-remove" style="align-self:end;height:44px">Remover imagem</button>
             </div>
+            <div class="pform-sec">Presets de visual (até ${PRESETS_MAX})</div>
+            <p class="field-note">Salve combinações de banner, cores e moldura para trocar depois.</p>
+            ${presetListHTML(p)}
+            <div class="preset-add">
+                <label class="field">Nome do preset<input id="presetName" maxlength="20" placeholder="ex.: Neon"></label>
+                <button type="button" class="btn btn-lime" data-act="preset-save" ${presets.length >= PRESETS_MAX ? 'disabled' : ''}><i class="fa-solid fa-floppy-disk"></i> Salvar visual atual</button>
+            </div>
+            <div class="pform-sec">Privacidade do cartão público</div>
+            <p class="field-note">Desmarque o que não deve aparecer no perfil compartilhado e no cartão público.</p>
+            <div class="menu-pick">
+                <label class="chk"><input type="checkbox" data-priv="level" ${priv.level ? 'checked' : ''}> Nível e XP</label>
+                <label class="chk"><input type="checkbox" data-priv="activity" ${priv.activity ? 'checked' : ''}> Atividade</label>
+                <label class="chk"><input type="checkbox" data-priv="achievements" ${priv.achievements ? 'checked' : ''}> Conquistas</label>
+                <label class="chk"><input type="checkbox" data-priv="links" ${priv.links ? 'checked' : ''}> Redes sociais e link pessoal</label>
+            </div>
             ${showcaseEditorHTML(p)}
             <div class="pform-sec">Baixar o cartão</div>
             <p class="field-note">Escolha o tamanho da imagem. O cartão do link compartilhado continua o de sempre.</p>
+            <label class="chk" style="margin:6px 0 10px"><input type="checkbox" data-f="cardShowcase" ${p.cardShowcase !== false ? 'checked' : ''}> Incluir vitrine no PNG</label>
             <div class="picker-row">
                 <button type="button" class="btn btn-dark" data-dl="paisagem"><i class="fa-solid fa-image"></i> Paisagem · 1000×600</button>
                 <button type="button" class="btn btn-dark" data-dl="story"><i class="fa-solid fa-mobile-screen"></i> Story · 1080×1920</button>
+                <button type="button" class="btn btn-dark" data-dl="quadrado"><i class="fa-solid fa-square"></i> Quadrado — 1080×1080</button>
                 <button type="button" class="btn btn-dark" data-dl="banner"><i class="fa-solid fa-panorama"></i> Banner · 1500×500</button>
+            </div>
+            <div class="pform-sec">QR Code do perfil</div>
+            <p class="field-note">Aponte a câmera para abrir seu cartão compartilhado. O QR usa uma versão leve, sem fotos enviadas.</p>
+            <div class="qr-box">
+                <div id="qrPreview" class="qr-preview"></div>
+                <button type="button" class="btn btn-lime" data-act="qr-download"><i class="fa-solid fa-qrcode"></i> Baixar QR Code</button>
             </div>`;
     } else if (pTab === 'site') {
         const cards = { ...PROFILE_DEF.cards, ...(p.cards || {}) };
@@ -4375,9 +4692,17 @@ function renderForm() {
                 <button type="button" class="btn btn-dark btn-block" data-act="reset"><i class="fa-solid fa-rotate-left"></i> Redefinir padrão</button>
                 <button type="button" class="btn btn-dark btn-block" data-act="export"><i class="fa-solid fa-file-export"></i> Exportar dados</button>
                 <label class="btn btn-dark btn-block" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Importar dados<input type="file" id="importFile" accept="application/json,.json" hidden></label>
-            </div>`;
+            </div>
+            <div class="pform-sec">Comparar com um amigo</div>
+            <p class="field-note">Cole o link do cartão compartilhado de um amigo para comparar mains, destaques e estilo.</p>
+            <div class="compare-add">
+                <label class="field">Link do amigo<input id="compareLink" placeholder="https://.../#share=..."></label>
+                <button type="button" class="btn btn-lime" data-act="compare"><i class="fa-solid fa-code-compare"></i> Comparar</button>
+            </div>
+            <div id="compareResult"></div>`;
     }
     form.innerHTML = html;
+    if (pTab === 'card') renderProfileQR();
 }
 
 function initProfile() {
@@ -4445,6 +4770,10 @@ function initProfile() {
             commitLight();
             renderHeroesGrid();
             renderFavs();
+        } else if (e.target.dataset.priv) {
+            profile.privacy = { ...privacidade(profile), [e.target.dataset.priv]: e.target.checked };
+            touch('privacy');
+            commitLight();
         }
     });
 
@@ -4481,6 +4810,54 @@ function initProfile() {
             else if (a === 'save') { saveProfile(); showToast('Perfil salvo!'); }
             else if (a === 'reset') resetProfile();
             else if (a === 'export') exportData();
+            else if (a === 'savedbuild-add') {
+                const id = (($('#savedBuildPick') || {}).value || '');
+                if (id) saveBuildToProfile(id);
+            }
+            else if (a === 'savedbuild-remove') {
+                profile.savedBuilds = savedBuildsNormalizado(profile.savedBuilds).filter(id => id !== act.dataset.id);
+                touch('savedBuilds');
+                commit();
+                showToast('Build removida do perfil.');
+            }
+            else if (a === 'preset-save') {
+                const lista = presetsNormalizados(profile.presets);
+                if (lista.length >= PRESETS_MAX) { showToast('Você já tem ' + PRESETS_MAX + ' presets salvos.', 'error'); return; }
+                const nome = (($('#presetName') || {}).value || '').trim() || 'Visual ' + (lista.length + 1);
+                profile.presets = [...lista, presetAtual(nome)];
+                touch('presets');
+                commit();
+                showToast('Preset salvo!');
+            }
+            else if (a === 'preset-apply') {
+                const pr = presetsNormalizados(profile.presets).find(x => x.id === act.dataset.id);
+                if (!pr) return;
+                profile.banner = pr.banner;
+                profile.bc1 = pr.bc1;
+                profile.bc2 = pr.bc2;
+                profile.pattern = pr.pattern;
+                profile.bannerImg = pr.bannerImg;
+                profile.accent = pr.accent;
+                profile.av = { ...profile.av, shape: pr.av.shape, frame: pr.av.frame, c1: pr.av.c1, c2: pr.av.c2 };
+                ['banner', 'pattern', 'shape', 'frame', 'accent'].forEach(touch);
+                commit();
+                showToast('Preset aplicado!');
+            }
+            else if (a === 'preset-remove') {
+                profile.presets = presetsNormalizados(profile.presets).filter(x => x.id !== act.dataset.id);
+                touch('presets');
+                commit();
+                showToast('Preset removido.');
+            }
+            else if (a === 'qr-download') baixarQRCode();
+            else if (a === 'compare') {
+                const friend = perfilDoLinkCompartilhado((($('#compareLink') || {}).value || ''));
+                if (!friend) { showToast('Cole um link de cartão compartilhado válido.', 'error'); return; }
+                perfilComparado = friend;
+                const box = $('#compareResult');
+                if (box) box.innerHTML = compararPerfisHTML(friend);
+            }
+            else if (a === 'compare-card') abrirCartaoComparado();
             else if (a === 'showcase-add') {
                 const tipo = ($('#showcaseType') || {}).value;
                 const id = ($('#showcasePick') || {}).value;
@@ -4575,12 +4952,15 @@ function setField(f, v) {
         if (chave === 'label' || chave === 'url' || chave === 'icon') atual[chave] = v;
         profile.links.custom = normalizarLinkCustom(atual);
     } else if (f.startsWith('l_')) profile.links[f.slice(2)] = v;
-    else if (f === 'compact' || f === 'lfg') profile[f] = !!v;
+    else if (f === 'compact' || f === 'lfg' || f === 'cardShowcase') profile[f] = !!v;
     else profile[f] = v;
 }
 
 function commit() { saveProfile(); applyProfile(); renderSideCard(); renderProfileUI(); renderHomeFeed(); }
-function commitLight() { saveProfile(); applyProfile(); renderSideCard(); renderProfileView(); updateChip(); updateMeter(); renderHomeFeed(); }
+function commitLight() {
+    saveProfile(); applyProfile(); renderSideCard(); renderProfileView(); updateChip(); updateMeter(); renderHomeFeed();
+    if (pTab === 'card') renderProfileQR();
+}
 
 function toggleMain(name) {
     const i = profile.mains.indexOf(name);
@@ -4638,8 +5018,13 @@ function resetProfile() {
         av: { ...PROFILE_DEF.av },
         links: { ...PROFILE_DEF.links, custom: normalizarLinkCustom(PROFILE_DEF.links.custom) },
         cards: { ...PROFILE_DEF.cards },
+        privacy: { ...PROFILE_DEF.privacy },
+        nivelCompartilhado: null,
         menuOculto: [],
-        showcase: []
+        showcase: [],
+        savedBuilds: [],
+        presets: [],
+        cardShowcase: true
     };
     avAdjustOpen = false;
     saveProfile(); applyProfile(); renderProfileUI(); renderHomeFeed();
@@ -4663,9 +5048,11 @@ function randomizeProfile() {
 /* ---------- compartilhar / baixar o cartão ---------- */
 function cardText(p) {
     const lv = level();
+    const priv = privacidade(p);
     const mains = p.mains.map(heroByName).filter(Boolean).map(h => h.name).join(', ');
-    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join(' · ') : '';
     const destaques = showcaseTexto(p);
+    const builds = savedBuildsList(p).map(a => a.title).join(' · ');
     return [
         `${p.nick || 'Jogador'} — Central Deadlock`,
         p.title ? `Título: ${p.title}` : '',
@@ -4676,8 +5063,9 @@ function cardText(p) {
         p.bio ? `Bio: ${p.bio}` : '',
         mains ? `Heróis favoritos: ${mains}` : '',
         destaques ? `Destaques: ${destaques}` : '',
+        builds ? `Builds salvas: ${builds}` : '',
         lk,
-        `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)`,
+        priv.level ? `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)` : '',
         `ID ${p.id}`
     ].filter(Boolean).join('\n');
 }
@@ -4689,6 +5077,72 @@ function encShare(p) {
 function decShare(s) {
     return JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/')))));
 }
+function profileShareURL(p = profile) {
+    const dados = (p === profile && privacidade(p).level)
+        ? { ...p, nivelCompartilhado: { n: level().n, xp: level().xp } }
+        : p;
+    return location.href.split('#')[0] + '#share=' + encShare(dados);
+}
+function perfilParaQR(p) {
+    const { fundo, fundoHeroi, fundoCor, menuOculto, cards, theme, lang, compact, texto, ...base } = p;
+    const av = p.av || {};
+    base.av = { shape: av.shape, frame: av.frame, c1: av.c1 || '', c2: av.c2 || '' };
+    base.bannerImg = '';
+    base.presets = [];
+    if (p === profile && privacidade(p).level) {
+        base.nivelCompartilhado = { n: level().n, xp: level().xp };
+    }
+    return base;
+}
+function renderProfileQR() {
+    const box = $('#qrPreview');
+    if (!box) return;
+    const gerador = window.qrcode;
+    if (typeof gerador !== 'function') {
+        box.innerHTML = '<p class="field-note">QR Code indisponível neste navegador.</p>';
+        return;
+    }
+    try {
+        const url = profileShareURL(perfilParaQR(profile));
+        let qr;
+        try {
+            qr = gerador(0, 'M');
+            qr.addData(url);
+            qr.make();
+        } catch (e) {
+            qr = gerador(0, 'L');
+            qr.addData(url);
+            qr.make();
+        }
+        const count = qr.getModuleCount();
+        const cell = 8, margin = 4, size = (count + margin * 2) * cell;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#0e1013';
+        for (let r = 0; r < count; r++) {
+            for (let c = 0; c < count; c++) {
+                if (qr.isDark(r, c)) ctx.fillRect((c + margin) * cell, (r + margin) * cell, cell, cell);
+            }
+        }
+        box.innerHTML = '';
+        box.appendChild(canvas);
+    } catch (e) {
+        box.innerHTML = '<p class="field-note">Não foi possível gerar o QR Code. Tente um perfil com menos dados.</p>';
+    }
+}
+function baixarQRCode() {
+    const canvas = $('#qrPreview canvas');
+    if (!canvas) { showToast('O QR Code ainda não está pronto.', 'error'); return; }
+    try {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = (profile.nick || 'perfil').replace(/[^\w\-]+/g, '_') + '-central-deadlock-qr.png';
+        a.click();
+        showToast('QR Code baixado!');
+    } catch (e) { showToast('Não foi possível baixar o QR Code.', 'error'); }
+}
 
 async function copyText() {
     const txt = cardText(profile);
@@ -4698,7 +5152,7 @@ async function copyText() {
 }
 
 async function copyLink() {
-    const url = location.href.split('#')[0] + '#share=' + encShare(profile);
+    const url = profileShareURL();
     if (typeof window.cdlTrack === 'function') window.cdlTrack('perfil_copiar_link');
     try { await navigator.clipboard.writeText(url); showToast('Link do cartão copiado!'); }
     catch (e) { window.prompt('Copie o link do cartão:', url); }
@@ -4718,7 +5172,7 @@ async function compartilhar(dados) {
     return false;
 }
 function shareProfile() {
-    const url = location.href.split('#')[0] + '#share=' + encShare(profile);
+    const url = profileShareURL();
     return compartilhar({
         title: (profile.nick || 'Meu perfil') + ' — Central Deadlock',
         text: cardText(profile),
@@ -4744,14 +5198,8 @@ function importData(file) {
         try {
             const d = JSON.parse(ev.target.result);
             if (d.profile) {
-                profile = Object.assign({}, PROFILE_DEF, d.profile, {
-                    links: { ...PROFILE_DEF.links, ...(d.profile.links || {}), custom: normalizarLinkCustom((d.profile.links || {}).custom) },
-                    av: { ...PROFILE_DEF.av, ...(d.profile.av || {}) },
-                    cards: { ...PROFILE_DEF.cards, ...(d.profile.cards || {}) },
-                    menuOculto: Array.isArray(d.profile.menuOculto) ? d.profile.menuOculto.filter(x => typeof x === 'string') : [],
-                    mains: Array.isArray(d.profile.mains) ? d.profile.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
-                    showcase: showcaseNormalizado(d.profile.showcase)
-                });
+                profile = normalizarPerfilCompartilhado(d.profile);
+                profile.nivelCompartilhado = null;
                 saveProfile();
             }
             if (Array.isArray(d.favs)) { favs = d.favs; store.set('cdl_favs', favs); }
@@ -4886,8 +5334,66 @@ function drawPattern(ctx, padrao, x, y, w, h) {
     ctx.restore();
 }
 
+function vitrinePngAtiva(p) {
+    return p.cardShowcase !== false && showcaseNormalizado(p.showcase).length > 0;
+}
+async function desenharVitrineCanvas(ctx, p, x, y, w, h, acento, font) {
+    const lista = showcaseNormalizado(p.showcase).map(x => showcaseItem(x.type, x.id)).filter(Boolean).slice(0, SHOWCASE_MAX);
+    if (!lista.length) return 0;
+    const gap = 10;
+    const itemW = (w - gap * (lista.length - 1)) / lista.length;
+    for (let i = 0; i < lista.length; i++) {
+        const it = lista[i], ix = x + i * (itemW + gap);
+        ctx.fillStyle = 'rgba(255,255,255,.07)';
+        roundRectPath(ctx, ix, y, itemW, h, 10); ctx.fill();
+        const lado = h - 16;
+        const img = it.img ? await loadImg(it.img) : null;
+        if (img) {
+            ctx.save(); roundRectPath(ctx, ix + 8, y + 8, lado, lado, 7); ctx.clip();
+            drawCover(ctx, img, ix + 8, y + 8, lado, lado); ctx.restore();
+        } else {
+            ctx.fillStyle = acento; roundRectPath(ctx, ix + 8, y + 8, lado, lado, 7); ctx.fill();
+            ctx.fillStyle = '#0c0c0e'; ctx.font = `800 ${Math.round(lado * 0.38)}px ${font}`; ctx.textAlign = 'center';
+            ctx.fillText(initials(it.nome), ix + 8 + lado / 2, y + 8 + lado * 0.68); ctx.textAlign = 'left';
+        }
+        ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(h * 0.22)}px ${font}`;
+        ctx.fillText(cortarTexto(ctx, it.nome, itemW - lado - 24), ix + 8 + lado + 8, y + h * 0.44);
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 ${Math.round(h * 0.18)}px ${font}`;
+        ctx.fillText(cortarTexto(ctx, it.sub, itemW - lado - 24), ix + 8 + lado + 8, y + h * 0.7);
+    }
+    ctx.textAlign = 'left';
+    return h;
+}
+async function desenharVitrineCanvasLista(ctx, p, x, y, w, h, acento, font) {
+    const lista = showcaseNormalizado(p.showcase).map(x => showcaseItem(x.type, x.id)).filter(Boolean).slice(0, SHOWCASE_MAX);
+    if (!lista.length) return 0;
+    const gap = 6;
+    for (let i = 0; i < lista.length; i++) {
+        const it = lista[i], iy = y + i * (h + gap);
+        ctx.fillStyle = 'rgba(255,255,255,.07)';
+        roundRectPath(ctx, x, iy, w, h, 9); ctx.fill();
+        const lado = h - 12;
+        const img = it.img ? await loadImg(it.img) : null;
+        if (img) {
+            ctx.save(); roundRectPath(ctx, x + 6, iy + 6, lado, lado, 6); ctx.clip();
+            drawCover(ctx, img, x + 6, iy + 6, lado, lado); ctx.restore();
+        } else {
+            ctx.fillStyle = acento; roundRectPath(ctx, x + 6, iy + 6, lado, lado, 6); ctx.fill();
+            ctx.fillStyle = '#0c0c0e'; ctx.font = `800 ${Math.round(lado * 0.38)}px ${font}`; ctx.textAlign = 'center';
+            ctx.fillText(initials(it.nome), x + 6 + lado / 2, iy + 6 + lado * 0.68); ctx.textAlign = 'left';
+        }
+        ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(h * 0.24)}px ${font}`;
+        ctx.fillText(cortarTexto(ctx, it.nome, w - lado - 22), x + lado + 16, iy + h * 0.45);
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `400 ${Math.round(h * 0.19)}px ${font}`;
+        ctx.fillText(cortarTexto(ctx, it.sub, w - lado - 22), x + lado + 16, iy + h * 0.72);
+    }
+    ctx.textAlign = 'left';
+    return lista.length * h + (lista.length - 1) * gap;
+}
+
 async function downloadCard(formato) {
     if (formato === 'story') return baixarCartaoStory(profile);
+    if (formato === 'quadrado') return baixarCartaoQuadrado(profile);
     if (formato === 'banner') return baixarCartaoBanner(profile);
     const p = profile;
     const W = 1000, H = 600;
@@ -4895,6 +5401,8 @@ async function downloadCard(formato) {
     const ctx = c.getContext('2d');
     const lime = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
     const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const vitrine = vitrinePngAtiva(p);
+    const priv = privacidade(p);
 
     ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
 
@@ -4945,13 +5453,19 @@ async function downloadCard(formato) {
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 15px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', tx, by + bh + 44);
     ctx.fillStyle = '#fff'; ctx.font = `800 46px ${font}`;
-    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), tx, by + bh + 94);
+    ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 22), vitrine ? 380 : W - tx - 40), tx, by + bh + 94);
     ctx.fillStyle = lime; ctx.font = `700 18px ${font}`;
-    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, tx, by + bh + 126);
+    ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 380 : W - tx - 40), tx, by + bh + 126);
     ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 17px ${font}`;
-    if (p.status) ctx.fillText(`“${p.status}”`.slice(0, 60), tx, by + bh + 156);
+    if (p.status) ctx.fillText(cortarTexto(ctx, `“${p.status}”`.slice(0, 60), vitrine ? 380 : W - tx - 40), tx, by + bh + 156);
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 16px ${font}`;
-    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', tx, by + bh + 190, W - tx - 40, 22, 2);
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', tx, by + bh + 190, vitrine ? 380 : W - tx - 40, 22, 2);
+
+    if (vitrine) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 12px ${font}`;
+        ctx.fillText('DESTAQUES', 650, 252);
+        await desenharVitrineCanvasLista(ctx, p, 650, 262, 320, 54, lime, font);
+    }
 
     // heróis principais (até 6, numa linha, embaixo da bio)
     const mains = p.mains.map(heroByName).filter(Boolean);
@@ -4975,12 +5489,14 @@ async function downloadCard(formato) {
     }
 
     // rodapé
-    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 850), 66, 524); }
-    ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
-    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 552);
+    if (priv.level) {
+        ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
+        ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 552);
+    }
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 13px ${font}`;
-    ctx.fillText(`ID ${p.id}`, 66, 578);
+    ctx.fillText(`ID ${p.id}`, 66, priv.level ? 578 : 552);
 
     try {
         const url = c.toDataURL('image/png');
@@ -5067,6 +5583,8 @@ async function baixarCartaoStory(p) {
     const W = 1080, H = 1920;
     const font = 'Inter, "Segoe UI", system-ui, sans-serif';
     const acento = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const vitrine = vitrinePngAtiva(p);
+    const priv = privacidade(p);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
     const lv = level();
@@ -5097,7 +5615,7 @@ async function baixarCartaoStory(p) {
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 30, 860, 38, 3);
 
     const mains = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
-    let yLinks = 1600;
+    let yLinks = 1500;
     if (mains.length) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
         ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 1400);
@@ -5109,15 +5627,23 @@ async function baixarCartaoStory(p) {
         }
         ctx.textAlign = 'center';
         const linhas = Math.ceil(mains.length / porLinha);
-        yLinks = Math.max(1600, 1435 + linhas * (altura + 12) + 50);
+        yLinks = 1435 + linhas * (altura + 12) + 20;
     }
-
-    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    if (vitrine) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
+        ctx.fillText('DESTAQUES', W / 2, yLinks);
+        await desenharVitrineCanvas(ctx, p, 80, yLinks + 15, W - 160, 64, acento, font);
+        ctx.textAlign = 'center';
+        yLinks += 105;
+    }
+    const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yLinks); }
-    ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
-    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yLinks + 70);
+    if (priv.level) {
+        ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
+        ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yLinks + 70);
+    }
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 21px ${font}`;
-    ctx.fillText(`ID ${p.id}`, W / 2, yLinks + 106);
+    ctx.fillText(`ID ${p.id}`, W / 2, yLinks + (priv.level ? 106 : 70));
 
     ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 19px ${font}`;
     ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1845);
@@ -5126,10 +5652,91 @@ async function baixarCartaoStory(p) {
     baixarPng(c, p, 'story');
 }
 
+async function baixarCartaoQuadrado(p) {
+    const W = 1080, H = 1080;
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const acento = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const vitrine = vitrinePngAtiva(p);
+    const priv = privacidade(p);
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    const lv = level();
+
+    ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+    await cartaoCapa(ctx, p, 32, 32, W - 64, 220, 26);
+    await cartaoAvatar(ctx, p, W / 2 - 70, 170, 140, acento);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 18px ${font}`;
+    ctx.fillText('CENTRAL DEADLOCK', W / 2, 350);
+    ctx.fillStyle = '#fff'; ctx.font = `800 56px ${font}`;
+    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 405);
+
+    let y = 430;
+    if (p.pronouns) {
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 22px ${font}`;
+        ctx.fillText(p.pronouns.slice(0, 24), W / 2, y); y += 30;
+    }
+    ctx.fillStyle = acento; ctx.font = `700 24px ${font}`;
+    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, W / 2, y + 6); y += 36;
+    if (p.status) {
+        ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 23px ${font}`;
+        ctx.fillText(`“${p.status}”`.slice(0, 60), W / 2, y); y += 30;
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 23px ${font}`;
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 26, 820, 28, 2);
+
+    const mains = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
+    let yLinks = 630;
+    if (mains.length) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 15px ${font}`;
+        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 610);
+        const largura = 300, altura = 64, porLinha = 3;
+        for (let i = 0; i < mains.length; i += porLinha) {
+            const linha = mains.slice(i, i + porLinha);
+            const total = linha.length * largura + (linha.length - 1) * 12;
+            cartaoPrincipais(ctx, linha, (W - total) / 2, 622 + (i / porLinha) * (altura + 8), largura, altura, acento, font);
+        }
+        ctx.textAlign = 'center';
+        const linhas = Math.ceil(mains.length / porLinha);
+        yLinks = 622 + linhas * (altura + 8) + 12;
+    }
+
+    if (vitrine) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 15px ${font}`;
+        ctx.fillText('DESTAQUES', W / 2, yLinks);
+        await desenharVitrineCanvas(ctx, p, 80, yLinks + 12, W - 160, 60, acento, font);
+        ctx.textAlign = 'center';
+        yLinks += 90;
+    }
+
+    let yFooter = yLinks;
+    const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
+    if (lk) {
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 20px ${font}`;
+        ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yFooter + 16);
+        yFooter += 32;
+    }
+    if (priv.level) {
+        ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
+        ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yFooter + 16);
+        yFooter += 32;
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 18px ${font}`;
+    ctx.fillText(`ID ${p.id}`, W / 2, yFooter + 16);
+    ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 16px ${font}`;
+    ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1040);
+    ctx.textAlign = 'left';
+
+    baixarPng(c, p, 'quadrado');
+}
+
 async function baixarCartaoBanner(p) {
     const W = 1500, H = 500;
     const font = 'Inter, "Segoe UI", system-ui, sans-serif';
     const acento = (p.accent && p.accent !== 'auto') ? p.accent : '#b6f24a';
+    const vitrine = vitrinePngAtiva(p);
+    const priv = privacidade(p);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
     const lv = level();
@@ -5144,15 +5751,21 @@ async function baixarCartaoBanner(p) {
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 16px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', x, 95);
     ctx.fillStyle = '#fff'; ctx.font = `800 54px ${font}`;
-    ctx.fillText((p.nick || 'Seu apelido').slice(0, 24), x, 165);
+    ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 24), vitrine ? 600 : 1040), x, 165);
     ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
-    ctx.fillText(`${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, x, 205);
+    ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 600 : 1040), x, 205);
     if (p.status) {
         ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 19px ${font}`;
-        ctx.fillText(`“${p.status}”`.slice(0, 64), x, 240);
+        ctx.fillText(cortarTexto(ctx, `“${p.status}”`.slice(0, 64), vitrine ? 600 : 1040), x, 240);
     }
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 18px ${font}`;
-    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282, 1040, 24, 2);
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282, vitrine ? 600 : 1040, 24, 2);
+
+    if (vitrine) {
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 13px ${font}`;
+        ctx.fillText('DESTAQUES', 1040, 92);
+        await desenharVitrineCanvasLista(ctx, p, 1040, 102, 410, 48, acento, font);
+    }
 
     const mainsBanner = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
     if (mainsBanner.length) {
@@ -5160,12 +5773,14 @@ async function baixarCartaoBanner(p) {
         cartaoPrincipais(ctx, mainsBanner, x, 340, largura, 64, acento, font);
     }
 
-    const lk = linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ');
+    const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     ctx.textAlign = 'right';
-    ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
-    ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
+    if (priv.level) {
+        ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
+        ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
+    }
     ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `500 16px ${font}`;
-    ctx.fillText(`ID ${p.id}`, W - 48, 478);
+    ctx.fillText(`ID ${p.id}`, W - 48, priv.level ? 478 : 452);
     ctx.textAlign = 'left';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 730), x, 470); }
     ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.font = `600 14px ${font}`;
@@ -5181,12 +5796,7 @@ function checkSharedCard() {
     let raw;
     try { raw = decShare(m[1]); } catch (e) { return; }
     if (!raw || typeof raw !== 'object') return;
-    const p = Object.assign({}, PROFILE_DEF, raw, {
-        links: { ...PROFILE_DEF.links, ...(raw.links || {}), custom: normalizarLinkCustom((raw.links || {}).custom) },
-        av: { ...PROFILE_DEF.av, ...(raw.av || {}) },
-        mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
-        showcase: showcaseNormalizado(raw.showcase)
-    });
+    const p = normalizarPerfilCompartilhado(raw);
     const box = $('#shareModalBox'); if (!box) return;
     box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
         <div class="modal-head"><h2>Cartão compartilhado</h2><p>Este cartão veio de um link. Os dados ficam salvos no próprio link.</p></div>

@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-10-29c';
+const VERSAO = 'central-deadlock-2026-11-01a';
 const ESSENCIAIS = [
     './',
     './index.html',
@@ -27,6 +27,7 @@ const ESSENCIAIS = [
     './data/hero-analytics.js',
     './manifest.webmanifest',
     './analytics.js',
+    './qrcode.js',
     './pagina.js',
     './pwa.js',
     './offline.html',
