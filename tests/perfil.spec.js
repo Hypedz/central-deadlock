@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 
 async function abrirPerfil(page) {
     await page.evaluate(() => {
@@ -207,6 +208,52 @@ test('os quatro PNGs são gerados nos tamanhos certos', async ({ page }) => {
         ['quadrado', 1080, 1080],
         ['banner', 1500, 500]
     ]);
+});
+
+test('o botão Baixar cartão entrega um PNG de verdade', async ({ page }) => {
+    await abrirPerfil(page);
+    await page.evaluate(() => {
+        profile.nick = 'Teste Download';
+        saveProfile();
+        applyProfile();
+    });
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#pvDl').click()
+    ]);
+    expect(download.suggestedFilename()).toBe('Teste_Download-central-deadlock.png');
+    const caminho = await download.path();
+    const dados = fs.readFileSync(caminho);
+    expect(dados.length).toBeGreaterThan(50000);
+    expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+});
+
+test('cartão com banner grande continua baixando', async ({ page }) => {
+    await abrirPerfil(page);
+    await page.evaluate(() => {
+        const c = document.createElement('canvas');
+        c.width = 1600; c.height = 900;
+        const ctx = c.getContext('2d');
+        const img = ctx.createImageData(c.width, c.height);
+        for (let i = 0; i < img.data.length; i += 4) {
+            img.data[i] = Math.random() * 255;
+            img.data[i + 1] = Math.random() * 255;
+            img.data[i + 2] = Math.random() * 255;
+            img.data[i + 3] = 255;
+        }
+        ctx.putImageData(img, 0, 0);
+        profile.nick = 'Banner Grande';
+        profile.bannerImg = c.toDataURL('image/jpeg', 0.9);
+        saveProfile();
+        applyProfile();
+    });
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#pvDl').click()
+    ]);
+    const dados = fs.readFileSync(await download.path());
+    expect(dados.length).toBeGreaterThan(50000);
+    expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });
 
 test('acessibilidade básica e sem erros de página', async ({ page }) => {

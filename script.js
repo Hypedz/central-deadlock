@@ -469,6 +469,7 @@ function abrirPreviaVisitante() {
         ...profile,
         nivelCompartilhado: privacidade(profile).level ? { n: level().n, xp: level().xp } : null
     });
+    previaVisitanteAtual = p;
     box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
         <div class="modal-head"><h2>Prévia pública</h2><p>É assim que seu cartão aparece quando alguém abre o link compartilhado.</p></div>
         <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
@@ -4203,7 +4204,7 @@ function avatarBox(size, p) {
 }
 
 /* abas do editor de perfil */
-let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null, perfisComparados = [];
+let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null, perfisComparados = [], previaVisitanteAtual = null;
 const PROFILE_TABS = [
     ['id', 'fa-user', 'Identidade'],
     ['game', 'fa-gamepad', 'Jogo'],
@@ -4911,7 +4912,7 @@ function initProfile() {
         const cf = e.target.closest('[data-cardfmt]'); if (cf) { profile.cards.formato = cf.dataset.cardfmt; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
         const cs = e.target.closest('[data-cardsize]'); if (cs) { profile.cards.tamanho = cs.dataset.cardsize; touch('cards'); commit(); renderHeroesGrid(); renderFavs(); return; }
         const tx = e.target.closest('[data-texto]'); if (tx) { profile.texto = tx.dataset.texto; touch('texto'); commit(); return; }
-        const dl = e.target.closest('[data-dl]'); if (dl) { downloadCard(dl.dataset.dl); return; }
+        const dl = e.target.closest('[data-dl]'); if (dl) { baixarCartaoComSeguranca(dl.dataset.dl); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
         const act = e.target.closest('[data-act]');
         if (act) {
@@ -5043,7 +5044,7 @@ function initProfile() {
             else if (a === 'compare-card') abrirCartaoComparado(Number(act.dataset.index) || 0);
             else if (a === 'compare-download') {
                 const p = perfisComparados[Number(act.dataset.index) || 0];
-                if (p) baixarCartaoPaisagem(p);
+                if (p) baixarCartaoComSeguranca('paisagem', p);
             }
             else if (a === 'compare-copy') copiarComparacao();
             else if (a === 'showcase-add') {
@@ -5078,7 +5079,7 @@ function initProfile() {
     // botões do cartão (pré-visualização)
     $('#pavQuick').addEventListener('change', (e) => handleAvatar(e.target.files[0]));
     $('#prand').addEventListener('click', randomizeProfile);
-    $('#pdl').addEventListener('click', () => downloadCard('paisagem'));
+    $('#pdl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
     $('#plink').addEventListener('click', copyLink);
     const pshare = $('#pshare'); if (pshare) pshare.addEventListener('click', shareProfile);
     const pprevPreview = $('#pprevPreview'); if (pprevPreview) pprevPreview.addEventListener('click', abrirPreviaVisitante);
@@ -5091,7 +5092,7 @@ function initProfile() {
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
     const pvPreview = $('#pvPreview'); if (pvPreview) pvPreview.addEventListener('click', abrirPreviaVisitante);
-    $('#pvDl').addEventListener('click', () => downloadCard('paisagem'));
+    $('#pvDl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
         pTab = g.dataset.goto; renderPTabs(); renderForm();
@@ -5101,7 +5102,7 @@ function initProfile() {
     // vitrine: abrir o conteúdo e avisar quando o link pessoal leva para fora
     document.addEventListener('click', (e) => {
         if (e.target.closest('[data-preview-copy]')) { copyLink(); return; }
-        if (e.target.closest('[data-preview-download]')) { downloadCard('paisagem'); return; }
+        if (e.target.closest('[data-preview-download]')) { baixarCartaoComSeguranca('paisagem', previaVisitanteAtual || profile); return; }
         const b = e.target.closest('[data-showcase-open]');
         if (b) {
             e.preventDefault();
@@ -5327,13 +5328,8 @@ function renderProfileQR() {
 function baixarQRCode() {
     const canvas = $('#qrPreview canvas');
     if (!canvas) { showToast('O QR Code ainda não está pronto.', 'error'); return; }
-    try {
-        const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
-        a.download = (profile.nick || 'perfil').replace(/[^\w\-]+/g, '_') + '-central-deadlock-qr.png';
-        a.click();
-        showToast('QR Code baixado!');
-    } catch (e) { showToast('Não foi possível baixar o QR Code.', 'error'); }
+    const nome = (profile.nick || 'perfil').replace(/[^\w\-]+/g, '_') + '-central-deadlock-qr.png';
+    salvarCanvas(canvas, nome, 'QR Code baixado!');
 }
 
 async function copyText() {
@@ -5375,11 +5371,7 @@ function shareProfile() {
 function exportData() {
     const data = JSON.stringify({ v: 1, profile, favs, stats }, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'central-deadlock-perfil.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    baixarArquivo(URL.createObjectURL(blob), 'central-deadlock-perfil.json', true);
     showToast('Dados exportados!');
 }
 
@@ -5696,10 +5688,6 @@ async function downloadCard(formato, p = profile) {
 
     baixarPng(c, p, '');
 }
-function baixarCartaoPaisagem(p) {
-    return downloadCard('paisagem', p);
-}
-
 /* ---------- cartões em outros tamanhos (story 1080×1920 e banner 1500×500) ---------- */
 
 async function cartaoCapa(ctx, p, x, y, w, h, raio) {
@@ -5761,15 +5749,54 @@ function cartaoPrincipais(ctx, lista, x, y, largura, altura, acento, font) {
     return cx;
 }
 
-function baixarPng(c, p, sufixo) {
+function baixarArquivo(url, nome, revogar) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nome;
+    a.rel = 'noopener';
+    // Navegadores antigos (e alguns celulares) ignoram o atributo download.
+    // Nesse caso abrimos a imagem numa aba nova para dar para salvar com o dedo.
+    const suporta = 'download' in a;
+    if (!suporta) a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    if (revogar) setTimeout(() => URL.revokeObjectURL(url), 10000);
+    return suporta;
+}
+
+function salvarCanvas(c, nome, mensagem) {
+    const aviso = mensagem || 'Imagem baixada!';
+    const fallback = () => {
+        try {
+            const suporta = baixarArquivo(c.toDataURL('image/png'), nome, false);
+            showToast(suporta ? aviso : 'Imagem aberta. Segure para salvar.');
+        } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
+    };
+    if (!c || typeof c.toBlob !== 'function') { fallback(); return; }
     try {
-        const url = c.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock' + (sufixo ? '-' + sufixo : '') + '.png';
-        a.click();
-        showToast('Cartão baixado!');
-    } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
+        // Blob evita o limite de tamanho das URLs "data:" e funciona melhor
+        // no celular, inclusive com fotos grandes de avatar e banner.
+        c.toBlob((blob) => {
+            if (!blob) { fallback(); return; }
+            const suporta = baixarArquivo(URL.createObjectURL(blob), nome, true);
+            showToast(suporta ? aviso : 'Imagem aberta. Segure para salvar.');
+        }, 'image/png');
+    } catch (e) { fallback(); }
+}
+
+function baixarPng(c, p, sufixo) {
+    const nome = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock' + (sufixo ? '-' + sufixo : '') + '.png';
+    salvarCanvas(c, nome, 'Cartão baixado!');
+}
+
+async function baixarCartaoComSeguranca(formato, p = profile) {
+    try {
+        await downloadCard(formato, p);
+    } catch (e) {
+        console.error('Falha ao gerar o cartão:', e);
+        showToast('Não foi possível gerar o cartão. Tente de novo.', 'error');
+    }
 }
 
 async function baixarCartaoStory(p) {
