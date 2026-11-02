@@ -310,6 +310,39 @@ test('imagem externa sem CORS não impede o download do cartão', async ({ page 
     expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });
 
+test('cartão contaminado é refeito sem imagens externas', async ({ page }) => {
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+    await page.route('https://cdn.sem-cors.test/**', route => route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'image/png' },
+        body: png
+    }));
+    await abrirPerfil(page);
+    const r = await page.evaluate(async () => {
+        // Imagem de outro site carregada sem CORS "suja" o canvas de propósito.
+        const c = document.createElement('canvas');
+        c.width = 10; c.height = 10;
+        const ctx = c.getContext('2d');
+        const im = new Image();
+        await new Promise(ok => { im.onload = ok; im.onerror = ok; im.src = 'https://cdn.sem-cors.test/taint.png'; });
+        try { ctx.drawImage(im, 0, 0); } catch (e) { }
+        let erro = null;
+        try { baixarPng(c, profile, ''); } catch (e) { erro = e.name; }
+        const original = window.downloadCard;
+        let chamadas = 0;
+        window.downloadCard = async () => {
+            chamadas++;
+            if (chamadas === 1) { const falha = new Error('contaminado'); falha.name = 'SecurityError'; throw falha; }
+        };
+        await baixarCartaoComSeguranca('paisagem');
+        window.downloadCard = original;
+        return { erro, chamadas, externasLiberadas: imagensExternasPermitidas };
+    });
+    expect(r.erro).toBe('SecurityError');
+    expect(r.chamadas).toBe(2);
+    expect(r.externasLiberadas).toBe(true);
+});
+
 test('acessibilidade básica e sem erros de página', async ({ page }) => {
     const erros = [];
     page.on('pageerror', erro => erros.push(erro.message));
