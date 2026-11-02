@@ -7,7 +7,7 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-11-01c';
+const VERSAO = 'central-deadlock-2026-11-01d';
 const ESSENCIAIS = [
     './',
     './index.html',

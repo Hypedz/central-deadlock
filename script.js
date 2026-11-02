@@ -5428,8 +5428,30 @@ function shapePath(ctx, x, y, size, shape) {
         roundRectPath(ctx, x, y, size, size, size * 0.22);
     }
 }
+let imagensExternasPermitidas = true;
+function ehUrlExterna(src) {
+    return /^https?:\/\//i.test(String(src || ''));
+}
 function loadImg(src) {
-    return new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+    const endereco = String(src || '');
+    if (!endereco) return Promise.resolve(null);
+    const externa = ehUrlExterna(endereco);
+    // Imagem de outro site só pode entrar no canvas se o servidor liberar CORS.
+    // Sem o crossOrigin o navegador "suja" o canvas e o PNG do cartão não pode
+    // ser gerado (o download falha com erro de segurança).
+    if (externa && !imagensExternasPermitidas) return Promise.resolve(null);
+    return new Promise((res) => {
+        const i = new Image();
+        if (externa) i.crossOrigin = 'anonymous';
+        i.onload = () => res(i);
+        i.onerror = () => res(null);
+        i.src = endereco;
+    });
+}
+function canvasContaminado(c) {
+    if (!c) return false;
+    try { c.getContext('2d').getImageData(0, 0, 1, 1); return false; }
+    catch (e) { return true; }
 }
 function drawCover(ctx, im, x, y, w, h) {
     const s = Math.max(w / im.width, h / im.height);
@@ -5786,6 +5808,11 @@ function salvarCanvas(c, nome, mensagem) {
 }
 
 function baixarPng(c, p, sufixo) {
+    if (canvasContaminado(c)) {
+        const erro = new Error('Uma imagem externa bloqueou a geração do cartão.');
+        erro.name = 'SecurityError';
+        throw erro;
+    }
     const nome = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock' + (sufixo ? '-' + sufixo : '') + '.png';
     salvarCanvas(c, nome, 'Cartão baixado!');
 }
@@ -5794,6 +5821,19 @@ async function baixarCartaoComSeguranca(formato, p = profile) {
     try {
         await downloadCard(formato, p);
     } catch (e) {
+        if (e && e.name === 'SecurityError') {
+            // Alguma imagem de outro site não liberou CORS. Refazemos o cartão
+            // sem essas imagens para o download nunca ficar travado.
+            imagensExternasPermitidas = false;
+            try {
+                await downloadCard(formato, p);
+                return;
+            } catch (e2) {
+                console.error('Falha ao gerar o cartão sem imagens externas:', e2);
+            } finally {
+                imagensExternasPermitidas = true;
+            }
+        }
         console.error('Falha ao gerar o cartão:', e);
         showToast('Não foi possível gerar o cartão. Tente de novo.', 'error');
     }

@@ -256,6 +256,60 @@ test('cartão com banner grande continua baixando', async ({ page }) => {
     expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });
 
+test('item da vitrine com imagem externa continua baixando (CORS)', async ({ page }) => {
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+    await page.route('https://cdn.exemplo.test/**', route => route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'image/png', 'access-control-allow-origin': '*' },
+        body: png
+    }));
+    await abrirPerfil(page);
+    await page.evaluate(() => {
+        const itens = window.GAME_DATA.itens;
+        const id = Object.keys(itens)[0];
+        itens[id].i = 'https://cdn.exemplo.test/item.png';
+        profile.nick = 'Item Externo';
+        profile.showcase = [{ type: 'item', id }];
+        profile.cardShowcase = true;
+        saveProfile();
+        applyProfile();
+    });
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#pvDl').click()
+    ]);
+    const dados = fs.readFileSync(await download.path());
+    expect(dados.length).toBeGreaterThan(50000);
+    expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+});
+
+test('imagem externa sem CORS não impede o download do cartão', async ({ page }) => {
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+    await page.route('https://cdn.sem-cors.test/**', route => route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'image/png' },
+        body: png
+    }));
+    await abrirPerfil(page);
+    await page.evaluate(() => {
+        const itens = window.GAME_DATA.itens;
+        const id = Object.keys(itens)[0];
+        itens[id].i = 'https://cdn.sem-cors.test/item.png';
+        profile.nick = 'Sem CORS';
+        profile.showcase = [{ type: 'item', id }];
+        profile.cardShowcase = true;
+        saveProfile();
+        applyProfile();
+    });
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#pvDl').click()
+    ]);
+    const dados = fs.readFileSync(await download.path());
+    expect(dados.length).toBeGreaterThan(50000);
+    expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+});
+
 test('acessibilidade básica e sem erros de página', async ({ page }) => {
     const erros = [];
     page.on('pageerror', erro => erros.push(erro.message));
