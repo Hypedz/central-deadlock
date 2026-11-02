@@ -35,7 +35,7 @@ PASTA_COUNTERS = os.path.join(BASE, "counter")
 # Troque este número quando mudar o visual do site (style.css). Ele vai no fim do
 # link do CSS (?v=...) só para o navegador de quem já visitou o site pegar a
 # versão nova na hora, em vez de mostrar a antiga guardada na memória dele.
-VERSAO_CSS = "20261101a"
+VERSAO_CSS = "20261101b"
 
 # Cartões sociais 1200x630 (gerados por tools/gerar-og.py)
 OG_PADRAO = "assets/brand/share.jpg"
@@ -320,9 +320,10 @@ def cabecalho(titulo, descricao, url, imagem, classe="", estilo="", prefixo="../
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Central Deadlock">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" href="{prefixo}assets/fonts/inter-400.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="{prefixo}assets/fonts/poppins-700.woff2" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{prefixo}fontes.css?v={VERSAO_CSS}">
 <link rel="stylesheet" href="{prefixo}style.css?v={VERSAO_CSS}">
 <script src="{prefixo}tema.js?v={VERSAO_CSS}"></script>
 </head>
@@ -401,9 +402,10 @@ def pagina_404():
 <meta name="theme-color" content="#b6f24a">
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon-c.svg?v={VERSAO_CSS}">
 <link rel="apple-touch-icon" href="assets/brand/icon-192.png?v={VERSAO_CSS}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-400.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/poppins-700.woff2" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="fontes.css?v={VERSAO_CSS}">
 <link rel="stylesheet" href="style.css?v={VERSAO_CSS}">
 <script src="tema.js?v={VERSAO_CSS}"></script>
 </head>

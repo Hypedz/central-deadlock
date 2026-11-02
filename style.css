@@ -1120,18 +1120,32 @@ body.compact .cards-grid { gap: 14px; }
     display: flex; align-items: center; gap: 10px; padding: 8px;
     border: 1px solid var(--border); border-radius: 10px; background: var(--card-2);
 }
+.preset-item.is-default { border-color: rgba(182,242,74,.55); }
 .preset-swatch { width: 42px; height: 42px; border-radius: 8px; border: 1px solid rgba(255,255,255,.15); flex: none; }
+.preset-thumb { width: 54px; height: 42px; background-size: cover; background-position: center; }
 .preset-info { flex: 1; min-width: 0; }
 .preset-info b { display: block; font-size: 13px; }
 .preset-info small { display: block; font-size: 11px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.preset-del {
+.preset-badge {
+    display: inline-block; margin-left: 4px; padding: 1px 5px; border-radius: 99px;
+    background: rgba(182,242,74,.14); color: var(--lime); font-size: 9px;
+    text-transform: uppercase; letter-spacing: .5px; vertical-align: 1px;
+}
+.preset-actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.preset-icon, .preset-del {
     width: 32px; height: 32px; display: grid; place-items: center;
     border: 1px solid var(--border); border-radius: 8px; background: var(--card);
     color: var(--text-soft); cursor: pointer;
 }
+.preset-icon:hover, .preset-del:hover { border-color: var(--lime); color: var(--text); }
+.preset-icon.on { border-color: var(--lime); color: var(--lime); background: rgba(182,242,74,.12); }
 .preset-del:hover { border-color: #ff6b6b; color: #ff6b6b; }
 .preset-add { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; margin-top: 10px; }
 .preset-add .btn { height: 42px; }
+.savedbuild-add { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; }
+.showcase-slot.is-main { border-color: rgba(182,242,74,.55); }
+.psavedbuild.principal { border-color: rgba(182,242,74,.55); }
+.psavedbuild.principal small i { color: var(--lime); }
 
 /* QR Code do link compartilhado */
 .qr-box {
@@ -1163,7 +1177,10 @@ body.compact .cards-grid { gap: 14px; }
 .compare-table th, .compare-table td { padding: 4px 5px; border-bottom: 1px solid var(--border); text-align: left; }
 .compare-table thead th { color: var(--text-faint); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
 .compare-table tbody th { color: var(--text-soft); font-weight: 600; }
-.compare-actions { margin-top: 12px; }
+.compare-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.compare-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.preview-foot { flex-wrap: wrap; }
+.preview-foot .btn { flex: 1 1 auto; justify-content: center; }
 
 @media (max-width: 700px) {
     .pv-sec .psavedbuilds-list { grid-template-columns: 1fr; }
@@ -1176,6 +1193,10 @@ body.compact .cards-grid { gap: 14px; }
     .preset-add { grid-template-columns: 1fr; }
     .preset-add .btn { width: 100%; }
     .preset-item { flex-wrap: wrap; }
+    .preset-actions { width: 100%; }
+    .preset-actions .btn { flex: 1 1 auto; }
+    .savedbuild-add { grid-template-columns: 1fr; }
+    .savedbuild-add .btn { width: 100%; }
     .qr-box { justify-content: center; }
 }
 

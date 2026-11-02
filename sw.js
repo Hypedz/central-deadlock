@@ -7,10 +7,11 @@
    - Imagens e fontes: usa a cópia guardada e atualiza em segundo plano.
    ============================================================ */
 
-const VERSAO = 'central-deadlock-2026-11-01a';
+const VERSAO = 'central-deadlock-2026-11-01b';
 const ESSENCIAIS = [
     './',
     './index.html',
+    './fontes.css',
     './style.css',
     './script.js',
     './tema.js',
@@ -32,7 +33,13 @@ const ESSENCIAIS = [
     './pwa.js',
     './offline.html',
     './assets/brand/favicon-c.svg',
-    './assets/brand/icon-192.png'
+    './assets/brand/icon-192.png',
+    './assets/fonts/inter-400.woff2',
+    './assets/fonts/poppins-500.woff2',
+    './assets/fonts/poppins-600.woff2',
+    './assets/fonts/poppins-700.woff2',
+    './assets/fonts/poppins-800.woff2',
+    './assets/fonts/titan-one-400.woff2'
 ];
 
 self.addEventListener('install', (evento) => {
@@ -73,10 +80,10 @@ self.addEventListener('fetch', (evento) => {
     let url;
     try { url = new URL(pedido.url); } catch (e) { return; }
 
-    // outras origens: guardamos fontes e ícones (Google Fonts e Font Awesome)
-    // para o site continuar bonito e legível mesmo sem internet.
+    // outras origens: guardamos os ícones do Font Awesome para o site
+    // continuar bonito mesmo sem internet. As fontes agora são locais.
     if (url.origin !== self.location.origin) {
-        const externas = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com'];
+        const externas = ['cdnjs.cloudflare.com'];
         if (externas.indexOf(url.hostname) === -1) return;
         evento.respondWith(
             caches.match(pedido).then((guardada) => {

@@ -9,6 +9,26 @@
     var script = document.currentScript;
     var prefixo = (script && script.getAttribute('data-prefixo')) || '';
 
+    /* mantém canonical e imagens de compartilhamento no endereço real,
+       inclusive depois de uma troca de domínio. */
+    if (/^https?:/.test(location.protocol)) {
+        var base = location.href.split('#')[0].split('?')[0];
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.setAttribute('href', base);
+        var ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.setAttribute('content', base);
+        var ogImg = document.querySelector('meta[property="og:image"]');
+        if (ogImg) {
+            var achado = String(ogImg.getAttribute('content') || '').match(/\/assets\/og\/([^/?#]+)$/);
+            if (achado) {
+                var nova = base.replace(/[^/]*$/, '') + 'assets/og/' + achado[1];
+                ogImg.setAttribute('content', nova);
+                var tw = document.querySelector('meta[name="twitter:image"]');
+                if (tw) tw.setAttribute('content', nova);
+            }
+        }
+    }
+
     function irParaHome(hash) {
         window.location.href = prefixo + 'index.html' + (hash || '');
     }

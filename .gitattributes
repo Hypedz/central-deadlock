@@ -11,4 +11,6 @@ assets/** -text -diff
 *.jpg binary
 *.jpeg binary
 *.ico binary
+*.woff2 binary
+*.ttf binary
 *.svg -text

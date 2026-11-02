@@ -11,8 +11,11 @@ meu-fansite/
 ├── index.html
 ├── guia-iniciante.html      # Guia "Começando no Deadlock" — GERADO sozinho
 ├── style.css
+├── fontes.css               # Carrega as fontes locais (sem Google Fonts)
 ├── heroes-data.js           # Ficha dos heróis (nomes, atributos, habilidades)
 ├── script.js
+├── package.json             # Dependências dos testes automáticos
+├── playwright.config.js     # Configuração dos testes
 ├── qrcode.js                # Gera o QR Code do perfil (biblioteca local, MIT)
 ├── pwa.js                   # Liga o "app instalável" nas páginas geradas
 ├── tema.js                  # Botão de tema claro/escuro (canto direito superior)
@@ -33,7 +36,10 @@ meu-fansite/
 ├── noticia/                 # 1 página por notícia — GERADO sozinho
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
-│   └── noticias.yml         # Notícias + estatísticas + Discord, todo dia
+│   ├── noticias.yml         # Notícias + estatísticas + Discord, todo dia
+│   └── testes.yml           # Roda os testes do Playwright a cada envio
+├── tests/
+│   └── perfil.spec.js       # Testes de perfil, privacidade, QR, cartões e mobile
 ├── data/
 │   ├── steam-news.js        # Notícias do Steam (traduzidas) — GERADO sozinho
 │   ├── hero-stats.js        # Win rate / pick / KDA reais — GERADO sozinho
@@ -67,6 +73,8 @@ meu-fansite/
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
+│   ├── configurar-dominio.py # Troca para um domínio próprio (opcional)
+│   ├── servidor-teste.js    # Servidor local usado só pelos testes
 │   └── checar-segredos.py   # Trava que impede vazar o webhook no Git
 └── assets/
     ├── brand/
@@ -83,7 +91,7 @@ meu-fansite/
     ├── nomes/                 # 44 nomes desenhados (o letreiro de cada herói)
     ├── habilidades/           # 170 ícones das habilidades
     ├── og/                    # cartões sociais 1200x630 — GERADO sozinho
-    └── fonts/                 # fontes Poppins dos cartões (licença OFL)
+    └── fonts/                 # Inter, Poppins e Titan One locais (licença OFL)
 ```
 
 > ⚙️ **Arquivos marcados como "GERADO sozinho" não devem ser editados na mão** — a próxima atualização automática apaga a mudança.
@@ -296,9 +304,10 @@ Vários jeitos novos de deixar o perfil com a sua cara — tudo salvo **só nest
 - **Cartão quadrado 1080×1080 (Meu Perfil → Cartão):** além de paisagem, story e banner, agora existe o formato quadrado para feed do Instagram e do Discord. A opção **Incluir vitrine no PNG** coloca (ou tira) os 3 destaques do cartão baixado.
 - **QR Code do perfil (Meu Perfil → Cartão):** o site gera o QR Code **no próprio navegador**, sem serviço de fora. Dá para baixar em PNG e apontar a câmera do celular. Para caber no QR, o link usa uma versão leve do cartão, **sem as fotos enviadas** (avatar e banner).
 - **Privacidade do cartão público (Meu Perfil → Cartão):** desmarque **Nível e XP**, **Atividade**, **Conquistas** ou **Redes sociais e link pessoal** para esconder esses dados do perfil compartilhado, do cartão público e do texto copiado. O que fica desmarcado não aparece para quem abre o seu link.
-- **Minhas builds (Meu Perfil → Jogo):** na aba **Builds**, cada build tem o botão **Salvar no perfil**. Você pode guardar até **5 builds** e elas aparecem no cartão, no perfil público e no link compartilhado. Dá para adicionar ou remover também pela aba **Jogo**.
-- **Presets de visual (Meu Perfil → Cartão):** salve até **3 combinações** de banner, cores, padrão e moldura com um nome (ex.: "Neon"). Depois é só clicar em **Aplicar** para trocar o visual inteiro de uma vez.
-- **Comparar perfis (Meu Perfil → Dados):** cole o link do cartão compartilhado de um amigo. O site mostra **mains em comum**, **só você**, **só a outra pessoa**, destaques, builds salvas e uma tabela comparando banner, padrão, cor, avatar e moldura. Também dá para abrir o cartão do amigo ali mesmo.
+- **Ver como visitante (Meu Perfil):** o botão **Ver como visitante** abre uma prévia exata do cartão que outra pessoa vê pelo link compartilhado, já com a privacidade aplicada. Dá para copiar o link ou baixar o cartão direto dessa prévia.
+- **Minhas builds 2.0 (Meu Perfil → Jogo):** na aba **Builds**, cada build tem o botão **Salvar no perfil**. Você pode guardar até **5 builds**, **reordenar** com as setas, marcar a primeira como **principal**, **filtrar por herói** e **copiar o link** da build. O link usa `#build=...` e abre a build direto quando alguém clica.
+- **Presets 2.0 (Meu Perfil → Cartão):** salve até **3 combinações** de banner, cores, padrão e moldura com um nome (ex.: "Neon"). Agora dá para **renomear**, **duplicar**, ver uma **miniatura real** e marcar um preset como **padrão**; o botão **Aplicar visual padrão** restaura essa combinação quando quiser.
+- **Comparar perfis 2.0 (Meu Perfil → Dados):** cole **até 3 links**, um por linha. O site mostra **mains em comum**, **só você**, **só a outra pessoa**, destaques, builds salvas e uma tabela comparando banner, padrão, cor, avatar e moldura. Também dá para abrir o cartão de cada amigo, **baixar o cartão dele** e **copiar a comparação em texto**.
 
 A vitrine, as builds salvas, os presets, a privacidade e o link pessoal também entram no **Exportar dados** e no **Copiar link** do perfil. Se você importar um arquivo antigo, ele continua funcionando: os campos novos ficam vazios (ou com os padrões) até você preencher.
 
@@ -620,7 +629,7 @@ Como o jogo está em **playtest fechado (por convite)**, o botão **não** leva 
 
 Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas partes:
 
-1. **Perfil grande (topo)** — banner grande, **avatar grande**, nome, tags, status e os botões **Editar perfil**, **Copiar link** e **Baixar cartão**. Embaixo vêm os cards **Sobre**, **Heróis principais**, **Destaques**, **Minhas builds**, **Nível/XP**, **Atividade** e **Conquistas** — igual à página de perfil do protótipo. Os cards de nível, atividade, conquistas e redes podem ser escondidos na privacidade do cartão.
+1. **Perfil grande (topo)** — banner grande, **avatar grande**, nome, tags, status e os botões **Editar perfil**, **Copiar link**, **Compartilhar**, **Ver como visitante** e **Baixar cartão**. Embaixo vêm os cards **Sobre**, **Heróis principais**, **Destaques**, **Minhas builds**, **Nível/XP**, **Atividade** e **Conquistas** — igual à página de perfil do protótipo. Os cards de nível, atividade, conquistas e redes podem ser escondidos na privacidade do cartão.
 2. **Editor (abaixo)** — o cartão de pré-visualização fica fixo à esquerda (com os botões Alterar foto, Surpreenda-me, Baixar, Copiar link e Copiar texto) e, à direita, as **abas arredondadas com ícones**:
 
 - **Identidade** — apelido, pronomes, status, bio, título, região, **disponibilidade** (ex.: "depois das 20h") e a opção **"Estou procurando time"** (mostra um selo **LFG** no perfil e no cartão); redes **Discord, Twitch, YouTube, X (Twitter), Instagram, TikTok e Steam**, em duas colunas; os links viram botões clicáveis que abrem em outra aba
@@ -630,7 +639,7 @@ Baseado no protótipo DLBR que você enviou. A aba **Meu Perfil** tem duas parte
 - **Site** — cor de **destaque no site inteiro** (8 cores prontas + **qualquer outra cor**; o texto em cima da cor muda sozinho para continuar legível), **fundo do site** (padrão, **arte de um herói** escolhido ou **cor sólida** — vale também nas páginas internas), **menu lateral enxuto** (desmarque as abas que você não usa; Home e Meu Perfil ficam sempre), **cartões de herói** (5 formatos: **estandarte, cartão, quadrado, redondo e lista**; **tamanho compacto/padrão/grande** nos formatos com arte e o que aparece embaixo: papel, tier, win rate, pick rate, partidas, KDA e dificuldade), **tamanho do texto** (Pequeno, Padrão ou Grande — vale para o site inteiro), tema escuro/claro, idioma e modo compacto
   - Dica: o tema também tem um **botão no canto direito superior** (em todas as páginas do site), que troca a cor na hora e salva a escolha — é o mesmo ajuste desta aba.
 - **Conquistas** — nível, XP, atividade e 8 conquistas que evoluem conforme você usa o site
-- **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`) e **comparar com um amigo** colando o link do cartão compartilhado dele
+- **Dados** — salvar, redefinir, **exportar** e **importar** o perfil (arquivo `.json`) e **comparar com até 3 amigos** colando os links dos cartões compartilhados, com opção de copiar o texto e baixar o cartão de cada um
 
 Extras: **Surpreenda-me** (sorteia um visual), **Baixar cartão** (gera um PNG do cartão em **4 tamanhos**: paisagem 1000×600, **story 1080×1920**, **quadrado 1080×1080** e **banner 1500×500** para Discord; a opção **Incluir vitrine no PNG** controla os destaques), **Baixar QR Code** (link compartilhado, gerado no próprio navegador), **Copiar link** (link com o cartão dentro), **Compartilhar** (no celular abre o menu do aparelho — WhatsApp, Discord… — e no computador copia o link) e **Copiar texto** (resumo em texto). A aba **Site** também muda a cor do site todo na hora, sem recarregar. Tudo salvo no navegador (**localStorage**) e atualizado em tempo real. No celular, tudo cabe na largura da tela.
 
@@ -648,6 +657,18 @@ python -m http.server 8123 --directory "C:\Users\User\Documents\Projeto Padrão\
 ```
 e acesse `http://localhost:8123`.
 
+### Testes automáticos (opcional, para quem mexe no código)
+
+Os testes usam **Playwright** e abrem o site sozinhos no Chromium para conferir perfil, privacidade, QR Code, link compartilhado, comparação, presets, builds e os quatro PNGs. Na primeira vez:
+
+```powershell
+npm install
+npx playwright install chromium
+npm test
+```
+
+O servidor de teste é o `tools/servidor-teste.js` (não precisa de Python). O GitHub roda os mesmos testes no arquivo `.github/workflows/testes.yml` a cada envio.
+
 ---
 
 ## 🔎 Detalhes que já estão prontos
@@ -662,6 +683,8 @@ e acesse `http://localhost:8123`.
 - **Compartilhar** — botões **Compartilhar** no perfil (grande e editor) e na ficha do herói: no celular abrem o menu do aparelho, no computador copiam o link.
 - **Tamanho do texto** — Pequeno / Padrão / Grande em **Meu Perfil → Site**; muda o site inteiro na hora.
 - **Google** — `sitemap.xml` + `robots.txt`.
+- **Fontes auto-hospedadas** — Inter, Poppins e Titan One ficam em `assets/fonts/` e são carregadas pelo `fontes.css`; o site não depende mais do Google Fonts. As fontes mais usadas são pré-carregadas.
+- **Desempenho e SEO** — as páginas têm título, descrição, canonical, Open Graph, JSON-LD e sitemap. No Lighthouse local, Home e páginas de herói marcaram **100** em acessibilidade, boas práticas e SEO.
 - **Notícias traduzidas** — títulos e resumos em português, com o original em inglês preservado.
 - **Estatísticas reais** — win rate, pick rate, KDA e tier list vindos de milhões de partidas.
 - **Duas notas de dificuldade** por herói (para aprender e para masterizar), no estilo do dlbr.gg.
@@ -716,6 +739,27 @@ Abra a aba **Actions** no GitHub → **Publicar o site** → **Run workflow**.
 
 Também dá para arrastar a pasta `meu-fansite` compactada em [app.netlify.com/drop](https://app.netlify.com/drop) — o site sobe na hora. Mas aí você perde as automações dos robôs.
 
+### Domínio próprio (opcional, precisa comprar)
+
+O site funciona de graça em `hypedz.github.io/central-deadlock/`. Se um dia você comprar um domínio (ex.: `centraldeadlock.com.br` no Registro.br), o projeto já está preparado:
+
+1. Compre o domínio e configure no painel do registrador os **DNS** que o GitHub Pages pedir (registros `A` ou `CNAME`).
+2. No GitHub, abra **Settings → Pages → Custom domain** e salve o domínio.
+3. Aqui no projeto, rode:
+
+```powershell
+python tools/configurar-dominio.py centraldeadlock.com.br
+```
+
+O script cria o arquivo `CNAME`, troca as URLs antigas em `index.html`, `robots.txt`, `README.md` e no gerador, e regenera as páginas e o `sitemap.xml`. As páginas internas também corrigem o canonical e as imagens de compartilhamento sozinhas pelo `pagina.js`, então o site continua certo mesmo antes de você rodar o script.
+
+Para voltar ao endereço do GitHub Pages:
+
+```powershell
+python tools/configurar-dominio.py --reverter
+```
+
+> O domínio **não é ativado sozinho**: comprar e apontar o DNS é uma ação sua. O projeto só deixa tudo pronto para quando você quiser.
 
 ---
 

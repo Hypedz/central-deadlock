@@ -251,19 +251,35 @@ function savedBuildsList(p) {
         .map(id => BUILDS.find(a => a.id === id))
         .filter(Boolean);
 }
+function buildHeroName(a) {
+    if (!a) return '';
+    return String(a.title || '').split(' — ')[0].trim() || String(a.img || '').replace(/\.[^.]+$/, '');
+}
+function buildHeroOptionsHTML() {
+    const nomes = [...new Set(BUILDS.map(buildHeroName).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+    return '<option value="">Todos os heróis</option>' + nomes.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+}
+function savedBuildOptionsHTML(heroi = '') {
+    return BUILDS.filter(a => !heroi || buildHeroName(a) === heroi)
+        .map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
+}
+function buildShareURL(id) {
+    return location.href.split('#')[0] + '#build=' + encodeURIComponent(id);
+}
 function presetsNormalizados(lista) {
     if (!Array.isArray(lista)) return [];
-    return lista.filter(x => x && typeof x === 'object').map((x, i) => {
+    const saida = lista.filter(x => x && typeof x === 'object').map((x, i) => {
         const av = x.av && typeof x.av === 'object' ? x.av : {};
         return {
             id: String(x.id || 'preset-' + i),
-            name: String(x.name || 'Visual ' + (i + 1)).slice(0, 20),
+            name: String(x.name || 'Visual ' + (i + 1)).trim().slice(0, 20) || 'Visual ' + (i + 1),
             banner: BANNERS[x.banner] ? x.banner : 'lima',
             bc1: /^#[0-9a-f]{6}$/i.test(x.bc1 || '') ? x.bc1 : '#b6f24a',
             bc2: /^#[0-9a-f]{6}$/i.test(x.bc2 || '') ? x.bc2 : '#2f7a1a',
             pattern: PATTERNS.some(([k]) => k === x.pattern) ? x.pattern : 'none',
             bannerImg: typeof x.bannerImg === 'string' ? x.bannerImg : '',
-            accent: typeof x.accent === 'string' ? x.accent : 'auto',
+            accent: x.accent === 'auto' || /^#[0-9a-f]{6}$/i.test(x.accent || '') ? x.accent : 'auto',
+            padrao: !!x.padrao,
             av: {
                 shape: SHAPES.some(([k]) => k === av.shape) ? av.shape : 'squircle',
                 frame: FRAMES.some(([k]) => k === av.frame) ? av.frame : 'none',
@@ -272,8 +288,14 @@ function presetsNormalizados(lista) {
             }
         };
     }).slice(0, PRESETS_MAX);
+    let temPadrao = false;
+    saida.forEach(pr => {
+        if (pr.padrao && !temPadrao) temPadrao = true;
+        else if (pr.padrao) pr.padrao = false;
+    });
+    return saida;
 }
-function presetAtual(nome) {
+function presetAtual(nome, padrao = false) {
     return {
         id: 'pr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
         name: String(nome || 'Visual').trim().slice(0, 20) || 'Visual',
@@ -283,6 +305,7 @@ function presetAtual(nome) {
         pattern: profile.pattern,
         bannerImg: profile.bannerImg || '',
         accent: profile.accent,
+        padrao: !!padrao,
         av: {
             shape: profile.av.shape,
             frame: profile.av.frame,
@@ -290,6 +313,19 @@ function presetAtual(nome) {
             c2: profile.av.c2 || ''
         }
     };
+}
+function aplicarPreset(pr) {
+    if (!pr) return;
+    profile.banner = pr.banner;
+    profile.bc1 = pr.bc1;
+    profile.bc2 = pr.bc2;
+    profile.pattern = pr.pattern;
+    profile.bannerImg = pr.bannerImg;
+    profile.accent = pr.accent;
+    profile.av = { ...profile.av, shape: pr.av.shape, frame: pr.av.frame, c1: pr.av.c1, c2: pr.av.c2 };
+    ['banner', 'pattern', 'shape', 'frame', 'accent'].forEach(touch);
+    commit();
+    showToast('Preset aplicado!');
 }
 function nomeBanner(k) { return (BANNERS[k] && BANNERS[k][0]) || 'Lima'; }
 function nomePattern(k) { const x = PATTERNS.find(([v]) => v === k); return x ? x[1] : 'Nenhum'; }
@@ -299,11 +335,19 @@ function presetListHTML(p) {
     const lista = presetsNormalizados(p.presets);
     if (!lista.length) return '<p class="field-note">Nenhum preset salvo ainda.</p>';
     return `<div class="preset-list">${lista.map(pr =>
-        `<div class="preset-item">
-            <span class="preset-swatch" style="background:linear-gradient(120deg,${pr.bc1},${pr.bc2})"></span>
-            <div class="preset-info"><b>${esc(pr.name)}</b><small>${esc(nomeBanner(pr.banner))} · ${esc(nomePattern(pr.pattern))} · ${esc(nomeFrame(pr.av.frame))}</small></div>
-            <button type="button" class="btn btn-dark btn-sm" data-act="preset-apply" data-id="${esc(pr.id)}">Aplicar</button>
-            <button type="button" class="preset-del" data-act="preset-remove" data-id="${esc(pr.id)}" aria-label="Remover preset"><i class="fa-solid fa-xmark"></i></button>
+        `<div class="preset-item${pr.padrao ? ' is-default' : ''}">
+            <span class="preset-swatch preset-thumb" style="${bannerStyle(pr)}" aria-hidden="true"></span>
+            <div class="preset-info">
+                <b>${esc(pr.name)} ${pr.padrao ? '<span class="preset-badge">Padrão</span>' : ''}</b>
+                <small>${esc(nomeBanner(pr.banner))} · ${esc(nomePattern(pr.pattern))} · ${esc(nomeFrame(pr.av.frame))}</small>
+            </div>
+            <div class="preset-actions">
+                <button type="button" class="btn btn-dark btn-sm" data-act="preset-apply" data-id="${esc(pr.id)}" title="Aplicar este visual"><i class="fa-solid fa-wand-magic-sparkles"></i> Aplicar</button>
+                <button type="button" class="preset-icon${pr.padrao ? ' on' : ''}" data-act="preset-default" data-id="${esc(pr.id)}" aria-label="${pr.padrao ? 'Desmarcar preset padrão' : 'Marcar como preset padrão'}" title="${pr.padrao ? 'Desmarcar padrão' : 'Marcar como padrão'}"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="preset-icon" data-act="preset-rename" data-id="${esc(pr.id)}" aria-label="Renomear preset" title="Renomear"><i class="fa-solid fa-pen"></i></button>
+                <button type="button" class="preset-icon" data-act="preset-duplicate" data-id="${esc(pr.id)}" aria-label="Duplicar preset" title="Duplicar"><i class="fa-solid fa-clone"></i></button>
+                <button type="button" class="preset-del" data-act="preset-remove" data-id="${esc(pr.id)}" aria-label="Remover preset" title="Remover"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>`).join('')}</div>`;
 }
 function normalizarPerfilCompartilhado(raw) {
@@ -340,7 +384,7 @@ function perfilDoLinkCompartilhado(valor) {
         return p && typeof p === 'object' ? normalizarPerfilCompartilhado(p) : null;
     } catch (e) { return null; }
 }
-function compararPerfisHTML(p) {
+function compararPerfisHTML(p, indice = 0) {
     const meu = profile;
     const nomeDele = p.nick || 'Amigo';
     const meusMains = meu.mains.map(heroByName).filter(Boolean);
@@ -378,18 +422,72 @@ function compararPerfisHTML(p) {
             <section><h3>Builds salvas</h3><p><b>Você:</b> ${esc(buildsMe)}</p><p><b>${esc(nomeDele)}:</b> ${esc(buildsDele)}</p></section>
             <section><h3>Estilo</h3><table class="compare-table"><thead><tr><th></th><th>Você</th><th>${esc(nomeDele)}</th></tr></thead><tbody>${linhas.map(([n, a, b]) => `<tr><th>${esc(n)}</th><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</tbody></table></section>
         </div>
-        <div class="compare-actions"><button type="button" class="btn btn-dark btn-sm" data-act="compare-card"><i class="fa-solid fa-id-card"></i> Ver cartão de ${esc(nomeDele)}</button></div>
+        <div class="compare-actions">
+            <button type="button" class="btn btn-dark btn-sm" data-act="compare-card" data-index="${indice}"><i class="fa-solid fa-id-card"></i> Ver cartão de ${esc(nomeDele)}</button>
+            <button type="button" class="btn btn-dark btn-sm" data-act="compare-download" data-index="${indice}"><i class="fa-solid fa-download"></i> Baixar cartão</button>
+        </div>
     </div>`;
 }
-function abrirCartaoComparado() {
-    if (!perfilComparado) return;
+function comparacaoTexto(p) {
+    const meu = profile, nomeDele = p.nick || 'Amigo';
+    const meusMains = meu.mains.map(heroByName).filter(Boolean);
+    const mainsDele = p.mains.map(heroByName).filter(Boolean);
+    const chavesMe = new Set(meusMains.map(h => h.name));
+    const chavesDele = new Set(mainsDele.map(h => h.name));
+    const nomes = lista => lista.length ? lista.map(h => h.name).join(', ') : 'Nenhum';
+    const comuns = meusMains.filter(h => chavesDele.has(h.name));
+    const soMeus = meusMains.filter(h => !chavesDele.has(h.name));
+    const soDele = mainsDele.filter(h => !chavesMe.has(h.name));
+    const privMe = privacidade(meu), privDele = privacidade(p);
+    const cor = v => v === 'auto' ? 'Verde padrão' : v;
+    return [
+        `Comparação — Você vs ${nomeDele} — Central Deadlock`,
+        `Mains em comum (${comuns.length}): ${nomes(comuns)}`,
+        `Só você: ${nomes(soMeus)}`,
+        `Só ${nomeDele}: ${nomes(soDele)}`,
+        `Destaques — Você: ${showcaseTexto(meu) || 'Nenhum'} | ${nomeDele}: ${showcaseTexto(p) || 'Nenhum'}`,
+        `Builds salvas — Você: ${savedBuildsList(meu).map(a => a.title).join(' · ') || 'Nenhuma'} | ${nomeDele}: ${savedBuildsList(p).map(a => a.title).join(' · ') || 'Nenhuma'}`,
+        `Estilo — Banner: ${nomeBanner(meu.banner)} / ${nomeBanner(p.banner)}; Padrão: ${nomePattern(meu.pattern)} / ${nomePattern(p.pattern)}; Destaque: ${cor(meu.accent)} / ${cor(p.accent)}; Avatar: ${nomeShape(meu.av.shape)} / ${nomeShape(p.av.shape)}; Moldura: ${nomeFrame(meu.av.frame)} / ${nomeFrame(p.av.frame)}`,
+        `Redes — Você: ${privMe.links ? socialLinksList(meu).length + ' rede(s)' : 'Oculto'} | ${nomeDele}: ${privDele.links ? socialLinksList(p).length + ' rede(s)' : 'Oculto'}`
+    ].join('\n');
+}
+function abrirCartaoComparado(indice = 0) {
+    const p = (perfisComparados[indice] || perfilComparado);
+    if (!p) return;
     const box = $('#shareModalBox');
     if (!box) return;
     box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
-        <div class="modal-head"><h2>Cartão de ${esc(perfilComparado.nick || 'amigo')}</h2><p>Este cartão veio do link compartilhado.</p></div>
-        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(perfilComparado)}</div>
+        <div class="modal-head"><h2>Cartão de ${esc(p.nick || 'amigo')}</h2><p>Este cartão veio do link compartilhado.</p></div>
+        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
         <div class="modal-foot"><button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button></div>`;
     openOverlay($('#shareModal'));
+}
+function abrirPreviaVisitante() {
+    const box = $('#shareModalBox');
+    if (!box) return;
+    const p = normalizarPerfilCompartilhado({
+        ...profile,
+        nivelCompartilhado: privacidade(profile).level ? { n: level().n, xp: level().xp } : null
+    });
+    box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
+        <div class="modal-head"><h2>Prévia pública</h2><p>É assim que seu cartão aparece quando alguém abre o link compartilhado.</p></div>
+        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
+        <div class="modal-foot preview-foot">
+            <button type="button" class="btn btn-dark" data-preview-copy><i class="fa-solid fa-link"></i> Copiar link</button>
+            <button type="button" class="btn btn-dark" data-preview-download><i class="fa-solid fa-download"></i> Baixar cartão</button>
+            <button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button>
+        </div>`;
+    openOverlay($('#shareModal'));
+}
+async function copiarComparacao() {
+    if (!perfisComparados.length) return;
+    const texto = perfisComparados.map(comparacaoTexto).join('\n\n');
+    try {
+        await navigator.clipboard.writeText(texto);
+        showToast('Comparação copiada!');
+    } catch (e) {
+        window.prompt('Copie a comparação:', texto);
+    }
 }
 let profile = (() => {
     const raw = store.get('cdl_profile', null);
@@ -582,6 +680,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fixShareMeta();
     updateChip();
     checkSharedCard();
+    checkBuildLink();
+    window.addEventListener('hashchange', () => {
+        checkSharedCard();
+        checkBuildLink();
+    });
     registrarApp();
     initOffline();
 });
@@ -4100,7 +4203,7 @@ function avatarBox(size, p) {
 }
 
 /* abas do editor de perfil */
-let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null;
+let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null, perfisComparados = [];
 const PROFILE_TABS = [
     ['id', 'fa-user', 'Identidade'],
     ['game', 'fa-gamepad', 'Jogo'],
@@ -4199,10 +4302,10 @@ function showcaseTexto(p) {
 function savedBuildsGridHTML(p) {
     const lista = savedBuildsList(p);
     if (!lista.length) return '';
-    return `<div class="psavedbuilds-list">${lista.map(a =>
-        `<button type="button" class="psavedbuild" data-article="${esc(a.id)}" title="Abrir ${esc(a.title)}">
+    return `<div class="psavedbuilds-list">${lista.map((a, i) =>
+        `<button type="button" class="psavedbuild${i === 0 ? ' principal' : ''}" data-article="${esc(a.id)}" title="Abrir ${esc(a.title)}">
             <img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <span><b>${esc(a.title)}</b><small>${esc(a.role || 'Build')}</small></span>
+            <span><b>${esc(a.title)}</b><small>${i === 0 ? '<i class="fa-solid fa-star"></i> Principal · ' : ''}${esc(a.role || 'Build')}</small></span>
         </button>`).join('')}</div>`;
 }
 function savedBuildsCardHTML(p) {
@@ -4212,16 +4315,23 @@ function savedBuildsCardHTML(p) {
 function savedBuildsEditorHTML(p) {
     const lista = savedBuildsList(p);
     const slots = lista.length
-        ? lista.map(a => `<div class="showcase-slot">
+        ? lista.map((a, i) => `<div class="showcase-slot${i === 0 ? ' is-main' : ''}">
             <img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <div class="showcase-slot-info"><small>${esc(a.role || 'Build')}</small><b>${esc(a.title)}</b></div>
-            <div class="showcase-slot-actions"><button type="button" data-act="savedbuild-remove" data-id="${esc(a.id)}" aria-label="Remover build"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="showcase-slot-info"><small>${i === 0 ? '<i class="fa-solid fa-star"></i> Principal · ' : ''}${esc(a.role || 'Build')}</small><b>${esc(a.title)}</b></div>
+            <div class="showcase-slot-actions">
+                <button type="button" data-act="savedbuild-up" data-id="${esc(a.id)}" aria-label="Mover build para cima" title="Mover para cima" ${i === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+                <button type="button" data-act="savedbuild-down" data-id="${esc(a.id)}" aria-label="Mover build para baixo" title="Mover para baixo" ${i === lista.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+                <button type="button" data-act="savedbuild-main" data-id="${esc(a.id)}" aria-label="Tornar build principal" title="Tornar principal" ${i === 0 ? 'disabled' : ''}><i class="fa-solid fa-star"></i></button>
+                <button type="button" data-act="savedbuild-copy" data-id="${esc(a.id)}" aria-label="Copiar link da build" title="Copiar link"><i class="fa-solid fa-link"></i></button>
+                <button type="button" data-act="savedbuild-remove" data-id="${esc(a.id)}" aria-label="Remover build" title="Remover"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>`).join('')
         : '<p class="field-note">Nenhuma build salva ainda. Use o botão "Salvar no perfil" na aba Builds.</p>';
-    const opcoes = BUILDS.map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
     return `<div class="showcase-grid">${slots}</div>
-        <div class="showcase-add">
-            <label class="field">Build<select id="savedBuildPick">${opcoes}</select></label>
+        <p class="field-note" style="margin-top:8px">A primeira build da lista é a <b>principal</b> e aparece com destaque no cartão.</p>
+        <div class="showcase-add savedbuild-add">
+            <label class="field">Filtrar por herói<select id="savedBuildHero">${buildHeroOptionsHTML()}</select></label>
+            <label class="field">Build<select id="savedBuildPick">${savedBuildOptionsHTML()}</select></label>
             <button type="button" class="btn btn-lime" data-act="savedbuild-add" ${lista.length >= SAVED_BUILDS_MAX ? 'disabled' : ''}><i class="fa-solid fa-plus"></i> Adicionar</button>
         </div>`;
 }
@@ -4473,6 +4583,7 @@ function renderForm() {
     const custom = normalizarLinkCustom(p.links.custom);
     const priv = privacidade(p);
     const presets = presetsNormalizados(p.presets);
+    const presetPadrao = presets.find(pr => pr.padrao);
     let html = '';
 
     if (pTab === 'id') {
@@ -4571,8 +4682,9 @@ function renderForm() {
                 <button type="button" class="btn btn-dark btn-block" data-act="banner-remove" style="align-self:end;height:44px">Remover imagem</button>
             </div>
             <div class="pform-sec">Presets de visual (até ${PRESETS_MAX})</div>
-            <p class="field-note">Salve combinações de banner, cores e moldura para trocar depois.</p>
+            <p class="field-note">Salve combinações de banner, cores e moldura para trocar depois. Você pode renomear, duplicar e marcar um como padrão.</p>
             ${presetListHTML(p)}
+            ${presetPadrao ? `<button type="button" class="btn btn-dark btn-sm" data-act="preset-default-apply" style="margin-top:10px"><i class="fa-solid fa-star"></i> Aplicar visual padrão: ${esc(presetPadrao.name)}</button>` : ''}
             <div class="preset-add">
                 <label class="field">Nome do preset<input id="presetName" maxlength="20" placeholder="ex.: Neon"></label>
                 <button type="button" class="btn btn-lime" data-act="preset-save" ${presets.length >= PRESETS_MAX ? 'disabled' : ''}><i class="fa-solid fa-floppy-disk"></i> Salvar visual atual</button>
@@ -4693,10 +4805,10 @@ function renderForm() {
                 <button type="button" class="btn btn-dark btn-block" data-act="export"><i class="fa-solid fa-file-export"></i> Exportar dados</button>
                 <label class="btn btn-dark btn-block" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Importar dados<input type="file" id="importFile" accept="application/json,.json" hidden></label>
             </div>
-            <div class="pform-sec">Comparar com um amigo</div>
-            <p class="field-note">Cole o link do cartão compartilhado de um amigo para comparar mains, destaques e estilo.</p>
+            <div class="pform-sec">Comparar com amigos</div>
+            <p class="field-note">Cole até 3 links de cartões compartilhados, um por linha, para comparar mains, destaques, builds e estilo.</p>
             <div class="compare-add">
-                <label class="field">Link do amigo<input id="compareLink" placeholder="https://.../#share=..."></label>
+                <label class="field">Links dos amigos<textarea id="compareLink" rows="3" placeholder="https://.../#share=...&#10;https://.../#share=..."></textarea></label>
                 <button type="button" class="btn btn-lime" data-act="compare"><i class="fa-solid fa-code-compare"></i> Comparar</button>
             </div>
             <div id="compareResult"></div>`;
@@ -4747,6 +4859,10 @@ function initProfile() {
             const add = form.querySelector('[data-act="showcase-add"]');
             if (add) add.disabled = !pick || !pick.options.length;
         }
+        else if (e.target.id === 'savedBuildHero') {
+            const pick = $('#savedBuildPick');
+            if (pick) pick.innerHTML = savedBuildOptionsHTML(e.target.value);
+        }
         else if (e.target.dataset.f === 'l_custom_url') {
             let v = e.target.value.trim();
             if (v && !/^https?:\/\//i.test(v) && /^[\w.-]+\.[a-z]{2,}(?:[/:?#].*)?$/i.test(v)) v = 'https://' + v;
@@ -4777,7 +4893,7 @@ function initProfile() {
         }
     });
 
-    form.addEventListener('click', (e) => {
+    form.addEventListener('click', async (e) => {
         const bn = e.target.closest('[data-bn]'); if (bn) { profile.banner = bn.dataset.bn; profile.bannerImg = ''; touch('banner'); commit(); return; }
         const pat = e.target.closest('[data-pat]'); if (pat) { profile.pattern = pat.dataset.pat; touch('pattern'); commit(); return; }
         const sh = e.target.closest('[data-sh]'); if (sh) { profile.av.shape = sh.dataset.sh; touch('shape'); commit(); return; }
@@ -4820,28 +4936,86 @@ function initProfile() {
                 commit();
                 showToast('Build removida do perfil.');
             }
+            else if (a === 'savedbuild-up' || a === 'savedbuild-down' || a === 'savedbuild-main') {
+                const lista = savedBuildsNormalizado(profile.savedBuilds);
+                const i = lista.indexOf(act.dataset.id);
+                if (i < 0) return;
+                if (a === 'savedbuild-main') {
+                    if (i > 0) lista.unshift(lista.splice(i, 1)[0]);
+                } else if (a === 'savedbuild-up' && i > 0) {
+                    [lista[i - 1], lista[i]] = [lista[i], lista[i - 1]];
+                } else if (a === 'savedbuild-down' && i < lista.length - 1) {
+                    [lista[i + 1], lista[i]] = [lista[i], lista[i + 1]];
+                } else return;
+                profile.savedBuilds = lista;
+                touch('savedBuilds');
+                commit();
+                if (a === 'savedbuild-main') showToast('Build principal atualizada!');
+            }
+            else if (a === 'savedbuild-copy') {
+                const url = buildShareURL(act.dataset.id);
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showToast('Link da build copiado!');
+                } catch (e) {
+                    window.prompt('Copie o link da build:', url);
+                }
+            }
             else if (a === 'preset-save') {
                 const lista = presetsNormalizados(profile.presets);
                 if (lista.length >= PRESETS_MAX) { showToast('Você já tem ' + PRESETS_MAX + ' presets salvos.', 'error'); return; }
                 const nome = (($('#presetName') || {}).value || '').trim() || 'Visual ' + (lista.length + 1);
-                profile.presets = [...lista, presetAtual(nome)];
+                profile.presets = [...lista, presetAtual(nome, lista.length === 0)];
                 touch('presets');
                 commit();
                 showToast('Preset salvo!');
             }
             else if (a === 'preset-apply') {
-                const pr = presetsNormalizados(profile.presets).find(x => x.id === act.dataset.id);
+                aplicarPreset(presetsNormalizados(profile.presets).find(x => x.id === act.dataset.id));
+            }
+            else if (a === 'preset-default-apply') {
+                const pr = presetsNormalizados(profile.presets).find(x => x.padrao);
+                if (!pr) { showToast('Nenhum preset marcado como padrão.', 'error'); return; }
+                aplicarPreset(pr);
+            }
+            else if (a === 'preset-default') {
+                const lista = presetsNormalizados(profile.presets);
+                const pr = lista.find(x => x.id === act.dataset.id);
                 if (!pr) return;
-                profile.banner = pr.banner;
-                profile.bc1 = pr.bc1;
-                profile.bc2 = pr.bc2;
-                profile.pattern = pr.pattern;
-                profile.bannerImg = pr.bannerImg;
-                profile.accent = pr.accent;
-                profile.av = { ...profile.av, shape: pr.av.shape, frame: pr.av.frame, c1: pr.av.c1, c2: pr.av.c2 };
-                ['banner', 'pattern', 'shape', 'frame', 'accent'].forEach(touch);
+                const marcar = !pr.padrao;
+                profile.presets = lista.map(x => ({ ...x, padrao: x.id === pr.id ? marcar : false }));
+                touch('presets');
                 commit();
-                showToast('Preset aplicado!');
+                showToast(marcar ? 'Preset marcado como padrão.' : 'Preset padrão desmarcado.');
+            }
+            else if (a === 'preset-rename') {
+                const lista = presetsNormalizados(profile.presets);
+                const pr = lista.find(x => x.id === act.dataset.id);
+                if (!pr) return;
+                const nome = window.prompt('Novo nome do preset:', pr.name);
+                if (nome === null) return;
+                const limpo = String(nome).trim().slice(0, 20);
+                if (!limpo) { showToast('Digite um nome para o preset.', 'error'); return; }
+                profile.presets = lista.map(x => x.id === pr.id ? { ...x, name: limpo } : x);
+                touch('presets');
+                commit();
+                showToast('Preset renomeado.');
+            }
+            else if (a === 'preset-duplicate') {
+                const lista = presetsNormalizados(profile.presets);
+                if (lista.length >= PRESETS_MAX) { showToast('Você já tem ' + PRESETS_MAX + ' presets salvos.', 'error'); return; }
+                const pr = lista.find(x => x.id === act.dataset.id);
+                if (!pr) return;
+                const copia = {
+                    ...pr,
+                    id: 'pr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+                    name: (pr.name + ' cópia').slice(0, 20),
+                    padrao: false
+                };
+                profile.presets = [...lista, copia];
+                touch('presets');
+                commit();
+                showToast('Preset duplicado!');
             }
             else if (a === 'preset-remove') {
                 profile.presets = presetsNormalizados(profile.presets).filter(x => x.id !== act.dataset.id);
@@ -4851,13 +5025,27 @@ function initProfile() {
             }
             else if (a === 'qr-download') baixarQRCode();
             else if (a === 'compare') {
-                const friend = perfilDoLinkCompartilhado((($('#compareLink') || {}).value || ''));
-                if (!friend) { showToast('Cole um link de cartão compartilhado válido.', 'error'); return; }
-                perfilComparado = friend;
+                const texto = (($('#compareLink') || {}).value || '');
+                const links = [...new Set(texto.split(/\s+/).filter(Boolean))].slice(0, 3);
+                if (!links.length) { showToast('Cole pelo menos um link de cartão compartilhado.', 'error'); return; }
+                const amigos = links.map(perfilDoLinkCompartilhado).filter(Boolean);
+                if (!amigos.length) { showToast('Nenhum link de cartão compartilhado válido foi encontrado.', 'error'); return; }
+                perfisComparados = amigos;
+                perfilComparado = amigos[0];
                 const box = $('#compareResult');
-                if (box) box.innerHTML = compararPerfisHTML(friend);
+                if (box) {
+                    box.innerHTML = amigos.map((p, i) => compararPerfisHTML(p, i)).join('')
+                        + `<div class="compare-tools"><button type="button" class="btn btn-dark" data-act="compare-copy"><i class="fa-solid fa-copy"></i> Copiar comparação em texto</button></div>`;
+                }
+                if (links.length > 3) showToast('Comparei os 3 primeiros links.', 'error');
+                else if (amigos.length < links.length) showToast('Alguns links não eram válidos e foram ignorados.', 'error');
             }
-            else if (a === 'compare-card') abrirCartaoComparado();
+            else if (a === 'compare-card') abrirCartaoComparado(Number(act.dataset.index) || 0);
+            else if (a === 'compare-download') {
+                const p = perfisComparados[Number(act.dataset.index) || 0];
+                if (p) baixarCartaoPaisagem(p);
+            }
+            else if (a === 'compare-copy') copiarComparacao();
             else if (a === 'showcase-add') {
                 const tipo = ($('#showcaseType') || {}).value;
                 const id = ($('#showcasePick') || {}).value;
@@ -4893,6 +5081,7 @@ function initProfile() {
     $('#pdl').addEventListener('click', () => downloadCard('paisagem'));
     $('#plink').addEventListener('click', copyLink);
     const pshare = $('#pshare'); if (pshare) pshare.addEventListener('click', shareProfile);
+    const pprevPreview = $('#pprevPreview'); if (pprevPreview) pprevPreview.addEventListener('click', abrirPreviaVisitante);
     $('#pcp').addEventListener('click', copyText);
 
     // botões do perfil grande (topo)
@@ -4901,6 +5090,7 @@ function initProfile() {
     });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
+    const pvPreview = $('#pvPreview'); if (pvPreview) pvPreview.addEventListener('click', abrirPreviaVisitante);
     $('#pvDl').addEventListener('click', () => downloadCard('paisagem'));
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
@@ -4910,6 +5100,8 @@ function initProfile() {
 
     // vitrine: abrir o conteúdo e avisar quando o link pessoal leva para fora
     document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-preview-copy]')) { copyLink(); return; }
+        if (e.target.closest('[data-preview-download]')) { downloadCard('paisagem'); return; }
         const b = e.target.closest('[data-showcase-open]');
         if (b) {
             e.preventDefault();
@@ -5047,7 +5239,7 @@ function randomizeProfile() {
 
 /* ---------- compartilhar / baixar o cartão ---------- */
 function cardText(p) {
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
     const priv = privacidade(p);
     const mains = p.mains.map(heroByName).filter(Boolean).map(h => h.name).join(', ');
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join(' · ') : '';
@@ -5065,7 +5257,7 @@ function cardText(p) {
         destaques ? `Destaques: ${destaques}` : '',
         builds ? `Builds salvas: ${builds}` : '',
         lk,
-        priv.level ? `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)` : '',
+        (priv.level && lv) ? `Nível ${lv.n} · ${rankName(lv.n)} (${lv.xp} XP)` : '',
         `ID ${p.id}`
     ].filter(Boolean).join('\n');
 }
@@ -5391,11 +5583,15 @@ async function desenharVitrineCanvasLista(ctx, p, x, y, w, h, acento, font) {
     return lista.length * h + (lista.length - 1) * gap;
 }
 
-async function downloadCard(formato) {
-    if (formato === 'story') return baixarCartaoStory(profile);
-    if (formato === 'quadrado') return baixarCartaoQuadrado(profile);
-    if (formato === 'banner') return baixarCartaoBanner(profile);
-    const p = profile;
+function siteLabel() {
+    const host = location.host || 'hypedz.github.io';
+    const caminho = location.pathname.replace(/index\.html$/, '').replace(/\/$/, '');
+    return (host + caminho).replace(/^\/+/, '') || 'central-deadlock';
+}
+async function downloadCard(formato, p = profile) {
+    if (formato === 'story') return baixarCartaoStory(p);
+    if (formato === 'quadrado') return baixarCartaoQuadrado(p);
+    if (formato === 'banner') return baixarCartaoBanner(p);
     const W = 1000, H = 600;
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
@@ -5448,7 +5644,7 @@ async function downloadCard(formato) {
     }
 
     // textos
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
     const tx = ax + as + 34;
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 15px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', tx, by + bh + 44);
@@ -5491,20 +5687,17 @@ async function downloadCard(formato) {
     // rodapé
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 850), 66, 524); }
-    if (priv.level) {
+    if (priv.level && lv) {
         ctx.fillStyle = lime; ctx.font = `700 15px ${font}`;
         ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, 66, 552);
     }
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 13px ${font}`;
-    ctx.fillText(`ID ${p.id}`, 66, priv.level ? 578 : 552);
+    ctx.fillText(`ID ${p.id}`, 66, (priv.level && lv) ? 578 : 552);
 
-    try {
-        const url = c.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = url; a.download = (p.nick || 'cartao').replace(/[^\w\-]+/g, '_') + '-central-deadlock.png';
-        a.click();
-        showToast('Cartão baixado!');
-    } catch (e) { showToast('Não foi possível gerar a imagem.', 'error'); }
+    baixarPng(c, p, '');
+}
+function baixarCartaoPaisagem(p) {
+    return downloadCard('paisagem', p);
 }
 
 /* ---------- cartões em outros tamanhos (story 1080×1920 e banner 1500×500) ---------- */
@@ -5587,7 +5780,7 @@ async function baixarCartaoStory(p) {
     const priv = privacidade(p);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
 
     ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
     await cartaoCapa(ctx, p, 40, 40, W - 80, 700, 26);
@@ -5638,15 +5831,15 @@ async function baixarCartaoStory(p) {
     }
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 23px ${font}`; ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yLinks); }
-    if (priv.level) {
+    if (priv.level && lv) {
         ctx.fillStyle = acento; ctx.font = `700 26px ${font}`;
         ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yLinks + 70);
     }
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 21px ${font}`;
-    ctx.fillText(`ID ${p.id}`, W / 2, yLinks + (priv.level ? 106 : 70));
+    ctx.fillText(`ID ${p.id}`, W / 2, yLinks + ((priv.level && lv) ? 106 : 70));
 
     ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 19px ${font}`;
-    ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1845);
+    ctx.fillText('central-deadlock · ' + siteLabel(), W / 2, 1845);
     ctx.textAlign = 'left';
 
     baixarPng(c, p, 'story');
@@ -5660,7 +5853,7 @@ async function baixarCartaoQuadrado(p) {
     const priv = privacidade(p);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
 
     ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
     await cartaoCapa(ctx, p, 32, 32, W - 64, 220, 26);
@@ -5717,7 +5910,7 @@ async function baixarCartaoQuadrado(p) {
         ctx.fillText(cortarTexto(ctx, lk, W - 120), W / 2, yFooter + 16);
         yFooter += 32;
     }
-    if (priv.level) {
+    if (priv.level && lv) {
         ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
         ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W / 2, yFooter + 16);
         yFooter += 32;
@@ -5725,7 +5918,7 @@ async function baixarCartaoQuadrado(p) {
     ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = `500 18px ${font}`;
     ctx.fillText(`ID ${p.id}`, W / 2, yFooter + 16);
     ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.font = `600 16px ${font}`;
-    ctx.fillText('central-deadlock · hypedz.github.io/central-deadlock', W / 2, 1040);
+    ctx.fillText('central-deadlock · ' + siteLabel(), W / 2, 1040);
     ctx.textAlign = 'left';
 
     baixarPng(c, p, 'quadrado');
@@ -5739,7 +5932,7 @@ async function baixarCartaoBanner(p) {
     const priv = privacidade(p);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
-    const lv = level();
+    const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
 
     ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
     await cartaoCapa(ctx, p, 0, 0, W, H, 0);
@@ -5775,16 +5968,16 @@ async function baixarCartaoBanner(p) {
 
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
     ctx.textAlign = 'right';
-    if (priv.level) {
+    if (priv.level && lv) {
         ctx.fillStyle = acento; ctx.font = `700 18px ${font}`;
         ctx.fillText(`Nível ${lv.n} · ${rankName(lv.n)} · ${lv.xp} XP`, W - 48, 452);
     }
     ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `500 16px ${font}`;
-    ctx.fillText(`ID ${p.id}`, W - 48, priv.level ? 478 : 452);
+    ctx.fillText(`ID ${p.id}`, W - 48, (priv.level && lv) ? 478 : 452);
     ctx.textAlign = 'left';
     if (lk) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `500 15px ${font}`; ctx.fillText(cortarTexto(ctx, lk, 730), x, 470); }
     ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.font = `600 14px ${font}`;
-    ctx.fillText('hypedz.github.io/central-deadlock', 48, 478);
+    ctx.fillText(siteLabel(), 48, 478);
 
     baixarPng(c, p, 'banner');
 }
@@ -5803,6 +5996,17 @@ function checkSharedCard() {
         <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
         <div class="modal-foot"><button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button></div>`;
     openOverlay($('#shareModal'));
+    history.replaceState(null, '', location.pathname + location.search);
+}
+
+/* ---------- link direto para uma build ---------- */
+function checkBuildLink() {
+    const m = location.hash.match(/^#build=(.+)$/);
+    if (!m) return;
+    let id = '';
+    try { id = decodeURIComponent(m[1]); } catch (e) { return; }
+    if (!BUILDS.some(a => a.id === id)) return;
+    openArticle(id);
     history.replaceState(null, '', location.pathname + location.search);
 }
 
