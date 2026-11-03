@@ -29,6 +29,7 @@ meu-fansite/
 ├── atualizar-noticias.bat   # 2 cliques = notícias + estatísticas + páginas
 ├── postar-no-discord.bat    # 2 cliques aqui = posta as novidades no Discord
 ├── atualizar-tudo.bat       # 2 cliques = notícias + estatísticas + Discord
+├── conferir-site.bat        # 2 cliques = confere fontes, dados, robôs e links
 ├── README.md
 ├── heroi/                   # 1 página por herói (ajuda o Google) — GERADO sozinho
 ├── item/                    # 1 página por item da loja — GERADO sozinho
@@ -36,8 +37,9 @@ meu-fansite/
 ├── noticia/                 # 1 página por notícia — GERADO sozinho
 ├── .github/workflows/       # Robôs do GitHub (veja "Publicar o site")
 │   ├── publicar-site.yml    # Coloca o site no ar
-│   ├── noticias.yml         # Notícias + estatísticas + Discord, todo dia
-│   └── testes.yml           # Roda os testes do Playwright a cada envio
+│   ├── noticias.yml         # Notícias + estatísticas + Discord, de hora em hora
+│   ├── testes.yml           # Roda os testes do Playwright a cada envio
+│   └── conferencia-semanal.yml # Confere o site toda segunda e avisa se algo quebrou
 ├── tests/
 │   └── perfil.spec.js       # Testes de perfil, privacidade, QR, cartões e mobile
 ├── data/
@@ -75,6 +77,7 @@ meu-fansite/
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
 │   ├── configurar-dominio.py # Troca para um domínio próprio (opcional)
 │   ├── servidor-teste.js    # Servidor local usado só pelos testes
+│   ├── conferir-site.py     # Confere fontes, dados, robôs, site e links internos
 │   └── checar-segredos.py   # Trava que impede vazar o webhook no Git
 └── assets/
     ├── brand/
@@ -682,6 +685,57 @@ npm test
 ```
 
 O servidor de teste é o `tools/servidor-teste.js` (não precisa de Python). O GitHub roda os mesmos testes no arquivo `.github/workflows/testes.yml` a cada envio.
+
+---
+
+## 🩺 Rotina semanal de conferência
+
+O site tem um verificador que **não altera nada**: ele só olha se está tudo de pé. Rode com **dois cliques** em `conferir-site.bat` ou pelo terminal:
+
+```powershell
+python tools/conferir-site.py
+```
+
+Ele confere cinco blocos:
+
+1. **Fontes externas** — Steam News, deadlock-api, Liquipedia, Google Tradutor, Font Awesome e Wiki do Deadlock respondem?
+2. **Dados** — os arquivos de `data/` foram atualizados dentro do prazo? (O carimbo de cada arquivo é lido e comparado com a hora atual.)
+3. **Robôs do GitHub** — as últimas execuções de `noticias.yml`, `publicar-site.yml` e `testes.yml` terminaram bem?
+4. **Site publicado** — a home, o `sitemap.xml`, o `manifest.webmanifest`, o `sw.js` e a página 404 respondem? A versão no ar é a mesma do repositório?
+5. **Links internos** — todas as páginas, imagens, fontes e chamadas `url(...)` do CSS existem mesmo? (Hoje são mais de 270 páginas e 15 mil links.)
+
+### Como ler o resultado
+
+Cada linha começa com:
+
+- **`[OK]`** — passou.
+- **`[AVISO]`** — não está quebrado, mas vale olhar. Exemplo: a Liquipedia ou o tradutor bloquearam o robô com HTTP 403/429; isso costuma ser temporário.
+- **`[FALHA]`** — precisa de conserto. Exemplo: um arquivo de dados com mais de 3 dias, um robô que falhou ou um link apontando para arquivo que não existe.
+
+O programa termina com **código 0** quando não há falhas (mesmo com avisos) e **1** quando há alguma falha. Para tratar aviso como falha também, use `--estrito`.
+
+### Prazos usados
+
+| O que | Aviso | Falha |
+|---|---|---|
+| Dados atualizados de hora em hora (notícias, estatísticas, builds, guias...) | 12h | 72h |
+| Dados atualizados 1x por dia (elos, esports, top jogadores) | 36h | 120h |
+| Robô de notícias | 6h | 30h |
+| Robôs de publicação e testes | — | só olha se a última execução falhou |
+
+> ⏰ Os carimbos dos arquivos são gravados pelos robôs do GitHub em **UTC**. O relatório converte para o horário de Brasília na hora de mostrar. Se você rodar o `atualizar-tudo.bat` no seu PC, o carimbo fica no horário local — a diferença máxima é de 3h e não atrapalha a leitura.
+
+### Automático toda segunda-feira
+
+O arquivo `.github/workflows/conferencia-semanal.yml` roda sozinho **toda segunda às 09:00 de Brasília** (12:00 UTC). Ele também pode ser disparado na mão: **Actions → Conferência semanal do site → Run workflow**.
+
+- O relatório completo aparece no **resumo da execução**, mesmo quando está tudo certo.
+- Se houver **FALHA**, ele abre uma issue chamada **`[Conferência semanal] Problemas encontrados`** (ou atualiza a que já existe) com o relatório e o link da execução.
+- Quando a semana seguinte passa sem falhas, ele **fecha a issue sozinho**.
+- Para rodar no seu PC sem internet: `python tools/conferir-site.py --sem-rede` (confere só dados e links locais).
+- Para usar em outro programa: `python tools/conferir-site.py --json`.
+
+> 🔒 O verificador só faz leituras: não mexe em `data/`, não publica, não posta no Discord e não envia dados para lugar nenhum além das fontes que o site já usa.
 
 ---
 

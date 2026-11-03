@@ -1,0 +1,132 @@
+name: Conferência semanal do site
+
+# Roda toda segunda-feira às 09:00 de Brasília (12:00 UTC).
+# Também pode ser disparada na mão: Actions > Conferência semanal do site > Run workflow.
+#
+# O que ele faz:
+#   - confere as fontes externas (Steam, deadlock-api, Liquipedia, tradutor...)
+#   - confere se os dados em data/ estão recentes
+#   - confere as últimas execuções dos robôs do GitHub
+#   - confere o site publicado (home, sitemap, manifest, 404)
+#   - confere os links internos de todas as páginas
+#
+# Se encontrar FALHA, abre (ou atualiza) uma issue com o relatório.
+# Quando tudo volta ao normal, fecha a issue sozinho.
+# O relatório também aparece no resumo da execução, mesmo sem falha.
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Baixar o site
+        uses: actions/checkout@v4
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Rodar a conferência
+        id: conferencia
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/conferir-site.py > relatorio-conferencia.md 2>&1
+
+      - name: Mostrar o relatório
+        if: always()
+        run: |
+          cat relatorio-conferencia.md
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Conferência semanal" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat relatorio-conferencia.md >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Abrir ou atualizar a issue quando houver falha
+        if: steps.conferencia.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let corpo = '';
+            try { corpo = fs.readFileSync('relatorio-conferencia.md', 'utf8'); } catch (e) {}
+            if (!corpo.trim()) {
+              corpo = 'A conferência não gerou relatório. Veja os logs da execução no GitHub Actions.';
+            }
+            const rodada = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            corpo += `\n\n---\nExecução: [ver no GitHub Actions](${rodada})`;
+
+            const titulo = '[Conferência semanal] Problemas encontrados';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            const existente = issues.find(i => i.title === titulo);
+
+            if (existente) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: corpo
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: `A conferência desta semana encontrou problemas. Relatório atualizado na descrição.`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: titulo,
+                body: corpo
+              });
+            }
+
+      - name: Fechar a issue quando estiver tudo certo
+        if: steps.conferencia.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const titulo = '[Conferência semanal] Problemas encontrados';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            for (const issue of issues.filter(i => i.title === titulo)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: 'A conferência desta semana passou sem falhas. Fechando automaticamente.'
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }
+
+      - name: Marcar a execução como falha
+        if: steps.conferencia.outcome == 'failure'
+        run: exit 1
