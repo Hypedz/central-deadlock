@@ -1512,6 +1512,7 @@ body.compact .cards-grid { gap: 14px; }
 
 /* ===== COMPARAR ===== */
 .cmp-selects { display: flex; gap: 14px; align-items: flex-end; margin-bottom: 24px; }
+.cmp-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .cmp-selects .field { flex: 1; }
 .cmp-selects > .btn { height: 44px; }
 .cmp-selects select { width: 100%; }
@@ -1724,6 +1725,8 @@ body.compact .cards-grid { gap: 14px; }
 .event-body p { color: var(--text-soft); font-size: 0.88rem; }
 .event-remind { white-space: nowrap; }
 .event-remind.on { background: var(--lime); color: var(--on-lime); border-color: var(--lime); }
+.event-actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.event-cal { white-space: nowrap; }
 
 /* eventos: a lista é montada com datas reais (torneios + atualizações do jogo) */
 .event-item { cursor: pointer; }
@@ -1817,8 +1820,11 @@ body.compact .cards-grid { gap: 14px; }
     .tier-row { grid-template-columns: 52px 1fr; padding: 10px; }
     .tier-badge { font-size: 1.4rem; min-height: 78px; }
     .event-item { grid-template-columns: 64px 1fr; }
+    .event-actions { grid-column: 2; justify-self: start; flex-direction: row; flex-wrap: wrap; }
     .event-remind { grid-column: 2; justify-self: start; }
     .event-date { padding-right: 10px; }
+    .cmp-actions { width: 100%; }
+    .cmp-actions .btn { flex: 1 1 auto; }
     .quiz-wrap { padding: 18px; }
     .profile-wrapper { grid-template-columns: 1fr; }
     .profile-side { position: static; }
@@ -2264,6 +2270,8 @@ body.compact .cards-grid { gap: 14px; }
 .sec-note { color: var(--text-soft); font-size: .86rem; margin-bottom: 12px; }
 .build-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
 .build-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.build-head-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.build-copy { white-space: nowrap; }
 .build-head b { font-family: var(--font-ui); font-size: .96rem; }
 .build-wr { background: var(--lime-dim); color: var(--lime); font-weight: 700; font-size: .78rem; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .build-card small { display: block; color: var(--text-faint); font-size: .75rem; margin: 3px 0 11px; }

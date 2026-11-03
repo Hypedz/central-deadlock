@@ -343,6 +343,62 @@ test('cartão contaminado é refeito sem imagens externas', async ({ page }) => 
     expect(r.externasLiberadas).toBe(true);
 });
 
+test('comparação tem link compartilhável e cartão PNG', async ({ page }) => {
+    await page.goto('/#comparar=' + encodeURIComponent('Abrams') + ',' + encodeURIComponent('Bebop'));
+    await page.waitForFunction(() => typeof showSection === 'function' && typeof heroByName === 'function');
+    await expect(page.locator('#comparar')).toHaveClass(/active/);
+    await expect(page.locator('#cmpA')).toHaveValue('Abrams');
+    await expect(page.locator('#cmpB')).toHaveValue('Bebop');
+    await page.locator('#cmpShare').click();
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('#comparar=Abrams,Bebop');
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('#cmpDownload').click()
+    ]);
+    expect(download.suggestedFilename()).toContain('comparacao-abrams-vs-bebop');
+    const dados = fs.readFileSync(await download.path());
+    expect(dados.length).toBeGreaterThan(50000);
+    expect(dados.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+});
+
+test('copiar build gera o texto com a ordem dos itens', async ({ page }) => {
+    const info = await page.evaluate(() => {
+        const a = BUILDS.find(x => x.builds && x.builds.length);
+        return {
+            id: a.id,
+            primeiro: itemDe(a.builds[0].itens[0]).n,
+            win: String(a.builds[0].win).replace('.', ',')
+        };
+    });
+    await page.goto('/#build=' + encodeURIComponent(info.id));
+    await expect(page.locator('#contentModal')).toHaveClass(/show/);
+    await page.locator('[data-copy-build]').first().click();
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('Ordem de compra:');
+    const copiado = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copiado).toContain(info.primeiro);
+    expect(copiado).toContain('Win rate: ' + info.win + '%');
+});
+
+test('evento futuro oferece arquivo de calendário (.ics)', async ({ page }) => {
+    await page.evaluate(() => showSection('eventos'));
+    await page.waitForSelector('.event-item');
+    const tem = await page.locator('.event-item.futuro [data-calendar]').count();
+    test.skip(!tem, 'sem torneio futuro nos dados de teste');
+    const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.locator('.event-item.futuro [data-calendar]').first().click()
+    ]);
+    expect(download.suggestedFilename()).toMatch(/\.ics$/);
+    const texto = fs.readFileSync(await download.path(), 'utf8');
+    expect(texto).toContain('BEGIN:VCALENDAR');
+    expect(texto).toContain('BEGIN:VEVENT');
+    expect(texto).toContain('DTSTART;VALUE=DATE:');
+    expect(texto).toContain('SUMMARY:Deadlock: ');
+    expect(texto).toContain('END:VCALENDAR');
+    await page.waitForTimeout(350);
+    await expect(page.locator('#contentModal')).not.toHaveClass(/show/);
+});
+
 test('acessibilidade básica e sem erros de página', async ({ page }) => {
     const erros = [];
     page.on('pageerror', erro => erros.push(erro.message));

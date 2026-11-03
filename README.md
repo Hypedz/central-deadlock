@@ -130,7 +130,7 @@ meu-fansite/
 
 ### Abas novas
 
-- **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar** e **aleatório**.
+- **Comparar** — escolha dois heróis e veja tier, vida, velocidade, win rate e pick rate lado a lado (o melhor valor fica destacado). Botões de **trocar**, **aleatório**, **copiar link** (o link guarda o par escolhido) e **baixar cartão** (imagem PNG da comparação).
 - **Counters** — escolha o seu herói e veja, de um lado, **contra quem ele ganha** e, do outro, **com quem ele precisa tomar cuidado**. São os **6 melhores e os 6 piores confrontos** de verdade (win rate real com pelo menos 400 partidas contra cada inimigo), com barra comparativa e o número de partidas. O último herói escolhido fica salvo. Botão **Sortear herói** para descobrir um novo.
 - **Builds** — **as builds mais usadas de cada um dos 44 heróis**, na **ordem real de compra** dos itens, com o **win rate e o número de partidas** de cada build. Tem busca e filtro por função, e clicar em um item mostra o preço e o efeito. (Antes eram só 5 builds escritas à mão.)
 - **Itens do Jogo** - **todos os itens reais da loja** (armas, vitalidade e espírito), com preço, tier, efeito e o **win rate de verdade** de cada item. Tem busca e filtro por tipo — e **cada item tem página própria** (clique no item e depois em **Página do item**).
@@ -155,6 +155,8 @@ Os torneios e resultados vêm da **[Liquipedia](https://liquipedia.net/deadlock/
 - **Resultados recentes** — quem foi **campeão** e **vice**, com o prêmio e a data.
 
 Cada torneio tem uma **letra de tier** (S, A, B, C ou D) e um botão que abre a página do torneio na Liquipedia. Nada é inventado: os **logos são os oficiais** de cada torneio, e o conteúdo da Liquipedia é usado com o crédito + licença (**CC BY-SA 3.0**) no rodapé da aba e no rodapé do site.
+
+**Calendário:** nos torneios que ainda vão acontecer, o botão **Calendário** baixa um arquivo `.ics`. Basta abrir o arquivo no celular ou no PC para o evento entrar na agenda (Google Agenda, Apple Calendário, Outlook...). O arquivo é gerado na hora pelo navegador, com a data real do torneio — sem servidor e sem login. Eventos que já passaram não mostram o botão.
 
 > 🙏 **Uma visita por dia:** a Liquipedia é mantida por voluntários e pede poucas visitas. Por isso o `update-esports.py` só busca **uma vez por dia** (ele olha a data que ficou gravada no `data/esports.js`; o robô do GitHub roda de hora em hora, mas nas outras vezes ele para antes de visitar). Quando **você** roda o `atualizar-tudo.bat`, ele usa `--forcar` e busca na hora. Se a busca falhar, o arquivo antigo é mantido — nunca apagamos os torneios.
 >
@@ -327,6 +329,17 @@ Dá para **baixar o PNG** ou usar o botão **Compartilhar** (no celular ele abre
 
 ---
 
+## 🔗 Comparar heróis: link e cartão
+
+Na aba **Comparar**, depois de escolher os dois heróis, você tem dois botões novos:
+
+- **Copiar link** — gera um endereço como `.../#comparar=Abrams,Bebop`. Quem abrir cai direto na mesma comparação, sem precisar escolher de novo.
+- **Baixar cartão** — monta um **PNG de 1000×600** com os dois heróis, o **VS**, o tier, a vida, a velocidade, o win rate, o pick rate e a dificuldade. Usa a **cor de destaque do seu perfil** e os mesmos números que estão na tela.
+
+O link **não guarda dados pessoais**: ele só carrega os **nomes dos dois heróis**. Nada de conta, servidor ou banco de dados. Se alguém abrir um link com um herói que não existe, o site simplesmente ignora e mostra a comparação normal.
+
+---
+
 ## 📱 O site virou um "app" (PWA)
 
 Agora dá para **instalar a Central Deadlock no celular ou no PC**, igual a um aplicativo — com ícone próprio, tela cheia e sem a barra do navegador:
@@ -426,6 +439,7 @@ Cada build traz:
 - **O nome** que a comunidade deu à build (nomes ofensivos são trocados sozinhos por "Build da comunidade")
 - **O win rate real** e **quantas partidas** foram jogadas com ela
 - **Os itens na ordem certa de compra** — clique em um item para ver o preço, o tipo e o efeito
+- **Copiar build** — um botão em cada build que copia o texto pronto (herói, nome da build, win rate, partidas e a ordem de compra) para colar no **Discord** ou no **WhatsApp**. Só entram dados reais; a fonte aparece no fim do texto.
 - Um botão, no fim, que abre a **página completa do herói**
 
 **Para achar rápido:** use a caixa de busca (nome, papel ou tier) ou os botões de papel (Tanque, Suporte, Carry, Controle, Assassino). As builds também aparecem na **busca global (Ctrl + K)**.
@@ -659,7 +673,7 @@ e acesse `http://localhost:8123`.
 
 ### Testes automáticos (opcional, para quem mexe no código)
 
-Os testes usam **Playwright** e abrem o site sozinhos no Chromium para conferir perfil, privacidade, QR Code, link compartilhado, comparação, presets, builds e os quatro PNGs. Na primeira vez:
+Os testes usam **Playwright** e abrem o site sozinhos no Chromium para conferir perfil, privacidade, QR Code, link compartilhado, comparação (link e cartão PNG), copiar build, calendário dos eventos, presets, builds e os quatro PNGs. Na primeira vez:
 
 ```powershell
 npm install

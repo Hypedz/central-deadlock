@@ -682,9 +682,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateChip();
     checkSharedCard();
     checkBuildLink();
+    checkCompareLink();
     window.addEventListener('hashchange', () => {
         checkSharedCard();
         checkBuildLink();
+        checkCompareLink();
     });
     registrarApp();
     initOffline();
@@ -2451,6 +2453,18 @@ function initContents() {
     initEsports();                     // esports: torneios reais (data/esports.js)
 
     document.addEventListener('click', (e) => {
+        const copiarBuild = e.target.closest('[data-copy-build]');
+        if (copiarBuild) {
+            e.preventDefault();
+            e.stopPropagation();
+            const artigo = findArticle(copiarBuild.dataset.copyBuild);
+            const build = artigo && artigo.builds && artigo.builds[Number(copiarBuild.dataset.buildIndex)];
+            if (artigo && build) {
+                if (typeof window.cdlTrack === 'function') window.cdlTrack('build_copiar_texto');
+                copiarTexto(textoDaBuild(artigo, build), 'Build copiada! Cole no Discord ou no WhatsApp.');
+            }
+            return;
+        }
         const saveBuild = e.target.closest('[data-save-build]');
         if (saveBuild) {
             e.preventDefault();
@@ -2472,6 +2486,26 @@ function initContents() {
 
 function findArticle(id) { return [...NEWS, ...GUIDES, ...BUILDS, ...STEAM_ARTICLES].find(a => a.id === id); }
 
+/* Texto da build para colar no Discord/WhatsApp. Usa só o que é real:
+   nome, win rate, partidas e a ordem de compra dos itens. */
+function textoDaBuild(a, b) {
+    const heroi = String(a.title).split(/\s+[\u2014\u2013-]\s+/)[0];
+    const itens = (b.itens || []).map((id, i) => {
+        const it = itemDe(id);
+        const nome = it ? it.n : 'Item ' + id;
+        return (i + 1) + '. ' + nome + (it && it.c ? ' (' + money(it.c) + ')' : '');
+    });
+    return [
+        heroi + ' — ' + b.nome,
+        'Win rate: ' + String(b.win).replace('.', ',') + '% em ' + money(b.m) + ' partidas',
+        '',
+        'Ordem de compra:',
+        ...itens,
+        '',
+        'Fonte: deadlock-api.com — Central Deadlock'
+    ].join('\n');
+}
+
 function openArticle(id) {
     const a = findArticle(id); if (!a) return;
     const items = a.items ? `<div class="pform-sec" style="margin-top:18px">Itens recomendados</div>`
@@ -2483,7 +2517,10 @@ function openArticle(id) {
         ${a.builds.map((b, i) => `<div class="build-card">
             <div class="build-head">
                 <b>${i === 0 ? '🏆 ' : ''}${esc(b.nome)}</b>
-                <span class="build-wr">${String(b.win).replace('.', ',')}% de vitória</span>
+                <div class="build-head-right">
+                    <span class="build-wr">${String(b.win).replace('.', ',')}% de vitória</span>
+                    <button type="button" class="btn btn-dark btn-sm build-copy" data-copy-build="${esc(a.id)}" data-build-index="${i}" title="Copiar a ordem dos itens para colar no Discord ou no WhatsApp"><i class="fa-regular fa-copy"></i> Copiar build</button>
+                </div>
             </div>
             <small>${money(b.m)} partidas registradas com esta build</small>
             <div class="build-itens">${itensDaBuildHTML(b.itens)}</div>
@@ -2648,6 +2685,10 @@ function initCompare() {
         cmpState.a = pick(); cmpState.b = pick();
         A.value = cmpState.a; B.value = cmpState.b; renderCompare();
     });
+    const compartilhar = $('#cmpShare');
+    if (compartilhar) compartilhar.addEventListener('click', copiarLinkComparacao);
+    const baixar = $('#cmpDownload');
+    if (baixar) baixar.addEventListener('click', baixarCartaoComparacao);
     renderCompare();
 }
 
@@ -2678,6 +2719,161 @@ function renderCompare() {
             <div class="cmp-cell b"><div class="cmp-val ${bBest ? 'best' : ''}">${b.soon ? '—' : esc(disp[k](b))}</div><div class="cmp-bar"><i style="width:${bw}%"></i></div></div>
         </div>`;
     }).join('');
+}
+
+/* link e cartão da comparação: o mesmo par de heróis que está na tela */
+function comparacaoURL() {
+    return location.href.split('#')[0] + '#comparar=' + encodeURIComponent(cmpState.a) + ',' + encodeURIComponent(cmpState.b);
+}
+
+function copiarLinkComparacao() {
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('comparar_copiar_link');
+    copiarTexto(comparacaoURL(), 'Link da comparação copiado!');
+}
+
+function checkCompareLink() {
+    const m = location.hash.match(/^#comparar=(.+)$/);
+    if (!m) return;
+    const partes = m[1].split(',').map(p => {
+        try { return decodeURIComponent(p); } catch (e) { return ''; }
+    });
+    const a = heroByName(partes[0]), b = heroByName(partes[1]);
+    if (!a || !b) return;
+    cmpState.a = a.name;
+    cmpState.b = b.name;
+    const selA = $('#cmpA'), selB = $('#cmpB');
+    if (selA) selA.value = cmpState.a;
+    if (selB) selB.value = cmpState.b;
+    showSection('comparar');
+    renderCompare();
+    history.replaceState(null, '', location.pathname + location.search);
+}
+
+async function baixarCartaoComparacao() {
+    const a = heroByName(cmpState.a), b = heroByName(cmpState.b);
+    if (!a || !b) { showToast('Escolha dois heróis para comparar.', 'error'); return; }
+    try {
+        const W = 1000, H = 600;
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const ctx = c.getContext('2d');
+        const acento = (profile.accent && profile.accent !== 'auto') ? profile.accent : '#b6f24a';
+        const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+        const fontUI = 'Poppins, Inter, "Segoe UI", system-ui, sans-serif';
+
+        ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+
+        // cabeçalho
+        ctx.fillStyle = acento;
+        ctx.font = `800 20px ${fontUI}`;
+        ctx.fillText('COMPARAR HERÓIS', 48, 52);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,.38)';
+        ctx.font = `600 14px ${font}`;
+        ctx.fillText(siteLabel(), 952, 52);
+        ctx.textAlign = 'left';
+
+        // painel de cada herói
+        const painel = async (h, x) => {
+            const y = 76, w = 424, alt = 232;
+            ctx.fillStyle = 'rgba(255,255,255,.06)';
+            roundRectPath(ctx, x, y, w, alt, 14); ctx.fill();
+            const lado = 150, altImg = 204;
+            const img = h.soon ? null : await loadImg('assets/heroes/' + h.file);
+            if (img) {
+                ctx.save(); roundRectPath(ctx, x + 14, y + 14, lado, altImg, 10); ctx.clip();
+                drawCover(ctx, img, x + 14, y + 14, lado, altImg); ctx.restore();
+            } else {
+                ctx.fillStyle = acento;
+                roundRectPath(ctx, x + 14, y + 14, lado, altImg, 10); ctx.fill();
+                ctx.fillStyle = '#0c0c0e';
+                ctx.font = `800 46px ${fontUI}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(initials(h.name), x + 14 + lado / 2, y + 14 + altImg * 0.58);
+                ctx.textAlign = 'left';
+            }
+            const tx = x + 182;
+            ctx.fillStyle = '#fff';
+            ctx.font = `800 25px ${fontUI}`;
+            ctx.fillText(cortarTexto(ctx, h.name, 224), tx, y + 48);
+            ctx.fillStyle = 'rgba(255,255,255,.62)';
+            ctx.font = `500 15px ${font}`;
+            const sub = [h.role, h.arch && h.arch !== '—' ? h.arch : ''].filter(Boolean).join(' · ');
+            ctx.fillText(cortarTexto(ctx, sub, 224), tx, y + 74);
+            if (h.soon) {
+                ctx.fillStyle = acento;
+                ctx.font = `700 14px ${fontUI}`;
+                ctx.fillText('EM BREVE', tx, y + 108);
+            } else {
+                ctx.fillStyle = acento;
+                roundRectPath(ctx, tx, y + 92, 66, 26, 8); ctx.fill();
+                ctx.fillStyle = '#0c0c0e';
+                ctx.font = `800 14px ${fontUI}`;
+                ctx.textAlign = 'center';
+                ctx.fillText('TIER ' + h.tier, tx + 33, y + 110);
+                ctx.textAlign = 'left';
+                ctx.fillStyle = 'rgba(255,255,255,.55)';
+                ctx.font = `500 14px ${font}`;
+                ctx.fillText(cortarTexto(ctx, DIFF_LABEL[h.diff] || 'Dificuldade: —', 224), tx, y + 150);
+                ctx.fillText(cortarTexto(ctx, h.win != null ? h.win + '% de vitória' : '', 224), tx, y + 174);
+                ctx.fillText(cortarTexto(ctx, h.pick != null ? h.pick + '% de pick' : '', 224), tx, y + 198);
+            }
+        };
+        await painel(a, 48);
+        await painel(b, 528);
+
+        // VS no meio
+        ctx.beginPath(); ctx.arc(500, 192, 34, 0, Math.PI * 2);
+        ctx.fillStyle = acento; ctx.fill();
+        ctx.fillStyle = '#0c0c0e';
+        ctx.font = `800 18px ${fontUI}`;
+        ctx.textAlign = 'center';
+        ctx.fillText('VS', 500, 199);
+        ctx.textAlign = 'left';
+
+        // linhas de comparação (os mesmos números da tela)
+        const linhas = [
+            ['Tier', h => 'Tier ' + h.tier, h => 5 - 'SABCD'.indexOf(h.tier)],
+            ['Vida', h => String(h.hp), h => h.hp],
+            ['Velocidade', h => h.spd + ' m/s', h => h.spd],
+            ['Win rate', h => h.win + '%', h => +h.win],
+            ['Pick rate', h => h.pick + '%', h => +h.pick],
+            ['Dificuldade', h => DIFF_LABEL[h.diff] || '—', h => h.diff != null ? 4 - h.diff : 0]
+        ];
+        let y = 338;
+        linhas.forEach(([rotulo, valor, peso]) => {
+            ctx.strokeStyle = 'rgba(255,255,255,.08)';
+            ctx.beginPath(); ctx.moveTo(48, y + 31); ctx.lineTo(952, y + 31); ctx.stroke();
+            const va = a.soon ? '—' : valor(a);
+            const vb = b.soon ? '—' : valor(b);
+            const pa = a.soon ? 0 : peso(a), pb = b.soon ? 0 : peso(b);
+            ctx.font = `700 17px ${fontUI}`;
+            ctx.textAlign = 'right';
+            ctx.fillStyle = (!a.soon && pa > pb) ? acento : 'rgba(255,255,255,.78)';
+            ctx.fillText(String(va == null ? '—' : va), 452, y + 20);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,.42)';
+            ctx.font = `700 11px ${fontUI}`;
+            ctx.fillText(rotulo.toUpperCase(), 500, y + 19);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = (!b.soon && pb > pa) ? acento : 'rgba(255,255,255,.78)';
+            ctx.font = `700 17px ${fontUI}`;
+            ctx.fillText(String(vb == null ? '—' : vb), 548, y + 20);
+            y += 38;
+        });
+
+        // rodapé
+        ctx.fillStyle = 'rgba(255,255,255,.32)';
+        ctx.font = `500 13px ${font}`;
+        ctx.fillText(siteLabel(), 48, 584);
+        ctx.textAlign = 'right';
+        ctx.fillText('Dados reais: deadlock-api.com', 952, 584);
+        ctx.textAlign = 'left';
+
+        salvarCanvas(c, 'comparacao-' + slugJS(a.name) + '-vs-' + slugJS(b.name) + '-central-deadlock.png', 'Cartão da comparação baixado!');
+    } catch (e) {
+        console.error('Falha ao gerar o cartão da comparação:', e);
+        showToast('Não foi possível gerar o cartão da comparação.', 'error');
+    }
 }
 
 /* ================= dados reais do jogo (itens, builds, contadores, ranking) =================
@@ -3842,6 +4038,11 @@ function eventosReais() {
             titulo: t.nome,
             desc: (t.premio ? t.premio + ' de premiação' : 'Torneio de Deadlock')
                 + (t.local ? ' · ' + t.local : '') + (t.times ? ' · ' + t.times + ' times' : ''),
+            iso: t.iso || '',
+            url: t.url || '',
+            premio: t.premio || '',
+            local: t.local || '',
+            times: t.times || '',
             lembrar: true,
             abrir: () => { showSection('esports'); setTimeout(() => abrirEsporte('proximos', i), 150); }
         });
@@ -3874,16 +4075,84 @@ function cartaoEventoHTML(ev) {
     const quando = quantoFalta(ev.quando);
     const futuro = quando && quando !== 'já aconteceu';
     const data = String(ev.quando.getDate()).padStart(2, '0');
+    const acoes = ev.lembrar
+        ? `<div class="event-actions">
+            <button class="btn btn-dark event-remind ${lembrado ? 'on' : ''}" data-remind="${esc(ev.id)}">${lembrado ? '<i class="fa-solid fa-check"></i> Lembrando' : 'Lembrar'}</button>
+            ${futuro ? `<button class="btn btn-dark event-cal" data-calendar="${esc(ev.id)}" title="Baixar um arquivo para adicionar este evento ao calendário"><i class="fa-regular fa-calendar-plus"></i> Calendário</button>` : ''}
+        </div>`
+        : '<span class="event-ver">Ler <i class="fa-solid fa-arrow-right"></i></span>';
     return `<article class="event-item ${futuro ? 'futuro' : 'passado'}" data-evento="${esc(ev.id)}" tabindex="0" role="button" title="Clique para abrir">
         <div class="event-date"><b>${data}</b><span>${MESES_CURTOS[ev.quando.getMonth()]}</span></div>
         <div class="event-body">
             <h3><i class="fa-solid ${ev.icone}"></i> ${esc(ev.titulo)}</h3>
             <p>${esc(ev.desc)} · ${esc(ev.tipo)}${quando ? ' · <b>' + esc(quando) + '</b>' : ''}</p>
         </div>
-        ${ev.lembrar
-            ? `<button class="btn btn-dark event-remind ${lembrado ? 'on' : ''}" data-remind="${esc(ev.id)}">${lembrado ? '<i class="fa-solid fa-check"></i> Lembrando' : 'Lembrar'}</button>`
-            : '<span class="event-ver">Ler <i class="fa-solid fa-arrow-right"></i></span>'}
+        ${acoes}
     </article>`;
+}
+
+/* ---------- calendário (.ics): funciona offline e sem servidor ----------
+   Gera um arquivo que o celular/PC abre no calendário da pessoa. */
+function icsEscapar(texto) {
+    return String(texto == null ? '' : texto)
+        .replace(/\\/g, '\\\\')
+        .replace(/\r?\n/g, '\\n')
+        .replace(/,/g, '\\,')
+        .replace(/;/g, '\\;');
+}
+function icsDobrar(linha) {
+    const texto = String(linha);
+    if (texto.length <= 73) return texto;
+    let saida = texto.slice(0, 73);
+    let resto = texto.slice(73);
+    while (resto.length) {
+        saida += '\r\n ' + resto.slice(0, 72);
+        resto = resto.slice(72);
+    }
+    return saida;
+}
+function icsDataDeIso(iso) {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[1] + m[2] + m[3] : '';
+}
+function icsDiaSeguinte(iso) {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return '';
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + 1));
+    return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
+function icsAgora() {
+    return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+function baixarEventoCalendario(id) {
+    const ev = eventosAtuais.filter(x => x.id === id)[0];
+    if (!ev) return;
+    const inicio = icsDataDeIso(ev.iso);
+    if (!inicio) { showToast('Este evento não tem data para o calendário.', 'error'); return; }
+    const url = /^https?:\/\//i.test(ev.url || '') ? ev.url : '';
+    const descricao = [ev.desc, ev.tipo, url ? 'Fonte: ' + url : ''].filter(Boolean).join(' · ');
+    const linhas = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Central Deadlock//Eventos//PT-BR',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        'UID:' + ev.id + '@central-deadlock',
+        'DTSTAMP:' + icsAgora(),
+        'DTSTART;VALUE=DATE:' + inicio,
+        'DTEND;VALUE=DATE:' + icsDiaSeguinte(ev.iso),
+        'SUMMARY:' + icsEscapar('Deadlock: ' + ev.titulo),
+        'DESCRIPTION:' + icsEscapar(descricao),
+        ...(url ? ['URL:' + url] : []),
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ];
+    const conteudo = linhas.map(icsDobrar).join('\r\n') + '\r\n';
+    const blob = new Blob([conteudo], { type: 'text/calendar;charset=utf-8' });
+    if (typeof window.cdlTrack === 'function') window.cdlTrack('evento_calendario');
+    baixarArquivo(URL.createObjectURL(blob), 'deadlock-' + slugJS(ev.titulo) + '.ics', true);
+    showToast('Calendário baixado! Abra o arquivo para adicionar o evento.');
 }
 
 function abrirEvento(id) {
@@ -3896,6 +4165,13 @@ function initEvents() {
     if (!caixa) return;
     renderEvents();
     caixa.addEventListener('click', (e) => {
+        const cal = e.target.closest('[data-calendar]');
+        if (cal) {
+            e.preventDefault();
+            e.stopPropagation();
+            baixarEventoCalendario(cal.dataset.calendar);
+            return;
+        }
         const b = e.target.closest('[data-remind]');
         if (b) {
             e.stopPropagation();
@@ -5330,6 +5606,16 @@ function baixarQRCode() {
     if (!canvas) { showToast('O QR Code ainda não está pronto.', 'error'); return; }
     const nome = (profile.nick || 'perfil').replace(/[^\w\-]+/g, '_') + '-central-deadlock-qr.png';
     salvarCanvas(canvas, nome, 'QR Code baixado!');
+}
+
+function copiarTexto(texto, mensagem) {
+    const ok = () => showToast(mensagem || 'Copiado!');
+    const falha = () => window.prompt('Copie o texto:', texto);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(ok).catch(falha);
+        return;
+    }
+    falha();
 }
 
 async function copyText() {
