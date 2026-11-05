@@ -1,10 +1,77 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 05/11/2026 as 15:53 */
+   Ultima atualizacao: 05/11/2026 as 21:40 */
 window.STEAM_NEWS = {
- "updated": "05/11/2026 as 15:53",
+ "updated": "05/11/2026 as 21:40",
  "count": 12,
  "items": [
+  {
+   "id": "s1848664643342973",
+   "title": "Ranked - Beta Season 2",
+   "title_pt": "Classificado - Temporada Beta 2",
+   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1848664643342973",
+   "ts": 1793908694,
+   "date": "05 nov 2026",
+   "cat": "Steam",
+   "patch": false,
+   "image": "https://clan.cloudflare.steamstatic.com/images/45164767/128f6aad08d9391a99f7e91565ea3a4b8dbef37e.png",
+   "desc": "Thursday March 11th 2027 , lasting four months. Seasonal Rank Reset Ranked players will see their rank soft reset at the start of this new season, and can begin their climb through Beta Seas...",
+   "desc_pt": "Quinta-feira, 11 de março de 2027, com duração de quatro meses. Redefinição de Classificação Sazonal Os jogadores classificados verão sua classificação redefinida suavemente no início desta nova temporada e poderão começar sua escalada nos Mares Beta...",
+   "lines": [
+    "Thursday March 11th 2027 , lasting four months.",
+    "Seasonal Rank Reset",
+    "Ranked players will see their rank soft reset at the start of this new season, and can begin their climb through Beta Season 2. This soft reset is significantly smaller than the previous one. On average, players can expect to see their rank decrease by around 1 badge as part of the soft reset. We will also be using the players' winrate in the previous season to make further adjustments of 1-2 subranks to help place players in the correct relative spots. Existing Ranked players will not have to complete calibration again at the start of this season, players who did not participate in Ranked last season will need to calibrate as usual.",
+    "Global Rank Redistribution",
+    "After monitoring the Ranked playerbase throughout this first season, and accommodating for the recent influx of new players in the game, we will be running a global redistribution at the start of this new season. This means that some players may see their rank actually increase rather than decrease at the start of the new season despite the soft reset.",
+    "To summarize, both of these rank adjustments are being made as a two-step operation. The first is taking everyone's existing ranks and redistributing the curve as described above. Second is taking the new post-redistribution numbers and applying the soft reset of ranks by about -1 badge on average. The final result of this is going to be different for everyone, some may gain ranks despite the soft reset and others may get moved down slightly more.",
+    "Rule changes to Ranked for Beta Season 2 We are making a few changes to the way the Ranked system works for Beta Season 2 based on how things played out in Beta Season 1, as well as all of the useful feedback we've heard from the community.",
+    "Rank Loss Protection (Shields):",
+    "Players within the Phantom, Ascendant, and Eternus ranks will no longer have any rank loss protection shields (previously 5 on full ranks and 2 on subranks).",
+    "For all other players, we have reduced the number of rank loss protection shields. For full rank boundary, the shield count is reduced from 5 to 3 (i.e. if you are at Mystic I with 0 rank points, you will now maintain the Mystic badge for only 3 losses before dropping to Sentinel instead of 5). For subranks (i.e. Mystic III → Mystic II), the shield count is reduced from 2 to 1.",
+    "Rank Points:",
+    "Per Match: The points for a game has been increased from 300 to 350.",
+    "Ranking Up: The points required to reach a new badge from a final subrank have been decreased from 2000 to 1500. The points between subranks remain unchanged at 1000.",
+    "Hero Bans:",
+    "We have increased the number of hero bans per match in Ranked from 3 to 4.",
+    "Initial Placements:",
+    "The highest players can be placed in the new season will be Ascendant I, with some potential for up to Ascendant III based on performance in the previous season (up from Oracle VI max last season).",
+    "Hero Unlocking Requirements:",
+    "We still feel strongly that it is very important that players in Ranked have deep knowledge and confidence piloting a hero they are using for the sake of all players involved, however we also recognize that there is room for improvement in how we measure this. Unlocking a hero in Ranked now uses a point system, rather than only progressing based on wins. Unlocking a hero now requires 35 points, you will gain 2 points for a win and 1 point for a loss. With the previous 15 win system (assuming 50% WR), it would have required an equivalent of 45 points (15 wins = 30 points, 15 losses = 15 points, 30+15=45).",
+    "Ranked Leaderboards:",
+    "We've reworked the backend to how leaderboards work to fix numerous bugs.",
+    "Each Ranked season now has its own leaderboard.",
+    "To show up on a leaderboard, you must play at least 50 Ranked matches in that season within the last 30 days. Ranking is based on your current badge progress.",
+    "To show up on a hero-specific leaderboard, you must play at least 15 Ranked matches with that hero within the last 30 days. Ranking is based on your current badge progress and your recent win/loss performance on that hero.",
+    "Beta Season 2 begins today, we'll see you there!"
+   ],
+   "lines_pt": [
+    "Quinta-feira, 11 de março de 2027, com duração de quatro meses.",
+    "Redefinição de classificação sazonal",
+    "Os jogadores classificados verão sua classificação redefinida suavemente no início desta nova temporada e poderão começar sua escalada durante a Temporada Beta 2. Essa redefinição suave é significativamente menor que a anterior. Em média, os jogadores podem esperar ver sua classificação diminuir em cerca de 1 insígnia como parte da reinicialização suave. Também usaremos a taxa de vitórias dos jogadores na temporada anterior para fazer ajustes adicionais em 1 ou 2 subclassificações para ajudar a colocar os jogadores nas posições relativas corretas. Os jogadores ranqueados existentes não precisarão completar a calibração novamente no início desta temporada; os jogadores que não participaram das ranqueadas na temporada passada precisarão calibrar normalmente.",
+    "Redistribuição de classificação global",
+    "Depois de monitorar a base de jogadores ranqueados ao longo desta primeira temporada e nos acomodarmos ao recente influxo de novos jogadores no jogo, realizaremos uma redistribuição global no início desta nova temporada. Isso significa que alguns jogadores podem ver sua classificação aumentar em vez de diminuir no início da nova temporada, apesar da reinicialização suave.",
+    "Para resumir, ambos os ajustes de classificação estão sendo feitos como uma operação em duas etapas. A primeira é pegar as classificações existentes de todos e redistribuir a curva conforme descrito acima. O segundo é pegar os novos números pós-redistribuição e aplicar a redefinição suave das classificações em cerca de -1 emblema em média. O resultado final disso será diferente para cada pessoa, alguns podem ganhar classificações apesar da reinicialização suave e outros podem descer um pouco mais.",
+    "Mudanças nas regras das Ranqueadas para a Temporada Beta 2 Estamos fazendo algumas mudanças na forma como o sistema Ranqueado funciona para a Temporada Beta 2 com base em como as coisas aconteceram na Temporada Beta 1, bem como em todos os comentários úteis que ouvimos da comunidade.",
+    "Proteção contra perda de classificação (escudos):",
+    "Os jogadores nas classificações Fantasma, Ascendente e Eternus não terão mais escudos de proteção contra perda de classificação (anteriormente 5 nas classificações completas e 2 nas subclassificações).",
+    "Para todos os outros jogadores, reduzimos o número de escudos de proteção contra perda de classificação. Para limite de classificação completo, a contagem de escudos é reduzida de 5 para 3 (ou seja, se você estiver no Mystic I com 0 pontos de classificação, agora você manterá a insígnia Mystic por apenas 3 perdas antes de cair para Sentinela em vez de 5). Para subclasses (ou seja, Mystic III → Mystic II), a contagem de escudos é reduzida de 2 para 1.",
+    "Pontos de classificação:",
+    "Por partida: Os pontos de um jogo aumentaram de 300 para 350.",
+    "Subida de classificação: Os pontos necessários para alcançar um novo emblema de uma subclassificação final foram reduzidos de 2.000 para 1.500. Os pontos entre subclassificações permanecem inalterados em 1.000.",
+    "Proibições de heróis:",
+    "Aumentamos o número de banimentos de heróis por partida nas Ranqueadas de 3 para 4.",
+    "Colocações iniciais:",
+    "Os jogadores mais bem colocados na nova temporada serão o Ascendant I, com algum potencial para até o Ascendant III com base no desempenho da temporada anterior (acima do Oracle VI max da temporada passada).",
+    "Requisitos de desbloqueio de herói:",
+    "Ainda acreditamos fortemente que é muito importante que os jogadores nas Ranqueadas tenham profundo conhecimento e confiança ao pilotar um herói que estão usando, para o bem de todos os jogadores envolvidos, mas também reconhecemos que há espaço para melhorias na forma como medimos isso. Desbloquear um herói nas Ranqueadas agora usa um sistema de pontos, em vez de progredir apenas com base nas vitórias. Desbloquear um herói agora requer 35 pontos, você ganhará 2 pontos por vitória e 1 ponto por derrota. Com o sistema anterior de 15 vitórias (assumindo 50% de WR), seria necessário um equivalente a 45 pontos (15 vitórias = 30 pontos, 15 derrotas = 15 pontos, 30+15=45).",
+    "Tabelas de classificação classificadas:",
+    "Reformulamos o back-end de como os placares funcionam para corrigir vários bugs.",
+    "Cada temporada ranqueada agora tem sua própria tabela de classificação.",
+    "Para aparecer na tabela de classificação, você deve jogar pelo menos 50 partidas ranqueadas naquela temporada nos últimos 30 dias. A classificação é baseada no progresso atual do seu emblema.",
+    "Para aparecer em uma tabela de classificação específica de herói, você deve jogar pelo menos 15 partidas ranqueadas com esse herói nos últimos 30 dias. A classificação é baseada no progresso atual do seu emblema e no seu desempenho recente de vitórias/derrotas naquele herói.",
+    "A 2ª Temporada Beta começa hoje, nos vemos lá!"
+   ]
+  },
   {
    "id": "s1848664643339845",
    "title": "Minor Update - 11-04-2026",
@@ -462,25 +529,6 @@ window.STEAM_NEWS = {
     "Após a atualização do Old Gods New Blood, sentimos que ainda havia muito trabalho que queríamos fazer no jogo principal antes de passarmos para fases mais refinadas do desenvolvimento do jogo (como atualizar a arte dos heróis mais antigos). Ao contrário das atualizações anteriores, onde nossos esforços se concentraram mais exclusivamente nas partes principais dessa atualização, este ano estivemos trabalhando em diversas coisas em paralelo. Um bom número disso são coisas que você pode ver na atualização de hoje. Algumas outras são coisas nas quais estivemos trabalhando nos últimos meses junto com esta atualização. Isso inclui até coisas como progressão e personalizações de heróis/esconderijos, pois achamos que esses são recursos que queremos poder ajustar e alterar significativamente com base no feedback antes do jogo ser totalmente lançado. Há também outras coisas em que temos trabalhado recentemente que são mais especulativas (já que não temos 100% de certeza se serão lançadas ou não com base no andamento dos testes, embora os resultados até agora tenham sido promissores), como reformulações/adições de itens grandes e modos de jogo alternativos que expandem o escopo do jogo.",
     "Depois, há outras coisas como Midboss (tanto o modelo quanto o layout até certo ponto), Guardians e Walkers, que consideramos importantes, mas ainda não chegamos e nos concentraremos nas próximas atualizações. Por outro lado, coisas como remodelações de heróis estavam em nossas cabeças como algo que abordaríamos mais tarde, no final do desenvolvimento inicial, depois que outros aspectos centrais do jogo fossem mais desenvolvidos. Isso não significa que não pensemos que eles sejam importantes de forma alguma, apenas que são uma quantidade mais conhecida por nós que não precisa necessariamente ser feita antes de outras coisas. Dito isto, provavelmente trabalharemos gradualmente neles em um futuro próximo para inclusão em atualizações futuras junto com outros trabalhos.",
     "Esperamos que você goste desta atualização. Obrigado a todos pelo apoio contínuo até agora durante o desenvolvimento e não se esqueça de votar!"
-   ]
-  },
-  {
-   "id": "s1844115010490072",
-   "title": "Minor Update - 09-16-2026",
-   "title_pt": "Atualização secundária - 16/09/2026",
-   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1844115010490072",
-   "ts": 1789589803,
-   "date": "16 set 2026",
-   "cat": "Patch Notes",
-   "patch": true,
-   "image": "",
-   "desc": "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first on...",
-   "desc_pt": "\\[Geral] - Os valores máximos de resistência ao retorno do Rift instável agora aumentam ao longo do jogo. Anteriormente, os valores máximos eram de 35%. Agora é 10% + 1% por minuto (cerca de ~20% para o primeiro...",
-   "lines": [
-    "\\[ General ] - Unstable Rift comeback resist max values now scale over the course of the game. Previously the max values were 35%. Now it is 10% + 1% per minute (around ~20% for the first one), with an upper limit of 40% at 30 minutes. - Removed a fixed amount of extra bonus souls you would get for being behind even a very slightly amount in net worth for both hero kill bounties as well as Unstable Rift bounties (this had a larger impact on the early to mid game) - Slightly reduced comeback bounties in general (this is in addition to the above change) - A portion of the comeback souls earned by players above enemy teams average net worth is instead distributed via the tick gold system that is given to the lowest 2 players (70% of the extra comeback value goes to them) - Guardian bounty increased by 10% - Walker bounty increased by 5% - Share for objectives bounty to nearby heroes reduced from 30% to 25% (the remaining gets split between all 6 players) - Respawn Time at 20 minutes increased from 35s to 38s (does not affect the max values later on, just a little higher earlier) - Using parry now pauses reloading - Parrying while doing a regular dash will now cancel the dash (and momentum) and parry on the spot - Getting stunned now pauses your reload rather than restarting it - Breakables in the underground tunnels initial spawn time increased from 3m to 5m - Breakables in the underground tunnels respawn rate increased from 3m to 5m - All move slow values reduced by ~20% globally - All ground dash slows reduced by ~10% globally - Slows now also affect air drag by 35% of the slow value (convar citadel_enable_slows_affect_air_drag to toggle the slow drag behavior on and off) - Dashes and light melee's no longer pause your gun's cycle time (this is a general change that affects high-cycle time weapons the most like Silver or Abrams) \\[ Items ] - Weakening Headshot: Bullet Resist Reduction reduced from -13% to -12% - Hollow Point: Bullet Resist Reduction increased from 9% to 10% - Toxic Bullets: Spirit scaling increased from 0.005% to 0.006% - Shadow Weave: Now builds from Sprint Boots - Shadow Weave: Sprint speed increased from 1.5 to 2 - Shadow Weave: Cooldown reduced from 45s to 37s - Cultist Sacrifice: Bounty reduced from 180% to 170% - Ballistic Enchantment: Duration increased from 14s to 20s - Spiritual Overflow: Buildup is 35% slower - Spiritual Overflow: Spirit Power on proc reduced from 40 to 30 - Spiritual Overflow: Fire Rate reduced from 30% to 25% - Restorative Locket: Heal per boon reduced from 0.5 to 0.45 - Restorative Locket: Stack range reduced from 35m to 32m - Trophy Collector: Souls per minute reduced from 18 to 16 - Veil Walker: No longer builds from Sprint Boots - Veil Walker: No longer grants +2 Sprint and +2 Out of Combat Regen (due to loss of component) - Veil Walker: Movement speed bonus is now removed when the invisibility is removed - Veil Walker: Spirit Power reduced from 10 to 6 - Fortitude: Max Health regen increased from"
-   ],
-   "lines_pt": [
-    "\\[Geral] - Os valores máximos de resistência ao retorno do Rift instável agora aumentam ao longo do jogo. Anteriormente, os valores máximos eram de 35%. Agora é de 10% + 1% por minuto (cerca de ~20% para o primeiro), com limite superior de 40% em 30 minutos. - Removida uma quantidade fixa de almas bônus extras que você receberia por estar atrás, mesmo que por uma pequena quantidade de patrimônio líquido, tanto para recompensas de mortes de heróis quanto para recompensas de Rift Instável (isso teve um impacto maior no início e no meio do jogo) - Recompensas de retorno ligeiramente reduzidas em geral (isso é um acréscimo à mudança acima) - Uma parte das almas de retorno ganhas por jogadores acima do patrimônio líquido médio das equipes inimigas é distribuída através do sistema tick gold que é dado aos 2 jogadores mais baixos (70%) do valor extra de retorno vai para eles) - Recompensa do Guardião aumentada em 10% - Recompensa do Walker aumentada em 5% - Parcela da recompensa por objetivos para heróis próximos reduzida de 30% para 25% (o restante é dividido entre todos os 6 jogadores) - Tempo de respawn aos 20 minutos aumentado de 35s para 38s (não afeta os valores máximos mais tarde, apenas um pouco mais alto antes) - Usar aparar agora pausa a recarga - Aparar enquanto faz uma O avanço regular agora cancelará o avanço (e o impulso) e aparará no local - Ficar atordoado agora pausa sua recarga em vez de reiniciá-la - O tempo de spawn inicial dos itens quebráveis nos túneis subterrâneos aumentou de 3m para 5m - A taxa de reaparecimento dos itens quebráveis nos túneis subterrâneos aumentou de 3m para 5m - Todos os valores de lentidão de movimento foram reduzidos em ~20% globalmente - Todas as lentidão de avanço no solo foram reduzidas em ~10% globalmente - As lentidão agora também afetam a resistência ao ar em 35% do valor lento (convar citadel_enable_slows_affect_air_drag para ativar e desativar o comportamento de arrasto lento) - Dashes e ataques corpo a corpo leves não pausam mais o tempo de ciclo da sua arma (esta é uma mudança geral que afeta mais armas com tempo de ciclo alto, como Silver ou Abrams) \\[Itens] - Enfraquecimento do tiro na cabeça: Redução da resistência à bala reduzida de -13% para -12% - Ponta oca: resistência à bala Redução aumentada de 9% para 10% - Balas Tóxicas: Escala de Espírito aumentada de 0,005% para 0,006% - Shadow Weave: Agora construído a partir de Botas de Sprint - Shadow Weave: Velocidade de sprint aumentada de 1,5 para 2 - Shadow Weave: Tempo de recarga reduzido de 45s para 37s - Sacrifício de Cultista: Recompensa reduzida de 180% para 170% - Balística Encantamento: Duração aumentada de 14s para 20s - Estouro Espiritual: O acúmulo é 35% mais lento - Estouro Espiritual: Poder do Espírito no proc reduzido de 40 para 30 - Estouro Espiritual: Taxa de Fogo reduzida de 30% para 25% - Medalhão Restaurador: Cura por benefício reduzida de 0,5 para 0,45 - Medalhão Restaurador: Alcance de pilha reduzido de 35m para 32m - Colecionador de Troféus: Almas por minuto reduzidas de 18 para 16 - Veil Walker: Não é mais construído com Botas de Sprint - Veil Walker: Não concede mais +2 Sprint e +2 de Regeneração Fora de Combate (devido à perda de componente) - Veil Walker: O bônus de velocidade de movimento agora é removido quando a invisibilidade é removida - Veil Walker: Poder Espiritual reduzido de 10 para 6 - Fortitude: Regeneração máxima de Saúde aumentada de"
    ]
   }
  ]
