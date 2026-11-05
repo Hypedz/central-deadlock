@@ -1,10 +1,29 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 05/11/2026 as 00:13 */
+   Ultima atualizacao: 05/11/2026 as 07:30 */
 window.STEAM_NEWS = {
- "updated": "05/11/2026 as 00:13",
- "count": 11,
+ "updated": "05/11/2026 as 07:30",
+ "count": 12,
  "items": [
+  {
+   "id": "s1848664643339845",
+   "title": "Minor Update - 11-04-2026",
+   "title_pt": "Atualização secundária - 04/11/2026",
+   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1848664643339845",
+   "ts": 1793854950,
+   "date": "05 nov 2026",
+   "cat": "Patch Notes",
+   "patch": true,
+   "image": "",
+   "desc": "Healbane: Stacks now diminish 20% more aggressively (at 2 stacks 57.8%->54.7%, at 4 stacks 82.2% to 72%) - Apollo: Riposte - Pommel Hit now also disarms the enemy - Apollo: Riposte - Pummel...",
+   "desc_pt": "Healbane: Os acúmulos agora diminuem 20% mais agressivamente (em 2 acúmulos 57,8%->54,7%, em 4 acúmulos 82,2% a 72%) - Apollo: Riposte - Pommel Hit agora também desarma o inimigo - Apollo: Riposte - Pummel...",
+   "lines": [
+    "Healbane: Stacks now diminish 20% more aggressively (at 2 stacks 57.8%->54.7%, at 4 stacks 82.2% to 72%) - Apollo: Riposte - Pommel Hit now also disarms the enemy - Apollo: Riposte - Pummel hit now ends any preexisting parry on the target - Apollo: Riposte - T2 increased from +0.6s duration to +0.7s - Apollo: Itani Lo Sahn - T3 bonus damage increased from +50% to +60% - Baba: Spirit Resistance scaling reduced from 0.7 to 0.5 - Baba: Melee damage per boon reduced by 10% - Baba: Baba's Brew - Cooldown increased from 27s to 28s - Baba: Baba's Brew - Burn DPS spirit scaling reduced from 0.15 to 0.13 - Baba: Baba's Brew - Cycle time increased from 1.5s to 1.6s - Baba: Granny Long Legs - Melee Resist reduced from 30% to 25% - Baba: Granny Long Legs - Debuff Resist reduced from 30% to 25% - Celeste: Dazzling Trick - T3 silence duration reduced from +1.25s to +0.75s - Celeste: Radiant Daggers - Cast range reduced from 30m to 25m (moved to T2) - Celeste: Radiant Daggers - Spirit Amp per Stack reduced from +7% to +6% (moved to T3) - Celeste: Shining Wonder - Slow reduced from -32% Movement to -28% - Celeste: Shining Wonder - Cooldown increased from 160s to 170s - Celeste: Shining Wonder - Bounce range reduced from 15.5m to 15m - Celeste: Shining Wonder - T1 move speed slow reduced from -16% to -14% - Celeste: Shining Wonder - T2 bonus damage reduced from +90 to +80 - Deadman Danny: Close The Deal - Bonus damage to under half health targets reduced from +75% to +55% - Deadman Danny: Strix Salvo - Spirit scaling reduced by 8% - Deadman Danny: Chimera Mk1 - T2 reduced from 150 Heal On Hit to 125 - Deadman Danny: Chimera Mk1 - T2 heal spirit scaling reduced from 2.0 to 1.7 - Mo & Krill: Scorn - Heal from heroes increased from 1.2x to 1.3x - Mo & Krill: Burrow - Damage radius increased by +0.5m - Mo & Krill: Sand Blast - T2 slow from -24% Slow and -26% Dash distance to -28% for both - Mo & Krill: Combo - Health per kill increased from 40 to 50 - Nurse Harrow: Bullet damage increased by 8% - Nurse Harrow: Lurking Terrors - Vertical angle increased from 50% to 65% - Nurse Harrow: Lurking Terrors - Fear buildup time reduced from 2s to 1.75s - Rat King: Bullet damage increased from 5.7 to 5.8 - Rat King: Ammo increased from 24 to 26 - Rat King: Scrap Grenade - Meleeing the grenade fuse time extension reduced from 0.4s to 0.25s - Rat King: Rule, Ratannia! - Move Speed increased from +3m to +4m - Rat King: Rule, Ratannia! - T1 now also reduces cooldown by -25s"
+   ],
+   "lines_pt": [
+    "Healbane: Stacks agora diminuem 20% mais agressivamente (em 2 stacks 57,8%->54,7%, em 4 stacks 82,2% a 72%) - Apollo: Riposte - Pommel Hit agora também desarma o inimigo - Apollo: Riposte - Pummel hit agora encerra qualquer aparo pré-existente no alvo - Apollo: Riposte - T2 aumentado de +0,6s de duração para +0,7s - Apollo: Itani Lo Sahn - Dano bônus T3 aumentado de +50% para +60% - Baba: Escala de Resistência Espiritual reduzida de 0,7 para 0,5 - Baba: Dano corpo a corpo por benefício reduzido em 10% - Baba: Baba's Brew - Cooldown aumentado de 27s para 28s - Baba: Baba's Brew - Escala de espírito Burn DPS reduzida de 0,15 para 0,13 - Baba: Baba's Brew - Tempo de ciclo aumentado de 1,5s para 1,6s - Baba: Granny Long Legs - Resistência corpo a corpo reduzida de 30% para 25% - Baba: Granny Long Legs - Debuff Resist reduzido de 30% para 25% - Celeste: Dazzling Trick - Duração do silêncio T3 reduzida de +1,25s para +0,75s - Celeste: Radiant Daggers - Alcance de lançamento reduzido de 30m para 25m (movido para T2) - Celeste: Radiant Daggers - Spirit Amp por Stack reduzido de +7% para +6% (movido para T3) - Celeste: Shining Wonder - Lentidão reduzida de -32% Movimento para -28% - Celeste: Shining Wonder - Cooldown aumentado de 160s para 170s - Celeste: Shining Wonder - Alcance de salto reduzido de 15,5m para 15m - Celeste: Shining Wonder - Velocidade de movimento T1 reduzida de -16% para -14% - Celeste: Shining Wonder - Dano bônus T2 reduzido de +90 para +80 - Deadman Danny: Close The Deal - Dano bônus para alvos com menos da metade da saúde reduzido de +75% para +55% - Deadman Danny: Strix Salvo - Escalonamento de espírito reduzido em 8% - Deadman Danny: Chimera Mk1 - T2 reduzido de 150 Heal On Hit para 125 - Deadman Danny: Chimera Mk1 - Escala de espírito de cura T2 reduzida de 2,0 para 1,7 - Mo & Krill: Desprezo - Cura de heróis aumentada de 1,2x para 1,3x - Mo & Krill: Toca - Raio de dano aumentado em +0,5m - Mo & Krill: Explosão de areia - T2 lento de -24% Lento e -26% Distância de avanço para -28% para ambos - Mo & Krill: Combo - Saúde por morte aumentada de 40 para 50 - Nurse Harrow: Dano de bala aumentado em 8% - Nurse Harrow: Terrores à espreita - Ângulo vertical aumentado de 50% para 65% - Nurse Harrow: Terrores à espreita - Tempo de acumulação de medo reduzido de 2s para 1,75s - Rei Rato: Dano de bala aumentado de 5,7 para 5,8 - Rei Rato: Munição aumentada de 24 para 26 - Rei Rato: Granada de Sucata - Extensão do tempo de ataque corpo a corpo do fusível da granada reduzido de 0,4s para 0,25s - Rei Rato: Domine, Ratannia! - Velocidade de movimento aumentada de +3m para +4m - Rei Rato: Governe, Ratannia! - T1 agora também reduz o tempo de espera em -25s"
+   ]
+  },
   {
    "id": "s1847920302240420",
    "title": "Halloween 2026 + Gameplay Update",
