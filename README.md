@@ -78,6 +78,7 @@ meu-fansite/
 │   ├── configurar-dominio.py # Troca para um domínio próprio (opcional)
 │   ├── servidor-teste.js    # Servidor local usado só pelos testes
 │   ├── conferir-site.py     # Confere fontes, dados, robôs, site e links internos
+│   ├── conferir-robos.py    # Confere se algum passo do robô de hora em hora falhou
 │   └── checar-segredos.py   # Trava que impede vazar o webhook no Git
 └── assets/
     ├── brand/
@@ -736,6 +737,17 @@ O arquivo `.github/workflows/conferencia-semanal.yml` roda sozinho **toda segund
 - Para usar em outro programa: `python tools/conferir-site.py --json`.
 
 > 🔒 O verificador só faz leituras: não mexe em `data/`, não publica, não posta no Discord e não envia dados para lugar nenhum além das fontes que o site já usa.
+
+### Aviso do robô de hora em hora
+
+Além da conferência semanal, o próprio robô de notícias confere o resultado dos passos no fim de **cada execução** (`tools/conferir-robos.py`).
+
+- Se um passo **crítico** falhar (notícias, estatísticas, itens/ranking, elos, esports, top jogadores, páginas...), a execução fica **vermelha** no GitHub Actions e uma issue chamada **`[Robô] Falha na atualização automática`** é aberta ou atualizada com a lista do que falhou.
+- Quando a execução seguinte passa, a issue é **fechada sozinha**.
+- Passos **opcionais** (artes, tradução de habilidades, cartões sociais e Discord) aparecem como aviso no relatório, mas **não** derrubam a atualização.
+- O relatório também aparece no **resumo da execução**, mesmo quando está tudo certo.
+
+> 💡 Foi esse aviso que faltava quando a deadlock-api mudou o endereço da distribuição de elos, em novembro de 2026: o passo falhava calado e o site ficava com o dado antigo.
 
 ---
 

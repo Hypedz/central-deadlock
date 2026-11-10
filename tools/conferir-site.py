@@ -354,42 +354,50 @@ WORKFLOWS = [
 
 
 def verificar_robos(secao, repo, tempo):
-    url = "https://api.github.com/repos/{}/actions/runs?per_page=60".format(repo)
     cabecalhos = {"Accept": "application/vnd.github+json"}
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:
         cabecalhos["Authorization"] = "Bearer " + token
 
-    status, corpo, erro, _ = http_get(url, tempo=tempo, cabecalhos=cabecalhos, limite=3000000)
-
-    if status is None:
-        add(secao, FALHA, "GitHub Actions - sem resposta ({})".format(erro))
-        return
-
-    if status in (403, 429):
-        add(secao, AVISO, "GitHub Actions - HTTP {} (limite da API; tente de novo "
-                          "mais tarde ou defina GITHUB_TOKEN)".format(status))
-        return
-
-    if status >= 400:
-        add(secao, FALHA, "GitHub Actions - HTTP {}".format(status))
-        return
-
-    try:
-        execucoes = json.loads(corpo.decode("utf-8")).get("workflow_runs", [])
-    except Exception as erro_json:
-        add(secao, AVISO, "GitHub Actions - resposta inesperada ({})".format(erro_json))
-        return
-
     agora = datetime.datetime.now(datetime.timezone.utc)
 
+    # Consulta cada robo separadamente. Antes era uma lista unica com os
+    # ultimos 60 runs do repositorio inteiro: como noticias e publicacao
+    # geram varios runs por dia, os testes saiam dessa janela e apareciam
+    # como "nenhuma execucao encontrada" mesmo tendo rodado.
     for arquivo, nome, aviso_h, falha_h in WORKFLOWS:
-        encontradas = [e for e in execucoes if str(e.get("path", "")).endswith(arquivo)]
-        if not encontradas:
+        url = "https://api.github.com/repos/{}/actions/workflows/{}/runs?per_page=1".format(
+            repo, arquivo)
+        status, corpo, erro, _ = http_get(url, tempo=tempo, cabecalhos=cabecalhos)
+
+        if status is None:
+            add(secao, FALHA, "{} - sem resposta ({})".format(nome, erro))
+            continue
+
+        if status in (403, 429):
+            add(secao, AVISO, "{} - HTTP {} (limite da API; tente de novo "
+                              "mais tarde ou defina GITHUB_TOKEN)".format(nome, status))
+            continue
+
+        if status == 404:
+            add(secao, AVISO, "{} - workflow nao encontrado no repositorio".format(nome))
+            continue
+
+        if status >= 400:
+            add(secao, FALHA, "{} - HTTP {}".format(nome, status))
+            continue
+
+        try:
+            execucoes = json.loads(corpo.decode("utf-8")).get("workflow_runs", [])
+        except Exception as erro_json:
+            add(secao, AVISO, "{} - resposta inesperada ({})".format(nome, erro_json))
+            continue
+
+        if not execucoes:
             add(secao, AVISO, "{} - nenhuma execucao encontrada".format(nome))
             continue
 
-        ultima = encontradas[0]
+        ultima = execucoes[0]
         quando = ultima.get("created_at") or ""
         try:
             data = datetime.datetime.fromisoformat(quando.replace("Z", "+00:00"))

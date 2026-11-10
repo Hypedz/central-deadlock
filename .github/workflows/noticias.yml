@@ -3,7 +3,11 @@ name: Notícias do Steam + Discord
 # Busca as notícias do Deadlock, posta as novidades no Discord e
 # manda o site se republicar com as notícias novas.
 #
-# Todo dia às 12:00 UTC (09:00 no horário de Brasília).
+# Roda de hora em hora (o GitHub pode atrasar; na prática são algumas
+# execuções por dia).
+#
+# No fim, confere se algum passo crítico falhou e abre um aviso (issue)
+# quando algo precisa de conserto.
 #
 # Para rodar na mão: aba "Actions" > "Notícias do Steam + Discord" > "Run workflow".
 # Para só TESTAR o Discord: marque a caixinha "Mandar mensagem de teste" antes de rodar.
@@ -24,6 +28,7 @@ jobs:
     permissions:
       contents: write   # para salvar as notícias no repositório
       actions: write    # para pedir a republicação do site
+      issues: write     # para abrir/atualizar o aviso quando algo falhar
     steps:
       - name: Baixar o site
         uses: actions/checkout@v4
@@ -37,57 +42,71 @@ jobs:
         run: pip install pillow
 
       - name: Buscar as notícias oficiais do Deadlock (e traduzir)
+        id: noticias
         run: python tools/update-news.py
 
       - name: Buscar as artes dos heróis (imagens nítidas)
+        id: artes
         run: python tools/baixar-artes.py
         continue-on-error: true
 
       - name: Buscar as estatísticas reais dos heróis
+        id: estatisticas
         run: python tools/update-stats.py
         continue-on-error: true
 
       - name: Buscar itens, builds, contadores e ranking reais do jogo
+        id: dados_jogo
         run: python tools/update-game-data.py
         continue-on-error: true
 
       - name: Traduzir os nomes das habilidades novas
+        id: traducao
         run: python tools/traduzir-jogo.py
         continue-on-error: true
 
       - name: Buscar a ordem das habilidades, as duplas e os confrontos de rota
+        id: analytics
         run: python tools/update-analytics.py
         continue-on-error: true
 
       - name: Buscar os brasoes de elo e quantos jogadores ha em cada elo
+        id: elos
         run: python tools/update-elos.py
         continue-on-error: true
 
       - name: Escrever o guia de cada heroi (com os numeros reais)
+        id: guias
         run: python tools/gerar-guias.py
         continue-on-error: true
 
       - name: Escrever as builds mais usadas de cada heroi (dados reais)
+        id: builds
         run: python tools/gerar-builds.py
         continue-on-error: true
 
       - name: Buscar os torneios e resultados de esports (Liquipedia)
+        id: esports
         run: python tools/update-esports.py
         continue-on-error: true
 
       - name: Buscar os melhores jogadores de cada heroi (uma vez por dia)
+        id: top_jogadores
         run: python tools/update-top-jogadores.py
         continue-on-error: true
 
       - name: Gerar a página de cada herói, a de cada notícia e o sitemap
+        id: paginas
         run: python tools/gerar-paginas.py
         continue-on-error: true
 
       - name: Gerar os cartões sociais 1200x630 (OG)
+        id: og
         run: python tools/gerar-og.py
         continue-on-error: true
 
       - name: Testar o Discord
+        id: discord_teste
         if: inputs.teste
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
@@ -97,6 +116,7 @@ jobs:
         continue-on-error: true
 
       - name: Postar as novidades no Discord
+        id: discord
         if: ${{ !inputs.teste }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
@@ -121,7 +141,80 @@ jobs:
           fi
 
       - name: Republicar o site com as novidades
+        id: publicar
         if: steps.salvar.outputs.mudou == 'sim'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run "publicar-site.yml" --repo "${{ github.repository }}"
+
+      - name: Conferir se algum passo critico falhou
+        id: conferencia
+        if: always()
+        continue-on-error: true
+        env:
+          OUTCOMES: ${{ toJSON(steps) }}
+        run: python tools/conferir-robos.py
+
+      - name: Abrir ou atualizar o aviso de falha
+        if: steps.conferencia.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let corpo = '';
+            try { corpo = fs.readFileSync('relatorio-robos.md', 'utf8'); } catch (e) {}
+            if (!corpo.trim()) {
+              corpo = 'O robô não gerou o relatório. Veja os logs da execução no GitHub Actions.';
+            }
+            const rodada = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            corpo += `\n\n---\nExecução: [ver no GitHub Actions](${rodada})`;
+
+            const titulo = '[Robô] Falha na atualização automática';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            const existente = issues.find(i => i.title === titulo);
+
+            if (existente) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: corpo
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: titulo,
+                body: corpo
+              });
+            }
+
+      - name: Fechar o aviso quando estiver tudo certo
+        if: steps.conferencia.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const titulo = '[Robô] Falha na atualização automática';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            for (const issue of issues.filter(i => i.title === titulo)) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }
+
+      - name: Marcar a execução como falha
+        if: steps.conferencia.outcome == 'failure'
+        run: exit 1

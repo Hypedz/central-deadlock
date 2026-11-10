@@ -123,7 +123,11 @@ def main():
     todos.sort(key=lambda x: x["tier"])
 
     print("Buscando quantos jogadores ha em cada elo ...")
-    distribuicao = baixar_json("/v1/players/mmr/distribution")
+    # A API mudou o endereco em novembro de 2026: antes era
+    # /v1/players/mmr/distribution (hoje devolve 404). O novo caminho e
+    # /v1/players/rank/distribution e o campo "rank" ja vem de 1 a 11
+    # (o tier direto), sem precisar dividir por 10 como antes.
+    distribuicao = baixar_json("/v1/players/rank/distribution")
     if not distribuicao:
         print("AVISO: a API nao devolveu a distribuicao. Nada foi alterado.")
         return 1
@@ -131,7 +135,7 @@ def main():
     por_tier = {}
     for linha in distribuicao:
         try:
-            tier = int(linha["rank"]) // 10
+            tier = int(linha["rank"])
             por_tier[tier] = por_tier.get(tier, 0) + int(linha.get("players", 0))
         except (KeyError, TypeError, ValueError):
             continue
