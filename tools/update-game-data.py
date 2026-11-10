@@ -26,6 +26,8 @@ import sys
 import urllib.parse
 import urllib.request
 
+import temporadas
+
 API = "https://api.deadlock-api.com"
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -322,22 +324,68 @@ def buscar_ban(total_partidas):
 # --------------------------- ranking ---------------------------
 
 def buscar_ranking(limite=60):
-    """Melhores jogadores de cada região (ranking real do jogo)."""
+    """Melhores jogadores de cada região (ranking real do jogo).
+
+    A temporada nova começa praticamente vazia (os jogadores ainda estão
+    calibrando). Quando isso acontece, usamos a última temporada completa
+    e avisamos na tela, em vez de mostrar uma tabela vazia.
+    """
+    regioes = ("Europe", "Asia", "NAmerica", "SAmerica", "Oceania")
+
+    try:
+        lista = temporadas.listar()
+        atual = temporadas.atual(lista)
+        anterior = temporadas.anterior(lista, atual)
+    except Exception as erro:
+        print("   (aviso: nao consegui descobrir a temporada: {})".format(erro))
+        atual, anterior = None, None
+
+    def baixar(temporada, regiao):
+        url = "{}/v1/leaderboard/{}?region={}".format(API, regiao, regiao)
+        if temporada:
+            url += "&leaderboard_id={}".format(temporada["id"])
+        dados = baixar_json(url, tentativas=2)
+        return (dados or {}).get("entries") or []
+
     saida = {}
-    for regiao in ("Europe", "Asia", "NAmerica", "SAmerica", "Oceania"):
+    info_regioes = {}
+
+    for regiao in regioes:
         try:
-            dados = baixar_json("{}/v1/leaderboard/{}?region={}".format(API, regiao, regiao), tentativas=2)
+            entradas = baixar(atual, regiao)
         except Exception as erro:
             print("   (aviso: ranking '{}' indisponivel: {})".format(regiao, erro))
             continue
-        entradas = (dados or {}).get("entries") or []
+
+        usada = atual
+        if atual and anterior and len(entradas) < temporadas.MINIMO:
+            try:
+                antigas = baixar(anterior, regiao)
+            except Exception:
+                antigas = []
+            if len(antigas) > len(entradas):
+                entradas = antigas
+                usada = anterior
+                print("   {}: temporada nova ainda vazia; usando a anterior ({} jogadores)".format(
+                    regiao, len(entradas)))
+
         saida[regiao] = [{
             "n": str(e.get("account_name") or "???"),
             "r": int(e.get("rank") or 0),
             "h": [int(x) for x in (e.get("top_hero_ids") or [])][:3],
         } for e in entradas[:limite]]
+        info_regioes[regiao] = {
+            "id": usada["id"] if usada else 0,
+            "nome": usada["nome"] if usada else "",
+            "inicio": temporadas.resumo(usada).get("inicio", ""),
+            "anterior": bool(usada and atual and usada["id"] != atual["id"]),
+        }
         print("   {}: {} jogadores".format(regiao, len(saida[regiao])))
-    return saida
+
+    return saida, {
+        "atual": temporadas.resumo(atual),
+        "regioes": info_regioes,
+    }
 
 
 # --------------------------- histórico ---------------------------
@@ -543,7 +591,7 @@ def main():
     print("   {} herois banidos alguma vez".format(len(ban)))
 
     print(" - ranking real dos melhores jogadores ...")
-    ranking = buscar_ranking()
+    ranking, ranking_info = buscar_ranking()
 
     print(" - historico semanal de win rate ...")
     historico = buscar_historico(nomes)
@@ -578,6 +626,7 @@ def main():
         "ban": ban,
         "banPos": ban_pos,
         "ranking": ranking,
+        "rankingInfo": ranking_info,
     }
 
     conteudo = (

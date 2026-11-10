@@ -72,6 +72,7 @@ meu-fansite/
 │   ├── gerar-builds.py      # Escreve as builds mais usadas de cada herói
 │   ├── update-esports.py    # Busca os torneios e resultados reais (Liquipedia)
 │   ├── update-top-jogadores.py # Busca os melhores jogadores de cada herói (1x por dia)
+│   ├── temporadas.py        # Descobre a temporada ranqueada atual e a anterior (usado no ranking)
 │   ├── discord-post.py      # Posta no Discord
 │   ├── make-share.py        # Gera a imagem de compartilhamento
 │   ├── make-icons.py        # Gera os ícones do app (celular/PC)
@@ -143,7 +144,7 @@ meu-fansite/
 - **Eventos** — **só datas reais**: os **próximos torneios** (que vêm do Esports) com **contagem regressiva** ("é hoje", "faltam 5 dias") e as **últimas atualizações do jogo** (data real do Steam, clique para ler). Botão **Lembrar** salvo no navegador. (Antes eram 5 eventos inventados.)
 - **Páginas dos heróis** — no fim de cada uma há atalhos para as abas **Guias**, **Builds**, **Ranking** e **Itens** do site.
 - **Quiz** — "qual herói combina com você?"; ao final, sugere 3 heróis e abre a ficha do campeão.
-- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). **Clique em um jogador** para ver a posição dele, os heróis mais jogados e **buscar o perfil de verdade no Steam** (o site mostra as partidas reais daquela conta). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus).
+- **Ranking** — o **ranking real do jogo**, com os 50 melhores jogadores de cada região (América do Sul, América do Norte, Europa, Ásia e Oceania). **Clique em um jogador** para ver a posição dele, os heróis mais jogados e **buscar o perfil de verdade no Steam** (o site mostra as partidas reais daquela conta). Abaixo da tabela aparece o **brasão de elo oficial** (todo mundo no ranking já chegou no elo mais alto, o Eternus). Quando uma temporada nova começa e ainda tem poucos jogadores calibrados, o site mostra a **última temporada completa** com um aviso claro na tela — assim o ranking nunca fica vazio.
 - **Minha Mira** — cole o código da sua mira (`DL.…`, que aparece em Configurações › Mira no jogo) e o site **desenha a mira em tamanho grande** e explica cada ajuste (barrinhas, ponto, cores, contorno) em português. Nada fica guardado.
 - **Começando** — guia em português para a primeira partida (o básico, funções, almas, itens, objetivos e erros comuns), com atalhos para o resto do site.
 - **Elos de verdade** (dentro de Estatísticas) — os **brasões oficiais** de cada elo e **quantos jogadores de verdade** estão em cada um hoje (dado real da API).
@@ -799,7 +800,7 @@ Ele fica no repositório [Hypedz/central-deadlock](https://github.com/Hypedz/cen
 | Robô (`.github/workflows/`) | Quando roda | O que faz |
 |---|---|---|
 | **`publicar-site.yml`** | A cada envio na branch `main` | Coloca o site no ar (ligou o GitHub Pages sozinho na primeira vez) |
-| **`noticias.yml`** | Todo dia às 09:00 (Brasília) | Busca as notícias no Steam, traduz, atualiza as estatísticas/itens/builds/ranking, gera as páginas, posta no Discord e republica o site |
+| **`noticias.yml`** | De hora em hora (o GitHub pode atrasar; na prática, algumas vezes por dia) | Busca as notícias no Steam, traduz, atualiza as estatísticas/itens/builds/ranking, gera as páginas, posta no Discord e republica o site |
 
 ### Para atualizar o site depois de mexer nos arquivos
 

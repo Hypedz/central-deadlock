@@ -31,6 +31,8 @@ import ssl
 import sys
 import urllib.request
 
+import temporadas
+
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAIDA = os.path.join(BASE, "data", "top-jogadores.js")
 API = "https://api.deadlock-api.com/v1"
@@ -106,9 +108,11 @@ def herois_da_api():
     return herois
 
 
-def buscar_top(regiao, heroi_id):
+def buscar_top(regiao, heroi_id, temporada=None):
     """Top jogadores de um heroi numa regiao -> [[nome, posicao], ...]."""
     url = "{}/leaderboard/{}/{}?region={}".format(API, regiao, heroi_id, regiao)
+    if temporada:
+        url += "&leaderboard_id={}".format(temporada["id"])
     ultimo_erro = None
     for _ in range(TENTATIVAS):
         try:
@@ -146,6 +150,25 @@ def main():
         print("AVISO: a API nao devolveu a lista de herois. Nada foi alterado.")
         return 1
 
+    # A temporada nova comeca quase vazia (os jogadores ainda estao
+    # calibrando). Nesse caso usamos a ultima temporada completa, em vez de
+    # gravar listas vazias.
+    temporada_usada, temporada_atual = None, None
+    try:
+        lista_temporadas = temporadas.listar()
+        temporada_atual = temporadas.atual(lista_temporadas)
+        temporada_usada = temporada_atual
+        anterior = temporadas.anterior(lista_temporadas, temporada_atual)
+        if temporada_atual and anterior:
+            sonda = baixar_json("{}/leaderboard/Europe?region=Europe&leaderboard_id={}".format(
+                API, temporada_atual["id"]))
+            if len((sonda or {}).get("entries") or []) < temporadas.MINIMO:
+                temporada_usada = anterior
+                print("   temporada nova ainda vazia; usando a anterior ({})".format(
+                    temporada_usada["nome"]))
+    except Exception as erro:
+        print("   (aviso: nao consegui descobrir a temporada: {})".format(erro))
+
     # lista de consultas: cada heroi x cada regiao
     consultas = [(codigo, heroi_id) for codigo, _ in REGIOES for heroi_id in herois]
     print("   {} herois x {} regioes = {} consultas ({} por vez)".format(
@@ -153,7 +176,7 @@ def main():
 
     resultados, falhas = {}, 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=REQUISICOES) as pool:
-        futuros = {pool.submit(buscar_top, codigo, heroi_id): (codigo, heroi_id)
+        futuros = {pool.submit(buscar_top, codigo, heroi_id, temporada_usada): (codigo, heroi_id)
                    for codigo, heroi_id in consultas}
         for futuro in concurrent.futures.as_completed(futuros):
             codigo, heroi_id = futuros[futuro]
@@ -181,6 +204,10 @@ def main():
     dados = {
         "updated": agora,
         "fonte": "deadlock-api.com",
+        "temporada": temporadas.resumo(temporada_usada),
+        "temporadaAtual": temporadas.resumo(temporada_atual),
+        "temporadaAnterior": bool(temporada_usada and temporada_atual
+                                  and temporada_usada["id"] != temporada_atual["id"]),
         "regioes": {codigo: nome for codigo, nome in REGIOES},
         "herois": resultados,
     }

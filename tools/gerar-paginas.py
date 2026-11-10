@@ -835,6 +835,11 @@ def paginas_herois(herois, stats, jogo, hist, extra, analitico, top=None):
             pagina.append('            <div class="pg-card">')
             pagina.append('                <div class="pg-lbl">Top jogadores</div>')
             pagina.append('                <p class="pg-side-txt">O ranking do próprio jogo para {}, por região.</p>'.format(e(nome)))
+            if (top or {}).get("temporadaAnterior"):
+                atual_nome = ((top or {}).get("temporadaAtual") or {}).get("nome") or "temporada nova"
+                usada_nome = ((top or {}).get("temporada") or {}).get("nome") or ""
+                pagina.append('                <p class="pg-side-txt"><i class="fa-solid fa-circle-info"></i> A {} ainda está calibrando. Esta lista é da última temporada completa{}.'.format(
+                    e(atual_nome), " ({})".format(e(usada_nome)) if usada_nome else ""))
             pagina.extend(linhas_top)
             pagina.append('                <p class="pg-side-txt pg-top-fonte">Fonte: deadlock-api.com · {}</p>'.format(e(top_atualizado)))
             pagina.append('            </div>')

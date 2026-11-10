@@ -399,6 +399,25 @@ test('evento futuro oferece arquivo de calendário (.ics)', async ({ page }) => 
     await expect(page.locator('#contentModal')).not.toHaveClass(/show/);
 });
 
+test('ranking mostra jogadores e avisa quando usa a temporada anterior', async ({ page }) => {
+    await page.evaluate(() => showSection('ranking'));
+    await expect(page.locator('#rankTable .ranking-row').first()).toBeVisible();
+    await expect(page.locator('#rankFonte')).toContainText('jogadores');
+    await expect(page.locator('#rankNota')).toContainText(/temporada/i);
+
+    // Nenhuma região pode abrir uma tabela vazia: ou tem linhas, ou tem aviso.
+    const regioes = await page.locator('[data-rankreg]').evaluateAll(botoes => botoes.map(b => b.dataset.rankreg));
+    for (const regiao of regioes) {
+        await page.locator(`[data-rankreg="${regiao}"]`).click();
+        const linhas = await page.locator('#rankTable .ranking-row').count();
+        const aviso = await page.locator('#rankTable .muted-txt').count();
+        expect(linhas + aviso).toBeGreaterThan(0);
+        if (linhas === 0) {
+            await expect(page.locator('#rankTable')).toContainText('Ainda não há jogadores');
+        }
+    }
+});
+
 test('acessibilidade básica e sem erros de página', async ({ page }) => {
     const erros = [];
     page.on('pageerror', erro => erros.push(erro.message));

@@ -353,6 +353,9 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .rank-nota img { width: 42px; height: 42px; object-fit: contain; flex: 0 0 auto; }
 .rank-nota b { display: block; font-family: var(--font-ui); font-size: .9rem; }
 .rank-nota span { font-size: .8rem; color: var(--text-soft); }
+.rank-nota { flex-wrap: wrap; }
+.rank-temporada { flex: 1 1 100%; display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--text-soft); }
+.rank-temporada b { display: inline; font-size: inherit; }
 
 /* ---- busca global (Ctrl + K) ---- */
 .busca-overlay { align-items: flex-start; padding-top: 8vh; }

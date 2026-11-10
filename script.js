@@ -3105,7 +3105,15 @@ function initRanking() {
         tab.innerHTML = '<p class="muted-txt">O ranking real entra aqui na próxima atualização (rode <b>atualizar-tudo.bat</b>).</p>';
         return;
     }
-    if (!g.ranking[rankRegiao]) rankRegiao = Object.keys(g.ranking)[0];
+    // A temporada nova pode estar vazia numa região (os jogadores ainda estão
+    // calibrando). Abre na primeira região que tem gente, em vez de mostrar
+    // uma tabela sem nenhuma linha.
+    const temJogadores = k => Array.isArray(g.ranking[k]) && g.ranking[k].length > 0;
+    if (!temJogadores(rankRegiao)) {
+        const ordem = REGIOES_RANK.map(([k]) => k).concat(Object.keys(g.ranking));
+        const comGente = ordem.find(temJogadores);
+        if (comGente) rankRegiao = comGente;
+    }
     const reg = $('#rankRegioes');
     if (reg) {
         reg.innerHTML = REGIOES_RANK.filter(([k]) => g.ranking[k]).map(([k, l]) =>
@@ -3113,6 +3121,15 @@ function initRanking() {
         $$('[data-rankreg]', reg).forEach(b => b.addEventListener('click', () => { rankRegiao = b.dataset.rankreg; initRanking(); }));
     }
     const linhas = (g.ranking[rankRegiao] || []).slice(0, 50);
+    if (!linhas.length) {
+        const rotuloVazio = (REGIOES_RANK.filter(r => r[0] === rankRegiao)[0] || [rankRegiao])[1] || rankRegiao;
+        tab.innerHTML = `<p class="muted-txt">Ainda não há jogadores classificados em <b>${esc(rotuloVazio)}</b> nesta temporada. Escolha outra região acima.</p>`;
+        const fVazio = $('#rankFonte');
+        if (fVazio) fVazio.innerHTML = `<i class="fa-solid fa-trophy"></i> Ranking real do jogo via deadlock-api.com · atualizado em ${esc(g.updated)}`;
+        const nVazio = $('#rankNota');
+        if (nVazio) nVazio.innerHTML = '';
+        return;
+    }
     const comHerois = linhas.filter(p => (p.h || []).length).length > linhas.length / 2;
     const cls = comHerois ? ' com-herois' : '';
     tab.innerHTML = `<div class="ranking-head${cls}"><span>#</span><span>Jogador</span>${comHerois ? '<span>Heróis mais jogados</span>' : ''}</div>` +
@@ -3132,19 +3149,33 @@ function initRanking() {
         });
     });
     const f = $('#rankFonte');
-    if (f) f.innerHTML = `<i class="fa-solid fa-trophy"></i> Top ${linhas.length} jogadores da região · ranking real do jogo via deadlock-api.com · atualizado em ${esc(g.updated)}`;
+    const info = (g.rankingInfo && g.rankingInfo.regioes && g.rankingInfo.regioes[rankRegiao]) || null;
+    if (f) f.innerHTML = `<i class="fa-solid fa-trophy"></i> Top ${linhas.length} jogadores da região · ranking real do jogo via deadlock-api.com${info && info.nome ? ` · ${esc(info.nome)}` : ''} · atualizado em ${esc(g.updated)}`;
 
     // Os brasões de elo de verdade: quem está no ranking já chegou no elo mais alto.
     const nota = $('#rankNota');
     if (nota) {
+        let htmlNota = '';
+
+        // Aviso quando a temporada nova ainda está vazia e mostramos a anterior.
+        const temporadaAtual = (g.rankingInfo && g.rankingInfo.atual) || null;
+        if (info && info.anterior) {
+            htmlNota += `<div class="rank-temporada"><i class="fa-solid fa-circle-info"></i><span>A <b>${esc((temporadaAtual && temporadaAtual.nome) || 'temporada nova')}</b>${temporadaAtual && temporadaAtual.inicio ? ` começou em ${esc(temporadaAtual.inicio)}` : ' começou agora'} e os jogadores ainda estão calibrando. Mostrando a última temporada completa: <b>${esc(info.nome)}</b>${info.inicio ? ` (desde ${esc(info.inicio)})` : ''}.</span></div>`;
+        } else if (info && info.nome) {
+            htmlNota += `<div class="rank-temporada"><i class="fa-solid fa-circle-info"></i><span>Temporada <b>${esc(info.nome)}</b>${info.inicio ? ` · desde ${esc(info.inicio)}` : ''}.</span></div>`;
+        }
+
         const elos = dadosElos();
         const eternus = elos ? (elos.todos || []).filter(e => e.tier === 11)[0] : null;
-        nota.innerHTML = eternus ? `
+        if (eternus) {
+            htmlNota += `
             ${eternus.img ? `<img src="${esc(eternus.img)}" alt="Brasão do elo ${esc(eternus.nome)}">` : ''}
             <div>
                 <b>Todo mundo aqui está no elo mais alto: ${esc(eternus.nome)}</b>
                 <span>O ranking mostra só o topo de cada região, então todos já chegaram no último elo do jogo. Para ver quantos jogadores estão em cada elo, abra a aba <b>Estatísticas</b>.</span>
-            </div>` : '';
+            </div>`;
+        }
+        nota.innerHTML = htmlNota;
     }
 }
 
@@ -3201,8 +3232,13 @@ function topJogadoresHTML(h) {
     }).filter(Boolean);
     if (!blocos.length) return '';
 
+    const notaTemporada = dados.temporadaAnterior
+        ? `<p class="sec-note"><i class="fa-solid fa-circle-info"></i> A ${esc((dados.temporadaAtual && dados.temporadaAtual.nome) || 'temporada nova')} ainda está calibrando. Esta lista é da última temporada completa${dados.temporada && dados.temporada.nome ? ` (${esc(dados.temporada.nome)})` : ''}.</p>`
+        : '';
+
     return `<h2 class="pform-sec" style="margin-top:22px">Melhores jogadores de ${esc(h.name)}</h2>
         <p class="sec-note">O ranking do próprio jogo para este herói, por região. Atualizado em ${esc(dados.updated || '')}.</p>
+        ${notaTemporada}
         <div class="top-grid">${blocos.join('')}</div>
         <p class="stat-fonte"><i class="fa-solid fa-ranking-star"></i> Fonte: deadlock-api.com</p>`;
 }
