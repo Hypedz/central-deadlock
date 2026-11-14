@@ -619,6 +619,36 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .tag.ok { color: var(--ok); border-color: rgba(52,211,153,.35); }
 .tag.warn { color: var(--warn); border-color: rgba(251,191,36,.35); }
 
+/* ---- selos do perfil ---- */
+.pbadges { display: inline-flex; flex-wrap: wrap; gap: 6px; vertical-align: middle; }
+.pbadge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 9px 2px 7px; border-radius: 999px;
+    font-family: var(--font-ui); font-weight: 700; font-size: .68rem; line-height: 1.7;
+    color: var(--text); background: var(--badge-soft); border: 1px solid var(--badge-line);
+    white-space: nowrap;
+}
+.pbadge i { color: var(--badge); font-size: .8em; }
+.pcard .pbadges { margin: 2px 0 6px; }
+.pv-id .pbadges { margin-top: 9px; }
+
+.badge-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge-opt {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 12px; border-radius: 99px;
+    border: 1px solid var(--border); background: var(--card-2);
+    color: var(--text-soft); font-family: var(--font-ui); font-weight: 700; font-size: .78rem;
+    transition: var(--trans); cursor: pointer;
+}
+.badge-opt i { color: var(--badge); }
+.badge-opt:hover { border-color: var(--badge-line); color: var(--text); }
+.badge-opt.on { background: var(--badge-soft); border-color: var(--badge-line); color: var(--text); }
+.badge-opt em {
+    font-style: normal; display: inline-grid; place-items: center;
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--badge); color: #0c0c0e; font-size: .64rem; font-weight: 800;
+}
+
 .pill { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-soft); font-weight: 700; font-size: 13px; background: var(--card); font-family: var(--font-ui); }
 .pill:hover { color: var(--text); border-color: var(--border-2); }
 .pill.on { background: var(--lime); color: var(--on-lime); border-color: var(--lime); }

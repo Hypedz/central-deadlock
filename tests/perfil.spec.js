@@ -54,6 +54,61 @@ test('perfil, privacidade e prévia pública', async ({ page }) => {
     await expect(page.locator('#shareModalBox .pcard')).not.toContainText('Nível');
 });
 
+test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', async ({ page }) => {
+    await abrirPerfil(page);
+    await page.evaluate(() => {
+        profile.nick = 'Perfil com Selos';
+        profile.badges = [];
+        saveProfile();
+        renderProfileUI();
+    });
+
+    for (const id of ['dono', 'verificado', 'moderador']) {
+        await page.locator(`[data-badge="${id}"]`).click();
+    }
+    await expect(page.locator('.badge-opt.on')).toHaveCount(3);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
+    await expect(page.locator('#pvId .pbadges')).toContainText('Verificado');
+    await expect(page.locator('#pprev .pbadge')).toHaveCount(3);
+
+    // um quarto selo não entra
+    await page.locator('[data-badge="apoiador"]').click();
+    await expect(page.locator('.badge-opt.on')).toHaveCount(3);
+    await expect(page.locator('#pvId .pbadges')).not.toContainText('Apoiador');
+
+    // o selo também é desenhado no cartão em PNG
+    await page.evaluate(() => {
+        window.__selosDesenhados = 0;
+        const original = window.desenharBadgesCanvas;
+        window.desenharBadgesCanvas = (...args) => { window.__selosDesenhados++; return original(...args); };
+        window.__baixarPngOriginal = window.baixarPng;
+        window.baixarPng = () => {};
+    });
+    await page.evaluate(() => baixarCartaoComSeguranca('paisagem'));
+    expect(await page.evaluate(() => window.__selosDesenhados)).toBeGreaterThan(0);
+    await page.evaluate(() => { window.baixarPng = window.__baixarPngOriginal; });
+
+    // o link compartilhado leva os selos
+    const url = await page.evaluate(() => profileShareURL());
+    await page.goto(url);
+    await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(3);
+    await expect(page.locator('#shareModalBox .pbadges')).toContainText('Dono');
+    await expect(page.locator('#shareModalBox .pbadges')).toContainText('Moderador');
+
+    // privacidade desliga os selos só no cartão público
+    await page.goto('/?teste=' + Date.now());
+    await page.waitForFunction(() => typeof profile !== 'undefined');
+    await page.evaluate(() => {
+        profile.nick = 'Perfil com Selos';
+        profile.badges = ['dono', 'verificado', 'moderador'];
+        profile.privacy = { ...privacidade(profile), badges: false };
+        saveProfile();
+        renderProfileUI();
+    });
+    await expect(page.locator('#pprev .pbadge')).toHaveCount(0);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
+});
+
 test('QR Code do cartão é gerado', async ({ page }) => {
     await abrirPerfil(page);
     await page.evaluate(() => {
@@ -434,9 +489,15 @@ test.describe('celular', () => {
 
     test('não tem rolagem horizontal e os botões continuam legíveis', async ({ page }) => {
         await abrirPerfil(page);
+        await page.evaluate(() => {
+            profile.badges = ['dono', 'admin', 'verificado'];
+            saveProfile();
+            renderProfileUI();
+        });
         const excesso = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(excesso).toBeLessThanOrEqual(1);
         await expect(page.locator('#pvPreview')).toBeVisible();
         await expect(page.locator('#pvPreview')).toContainText('Ver como visitante');
+        await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
     });
 });

@@ -205,9 +205,54 @@ function socialLinksList(p) {
     }).filter(Boolean);
 }
 
+/* Selos do perfil. O site é estático (sem contas nem servidor), então os
+   selos são cosméticos: a própria pessoa escolhe quais quer mostrar. Eles
+   ficam salvos neste navegador e viajam no link compartilhado. */
+const BADGES = [
+    { id: 'dono', nome: 'Dono', icon: 'fa-crown', cor: '#f5c542', desc: 'Criador e responsável pelo site' },
+    { id: 'admin', nome: 'Administrador', icon: 'fa-shield-halved', cor: '#ff6b6b', desc: 'Ajuda a administrar o site e a comunidade' },
+    { id: 'moderador', nome: 'Moderador', icon: 'fa-gavel', cor: '#5aa9ff', desc: 'Cuida da comunidade e dos conteúdos' },
+    { id: 'verificado', nome: 'Verificado', icon: 'fa-circle-check', cor: '#1d9bf0', desc: 'Selo de perfil verificado' },
+    { id: 'apoiador', nome: 'Apoiador', icon: 'fa-heart', cor: '#ff8ab3', desc: 'Apoia o projeto' },
+    { id: 'dev', nome: 'Desenvolvedor', icon: 'fa-code', cor: '#b388ff', desc: 'Contribui com o código do site' },
+    { id: 'tradutor', nome: 'Tradutor', icon: 'fa-language', cor: '#4dd0a7', desc: 'Ajuda nas traduções para português' },
+    { id: 'criador', nome: 'Criador de conteúdo', icon: 'fa-video', cor: '#ffa94d', desc: 'Cria vídeos, streams ou guias' },
+    { id: 'beta', nome: 'Beta tester', icon: 'fa-flask', cor: '#b6f24a', desc: 'Testa novidades antes de todo mundo' },
+    { id: 'veterano', nome: 'Veterano', icon: 'fa-medal', cor: '#d4a373', desc: 'Está desde as primeiras versões' }
+];
+const BADGE_MAX = 3;
+function badgePorId(id) { return BADGES.find(b => b.id === id) || null; }
+function badgesNormalizados(lista) {
+    if (!Array.isArray(lista)) return [];
+    const vistos = new Set();
+    return lista.map(x => String(x || '')).filter(id => {
+        if (!id || vistos.has(id) || !badgePorId(id)) return false;
+        vistos.add(id);
+        return true;
+    }).slice(0, BADGE_MAX);
+}
+function badgesVisiveis(p, respeitarPrivacidade = true) {
+    const ids = badgesNormalizados(p && p.badges);
+    if (respeitarPrivacidade && !privacidade(p).badges) return [];
+    return ids.map(badgePorId).filter(Boolean);
+}
+function badgeStyle(b) {
+    return `--badge:${b.cor};--badge-soft:${b.cor}22;--badge-line:${b.cor}66`;
+}
+function badgesHTML(p, respeitarPrivacidade = true) {
+    const lista = badgesVisiveis(p, respeitarPrivacidade);
+    if (!lista.length) return '';
+    return `<span class="pbadges">${lista.map(b =>
+        `<span class="pbadge" style="${badgeStyle(b)}" title="${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i>${esc(b.nome)}</span>`).join('')}</span>`;
+}
+function badgesTexto(p, respeitarPrivacidade = true) {
+    return badgesVisiveis(p, respeitarPrivacidade).map(b => b.nome).join(', ');
+}
+
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
     nick: '', pronouns: '', status: '', bio: '', title: 'Jogador', region: 'Brasil',
+    badges: [],
     mains: [], links: {
         discord: '', twitch: '', youtube: '', x: '', instagram: '', tiktok: '', steam: '',
         custom: { label: '', url: '', icon: 'globe' }
@@ -215,7 +260,7 @@ const PROFILE_DEF = {
     showcase: [],
     savedBuilds: [],
     presets: [],
-    privacy: { level: true, activity: true, achievements: true, links: true },
+    privacy: { level: true, activity: true, achievements: true, links: true, badges: true },
     cardShowcase: true,
     lfg: false, avail: '',
     banner: 'lima', bc1: '#b6f24a', bc2: '#2f7a1a', pattern: 'none', bannerImg: '',
@@ -357,6 +402,7 @@ function normalizarPerfilCompartilhado(raw) {
         cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
         privacy: privacidade(raw),
         nivelCompartilhado: nivelCompartilhadoDe(raw),
+        badges: badgesNormalizados(raw.badges),
         menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
         mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
         showcase: showcaseNormalizado(raw.showcase),
@@ -403,8 +449,11 @@ function compararPerfisHTML(p, indice = 0) {
     const privMe = privacidade(meu), privDele = privacidade(p);
     const linksMe = privMe.links ? socialLinksList(meu).length + ' rede(s)' : 'Oculto';
     const linksDele = privDele.links ? socialLinksList(p).length + ' rede(s)' : 'Oculto';
+    const selosMe = privMe.badges ? (badgesTexto(meu) || 'Nenhum') : 'Oculto';
+    const selosDele = privDele.badges ? (badgesTexto(p) || 'Nenhum') : 'Oculto';
     const cor = v => v === 'auto' ? 'Verde padrão' : v;
     const linhas = [
+        ['Selos', selosMe, selosDele],
         ['Banner', nomeBanner(meu.banner), nomeBanner(p.banner)],
         ['Padrão', nomePattern(meu.pattern), nomePattern(p.pattern)],
         ['Destaque', cor(meu.accent), cor(p.accent)],
@@ -445,6 +494,7 @@ function comparacaoTexto(p) {
         `Mains em comum (${comuns.length}): ${nomes(comuns)}`,
         `Só você: ${nomes(soMeus)}`,
         `Só ${nomeDele}: ${nomes(soDele)}`,
+        `Selos — Você: ${privMe.badges ? (badgesTexto(meu) || 'Nenhum') : 'Oculto'} | ${nomeDele}: ${privDele.badges ? (badgesTexto(p) || 'Nenhum') : 'Oculto'}`,
         `Destaques — Você: ${showcaseTexto(meu) || 'Nenhum'} | ${nomeDele}: ${showcaseTexto(p) || 'Nenhum'}`,
         `Builds salvas — Você: ${savedBuildsList(meu).map(a => a.title).join(' · ') || 'Nenhuma'} | ${nomeDele}: ${savedBuildsList(p).map(a => a.title).join(' · ') || 'Nenhuma'}`,
         `Estilo — Banner: ${nomeBanner(meu.banner)} / ${nomeBanner(p.banner)}; Padrão: ${nomePattern(meu.pattern)} / ${nomePattern(p.pattern)}; Destaque: ${cor(meu.accent)} / ${cor(p.accent)}; Avatar: ${nomeShape(meu.av.shape)} / ${nomeShape(p.av.shape)}; Moldura: ${nomeFrame(meu.av.frame)} / ${nomeFrame(p.av.frame)}`,
@@ -510,6 +560,7 @@ let profile = (() => {
         cards: { ...PROFILE_DEF.cards, ...(raw.cards || {}) },
         privacy: privacidade(raw),
         nivelCompartilhado: null,
+        badges: badgesNormalizados(raw.badges),
         menuOculto: Array.isArray(raw.menuOculto) ? raw.menuOculto.filter(x => typeof x === 'string') : [],
         mains: Array.isArray(raw.mains) ? raw.mains.filter(n => heroByName(n)).slice(0, MAX_MAINS) : [],
         showcase: Array.isArray(raw.showcase)
@@ -4711,6 +4762,7 @@ function profileCardHTML(p) {
         <div class="pbody">
             <div class="pav-holder">${avatarBox(96, p)}</div>
             <h2>${esc(p.nick || 'Seu apelido')}</h2>
+            ${badgesHTML(p)}
             ${p.pronouns ? `<div style="color:var(--text-faint);font-size:12.5px;margin-bottom:4px">${esc(p.pronouns)}</div>` : ''}
             ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}
             <div class="prow">
@@ -4785,6 +4837,7 @@ function renderProfileView() {
     $('#pvAv').innerHTML = avatarBox(112, p);
     $('#pvId').innerHTML = `
         <h1>${esc(p.nick || 'Seu apelido')}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
+        ${badgesHTML(p, false)}
         <div class="prow" style="margin:10px 0 6px">
             <span class="tag acc">${esc(p.title || 'Jogador')}</span>
             ${levelTag}
@@ -4909,6 +4962,9 @@ function renderForm() {
             <label class="field">Região<select data-f="region">${sel(REGIONS, p.region)}</select></label>
             <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
+            <div class="pform-sec">Selos do perfil (até ${BADGE_MAX})</div>
+            <p class="field-note span2">Escolha até ${BADGE_MAX} selos para aparecer ao lado do seu nome. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
+            <div class="badge-pick span2">${badgePickerHTML(p)}</div>
             <div class="pform-sec">Redes sociais</div>
             <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
             <label class="field">Twitch<input data-f="l_twitch" maxlength="30" value="${esc(p.links.twitch)}" placeholder="canal"></label>
@@ -5009,6 +5065,7 @@ function renderForm() {
                 <label class="chk"><input type="checkbox" data-priv="activity" ${priv.activity ? 'checked' : ''}> Atividade</label>
                 <label class="chk"><input type="checkbox" data-priv="achievements" ${priv.achievements ? 'checked' : ''}> Conquistas</label>
                 <label class="chk"><input type="checkbox" data-priv="links" ${priv.links ? 'checked' : ''}> Redes sociais e link pessoal</label>
+                <label class="chk"><input type="checkbox" data-priv="badges" ${priv.badges ? 'checked' : ''}> Selos do perfil</label>
             </div>
             ${showcaseEditorHTML(p)}
             <div class="pform-sec">Baixar o cartão</div>
@@ -5226,6 +5283,7 @@ function initProfile() {
         const tx = e.target.closest('[data-texto]'); if (tx) { profile.texto = tx.dataset.texto; touch('texto'); commit(); return; }
         const dl = e.target.closest('[data-dl]'); if (dl) { baixarCartaoComSeguranca(dl.dataset.dl); return; }
         const mp = e.target.closest('[data-mh]'); if (mp) { toggleMain(mp.dataset.mh); return; }
+        const bd = e.target.closest('[data-badge]'); if (bd) { toggleBadge(bd.dataset.badge); return; }
         const act = e.target.closest('[data-act]');
         if (act) {
             const a = act.dataset.act;
@@ -5475,6 +5533,30 @@ function toggleMain(name) {
     commit();
 }
 
+function badgePickerHTML(p) {
+    const atuais = badgesNormalizados(p && p.badges);
+    return BADGES.map(b => {
+        const i = atuais.indexOf(b.id);
+        return `<button type="button" class="badge-opt ${i >= 0 ? 'on' : ''}" data-badge="${b.id}" style="${badgeStyle(b)}" title="${esc(b.desc)}" aria-pressed="${i >= 0}">
+            <i class="fa-solid ${b.icon}"></i> ${esc(b.nome)}${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
+    }).join('');
+}
+function toggleBadge(id) {
+    if (!badgePorId(id)) return;
+    const atuais = badgesNormalizados(profile.badges);
+    const i = atuais.indexOf(id);
+    if (i >= 0) atuais.splice(i, 1);
+    else if (atuais.length >= BADGE_MAX) {
+        showToast(`Você pode escolher até ${BADGE_MAX} selos.`, 'error');
+        return;
+    } else {
+        atuais.push(id);
+    }
+    profile.badges = atuais;
+    touch('badges');
+    commit();
+}
+
 function handleAvatar(file) {
     if (!file || !/^image\//.test(file.type)) { showToast('Selecione uma imagem válida.', 'error'); return; }
     const r = new FileReader();
@@ -5525,6 +5607,7 @@ function resetProfile() {
         cards: { ...PROFILE_DEF.cards },
         privacy: { ...PROFILE_DEF.privacy },
         nivelCompartilhado: null,
+        badges: [],
         menuOculto: [],
         showcase: [],
         savedBuilds: [],
@@ -5558,9 +5641,11 @@ function cardText(p) {
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join(' · ') : '';
     const destaques = showcaseTexto(p);
     const builds = savedBuildsList(p).map(a => a.title).join(' · ');
+    const selos = priv.badges ? badgesTexto(p) : '';
     return [
         `${p.nick || 'Jogador'} — Central Deadlock`,
         p.title ? `Título: ${p.title}` : '',
+        selos ? `Selos: ${selos}` : '',
         p.region ? `Região: ${p.region}` : '',
         p.status ? `Status: ${p.status}` : '',
         p.lfg ? 'Procurando time: sim' : '',
@@ -5924,6 +6009,49 @@ function siteLabel() {
     const caminho = location.pathname.replace(/index\.html$/, '').replace(/\/$/, '');
     return (host + caminho).replace(/^\/+/, '') || 'central-deadlock';
 }
+
+/* desenha os selos nos cartões em PNG (o canvas não usa Font Awesome) */
+function corComAlfa(hex, alfa) {
+    const [r, g, b] = hexParaRgb(hex);
+    return `rgba(${r},${g},${b},${alfa})`;
+}
+function medirBadgesCanvas(ctx, p, font, tam) {
+    const lista = badgesVisiveis(p);
+    if (!lista.length) return 0;
+    ctx.save();
+    ctx.font = `700 ${tam}px ${font}`;
+    const total = lista.reduce((soma, b) => soma + ctx.measureText(b.nome).width + tam * 2.4, 0)
+        + (lista.length - 1) * 8;
+    ctx.restore();
+    return Math.round(total);
+}
+function desenharBadgesCanvas(ctx, p, x, y, larguraMax, font, tam = 14, centro = false) {
+    const lista = badgesVisiveis(p);
+    if (!lista.length) return 0;
+    const gap = 8, altura = Math.round(tam * 1.9);
+    ctx.save();
+    ctx.font = `700 ${tam}px ${font}`;
+    ctx.textBaseline = 'middle';
+    const larguras = lista.map(b => Math.round(ctx.measureText(b.nome).width + tam * 2.4));
+    const total = larguras.reduce((a, b) => a + b, 0) + gap * (lista.length - 1);
+    let cx = centro ? x - total / 2 : x;
+    const limite = centro ? x + total / 2 : x + larguraMax;
+    lista.forEach((b, i) => {
+        const w = larguras[i];
+        if (cx + w <= limite + 1) {
+            ctx.fillStyle = 'rgba(10,12,15,.68)';
+            roundRectPath(ctx, cx, y, w, altura, altura / 2); ctx.fill();
+            ctx.strokeStyle = corComAlfa(b.cor, .75); ctx.lineWidth = 1; ctx.stroke();
+            ctx.fillStyle = b.cor;
+            ctx.beginPath(); ctx.arc(cx + tam * .95, y + altura / 2, tam * .3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.fillText(b.nome, cx + tam * 1.55, y + altura / 2 + 1);
+        }
+        cx += w + gap;
+    });
+    ctx.restore();
+    return altura;
+}
 async function downloadCard(formato, p = profile) {
     if (formato === 'story') return baixarCartaoStory(p);
     if (formato === 'quadrado') return baixarCartaoQuadrado(p);
@@ -5951,6 +6079,10 @@ async function downloadCard(formato, p = profile) {
         drawPattern(ctx, p.pattern, bx, by, bw, bh);
     }
     ctx.restore();
+
+    // selos no canto do banner
+    const larguraSelos = medirBadgesCanvas(ctx, p, font, 15);
+    if (larguraSelos) desenharBadgesCanvas(ctx, p, W - 40 - larguraSelos, 42, larguraSelos, font, 15);
 
     // avatar
     const as = 132, ax = 66, ay = 150;
@@ -6182,7 +6314,9 @@ async function baixarCartaoStory(p) {
     ctx.fillStyle = '#fff'; ctx.font = `800 66px ${font}`;
     ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 1015);
 
-    let y = 1065;
+    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 1038, W - 160, font, 20, true);
+    const extraSelosStory = alturaSelos ? alturaSelos + 10 : 0;
+    let y = 1065 + extraSelosStory;
     if (p.pronouns) {
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 24px ${font}`;
         ctx.fillText(p.pronouns.slice(0, 24), W / 2, y); y += 40;
@@ -6197,19 +6331,19 @@ async function baixarCartaoStory(p) {
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 30, 860, 38, 3);
 
     const mains = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
-    let yLinks = 1500;
+    let yLinks = 1500 + extraSelosStory;
     if (mains.length) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
-        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 1400);
+        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 1400 + extraSelosStory);
         const largura = 300, altura = 96, porLinha = 3;
         for (let i = 0; i < mains.length; i += porLinha) {
             const linha = mains.slice(i, i + porLinha);
             const total = linha.length * largura + (linha.length - 1) * 12;
-            cartaoPrincipais(ctx, linha, (W - total) / 2, 1435 + (i / porLinha) * (altura + 12), largura, altura, acento, font);
+            cartaoPrincipais(ctx, linha, (W - total) / 2, 1435 + extraSelosStory + (i / porLinha) * (altura + 12), largura, altura, acento, font);
         }
         ctx.textAlign = 'center';
         const linhas = Math.ceil(mains.length / porLinha);
-        yLinks = 1435 + linhas * (altura + 12) + 20;
+        yLinks = 1435 + extraSelosStory + linhas * (altura + 12) + 20;
     }
     if (vitrine) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 17px ${font}`;
@@ -6254,7 +6388,9 @@ async function baixarCartaoQuadrado(p) {
     ctx.fillStyle = '#fff'; ctx.font = `800 56px ${font}`;
     ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 405);
 
-    let y = 430;
+    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 424, W - 160, font, 18, true);
+    const extraSelos = alturaSelos ? alturaSelos + 8 : 0;
+    let y = 430 + extraSelos;
     if (p.pronouns) {
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 22px ${font}`;
         ctx.fillText(p.pronouns.slice(0, 24), W / 2, y); y += 30;
@@ -6269,19 +6405,19 @@ async function baixarCartaoQuadrado(p) {
     wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', W / 2, y + 26, 820, 28, 2);
 
     const mains = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
-    let yLinks = 630;
+    let yLinks = 630 + extraSelos;
     if (mains.length) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 15px ${font}`;
-        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 610);
+        ctx.fillText('HERÓIS PRINCIPAIS', W / 2, 610 + extraSelos);
         const largura = 300, altura = 64, porLinha = 3;
         for (let i = 0; i < mains.length; i += porLinha) {
             const linha = mains.slice(i, i + porLinha);
             const total = linha.length * largura + (linha.length - 1) * 12;
-            cartaoPrincipais(ctx, linha, (W - total) / 2, 622 + (i / porLinha) * (altura + 8), largura, altura, acento, font);
+            cartaoPrincipais(ctx, linha, (W - total) / 2, 622 + extraSelos + (i / porLinha) * (altura + 8), largura, altura, acento, font);
         }
         ctx.textAlign = 'center';
         const linhas = Math.ceil(mains.length / porLinha);
-        yLinks = 622 + linhas * (altura + 8) + 12;
+        yLinks = 622 + extraSelos + linhas * (altura + 8) + 12;
     }
 
     if (vitrine) {
@@ -6336,12 +6472,14 @@ async function baixarCartaoBanner(p) {
     ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 24), vitrine ? 600 : 1040), x, 165);
     ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
     ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 600 : 1040), x, 205);
+    const alturaSelos = desenharBadgesCanvas(ctx, p, x, 218, vitrine ? 600 : 1040, font, 16);
+    const extraSelos = alturaSelos ? alturaSelos + 8 : 0;
     if (p.status) {
         ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 19px ${font}`;
-        ctx.fillText(cortarTexto(ctx, `“${p.status}”`.slice(0, 64), vitrine ? 600 : 1040), x, 240);
+        ctx.fillText(cortarTexto(ctx, `“${p.status}”`.slice(0, 64), vitrine ? 600 : 1040), x, 240 + extraSelos);
     }
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = `400 18px ${font}`;
-    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282, vitrine ? 600 : 1040, 24, 2);
+    wrapText(ctx, p.bio || 'Escreva uma bio para aparecer aqui.', x, 282 + extraSelos, vitrine ? 600 : 1040, 24, 2);
 
     if (vitrine) {
         ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `700 13px ${font}`;
@@ -6352,7 +6490,7 @@ async function baixarCartaoBanner(p) {
     const mainsBanner = p.mains.map(heroByName).filter(Boolean).slice(0, MAX_MAINS);
     if (mainsBanner.length) {
         const largura = mainsBanner.length > 4 ? 170 : 220;
-        cartaoPrincipais(ctx, mainsBanner, x, 340, largura, 64, acento, font);
+        cartaoPrincipais(ctx, mainsBanner, x, 340 + extraSelos, largura, 64, acento, font);
     }
 
     const lk = priv.links ? linksListTodos(p).map(([k, v]) => `${k}: ${v}`).join('   ') : '';
