@@ -56,6 +56,8 @@ test('perfil e privacidade', async ({ page }) => {
 
 test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', async ({ page }) => {
     await abrirPerfil(page);
+    // Abrir o editor de perfil para acessar o seletor de selos
+    await page.locator('#pvEdit').click();
     await page.evaluate(() => {
         profile.nick = 'Perfil com Selos';
         profile.badges = [];
@@ -174,6 +176,8 @@ test('comparação com até 3 links, cartão e texto', async ({ page }) => {
     });
 
     await abrirPerfil(page);
+    // Abrir o editor de perfil para acessar o formulário
+    await page.locator('#pvEdit').click();
     await page.evaluate(() => {
         pTab = 'data';
         renderPTabs();
@@ -206,6 +210,8 @@ test('comparação com até 3 links, cartão e texto', async ({ page }) => {
 
 test('presets: salvar, renomear, duplicar, padrão e aplicar', async ({ page }) => {
     await abrirPerfil(page);
+    // Abrir o editor de perfil
+    await page.locator('#pvEdit').click();
     await page.evaluate(() => {
         pTab = 'card';
         renderPTabs();
@@ -237,6 +243,8 @@ test('minhas builds: reordenar, principal, filtro e link direto', async ({ page 
         return profile.savedBuilds.slice();
     });
     await abrirPerfil(page);
+    // Abrir o editor de perfil
+    await page.locator('#pvEdit').click();
     await page.evaluate(() => {
         pTab = 'game';
         renderPTabs();

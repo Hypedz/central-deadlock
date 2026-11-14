@@ -3536,8 +3536,13 @@ function initHome() {
         pTab = 'game';
         showSection('perfil');
         renderPTabs(); renderForm();
-        const el = $('#editorPerfil');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const wrapper = $('#profileEditor');
+        if (wrapper && wrapper.classList.contains('hidden')) {
+            wrapper.classList.remove('hidden');
+            const title = $('#editorPerfil');
+            if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        }
+        const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     // ---- movimento da semana (quem subiu, quem caiu) ----
@@ -5610,7 +5615,16 @@ function initProfile() {
 
     // botões do perfil grande (topo)
     $('#pvEdit').addEventListener('click', () => {
-        const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const wrapper = $('#profileEditor');
+        const title = $('#editorPerfil');
+        if (!wrapper || !title) return;
+        const isHidden = wrapper.classList.toggle('hidden');
+        title.innerHTML = isHidden
+            ? '<i class="fa-solid fa-sliders"></i> Editar perfil'
+            : '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        if (!isHidden) {
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
@@ -5618,7 +5632,13 @@ function initProfile() {
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
         pTab = g.dataset.goto; renderPTabs(); renderForm();
-        const el = $('#editorPerfil'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const wrapper = $('#profileEditor');
+        if (wrapper && wrapper.classList.contains('hidden')) {
+            wrapper.classList.remove('hidden');
+            const title = $('#editorPerfil');
+            if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        }
+        const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     // vitrine: abrir o conteúdo e avisar quando o link pessoal leva para fora
