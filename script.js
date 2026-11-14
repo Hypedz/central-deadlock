@@ -239,13 +239,21 @@ function badgeStyle(b) {
     return `--badge:${b.cor};--badge-soft:${b.cor}22;--badge-line:${b.cor}66`;
 }
 function badgesHTML(p, respeitarPrivacidade = true) {
-    const lista = badgesVisiveis(p, respeitarPrivacidade);
+    // o selo "Verificado" vira o check ao lado do nome (verificadoHTML)
+    const lista = badgesVisiveis(p, respeitarPrivacidade).filter(b => b.id !== 'verificado');
     if (!lista.length) return '';
     return `<span class="pbadges">${lista.map(b =>
         `<span class="pbadge" style="${badgeStyle(b)}" title="${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i>${esc(b.nome)}</span>`).join('')}</span>`;
 }
 function badgesTexto(p, respeitarPrivacidade = true) {
     return badgesVisiveis(p, respeitarPrivacidade).map(b => b.nome).join(', ');
+}
+function perfilVerificado(p, respeitarPrivacidade = true) {
+    return badgesVisiveis(p, respeitarPrivacidade).some(b => b.id === 'verificado');
+}
+function verificadoHTML(p, respeitarPrivacidade = true) {
+    if (!perfilVerificado(p, respeitarPrivacidade)) return '';
+    return '<span class="pverified" title="Selo cosmético escolhido pelo usuário — o site não verifica identidade" aria-label="Perfil verificado"><i class="fa-solid fa-circle-check"></i></span>';
 }
 
 const PROFILE_DEF = {
@@ -461,7 +469,7 @@ function compararPerfisHTML(p, indice = 0) {
         ['Redes', linksMe, linksDele]
     ];
     return `<div class="compare-box">
-        <div class="compare-title"><span>Você</span><b>vs</b><span>${esc(nomeDele)}</span></div>
+        <div class="compare-title"><span>Você${verificadoHTML(meu)}</span><b>vs</b><span>${esc(nomeDele)}${verificadoHTML(p)}</span></div>
         <div class="compare-grid">
             <section><h3>Mains em comum (${comuns.length})</h3>${listaHerois(comuns)}</section>
             <section><h3>Só você</h3>${listaHerois(soMeus)}</section>
@@ -4760,7 +4768,7 @@ function profileCardHTML(p) {
         <div class="pban" style="${bannerStyle(p)}"></div>
         <div class="pbody">
             <div class="pav-holder">${avatarBox(96, p)}</div>
-            <h2>${esc(p.nick || 'Seu apelido')}</h2>
+            <h2>${esc(p.nick || 'Seu apelido')}${verificadoHTML(p)}</h2>
             ${badgesHTML(p)}
             ${p.pronouns ? `<div style="color:var(--text-faint);font-size:12.5px;margin-bottom:4px">${esc(p.pronouns)}</div>` : ''}
             ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}
@@ -4835,7 +4843,7 @@ function renderProfileView() {
     $('#pvBan').setAttribute('style', bannerStyle(p));
     $('#pvAv').innerHTML = avatarBox(112, p);
     $('#pvId').innerHTML = `
-        <h1>${esc(p.nick || 'Seu apelido')}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
+        <h1>${esc(p.nick || 'Seu apelido')}${verificadoHTML(p, false)}${p.pronouns ? `<small>${esc(p.pronouns)}</small>` : ''}</h1>
         ${badgesHTML(p, false)}
         <div class="prow" style="margin:10px 0 6px">
             <span class="tag acc">${esc(p.title || 'Jogador')}</span>
@@ -4962,7 +4970,7 @@ function renderForm() {
             <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
             <div class="pform-sec">Selos do perfil</div>
-            <p class="field-note span2">Escolha os selos que quiser mostrar ao lado do seu nome — pode marcar todos. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
+            <p class="field-note span2">Escolha os selos que quiser mostrar ao lado do seu nome — pode marcar todos. O selo <b>Verificado</b> aparece como um <b>check azul</b> colado ao seu nome. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
             <div class="badge-pick span2">${badgePickerHTML(p)}</div>
             <div class="pform-sec">Redes sociais</div>
             <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
@@ -6009,8 +6017,28 @@ function corComAlfa(hex, alfa) {
     const [r, g, b] = hexParaRgb(hex);
     return `rgba(${r},${g},${b},${alfa})`;
 }
+/* check azul de "verificado" desenhado ao lado do nome nos cartões em PNG.
+   xFim é onde o nome termina; y é a linha de base do nome. */
+function desenharVerificadoCanvas(ctx, p, xFim, y, tam) {
+    if (!perfilVerificado(p)) return;
+    const raio = tam * 0.34, espaco = tam * 0.2;
+    const cx = xFim + espaco + raio, cy = y - tam * 0.34;
+    ctx.save();
+    ctx.fillStyle = '#1d9bf0';
+    ctx.beginPath(); ctx.arc(cx, cy, raio, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = Math.max(1.5, tam * 0.1);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - raio * .46, cy + raio * .02);
+    ctx.lineTo(cx - raio * .1, cy + raio * .4);
+    ctx.lineTo(cx + raio * .5, cy - raio * .4);
+    ctx.stroke();
+    ctx.restore();
+}
 function desenharBadgesCanvas(ctx, p, x, y, larguraMax, font, tam = 16, alinhar = 'left') {
-    const lista = badgesVisiveis(p);
+    // "Verificado" não entra na lista: ele aparece como check ao lado do nome
+    const lista = badgesVisiveis(p).filter(b => b.id !== 'verificado');
     if (!lista.length) return 0;
     const gap = 8, altura = Math.round(tam * 2.1), espacoLinha = Math.round(tam * 0.6), raio = tam * 0.4;
     ctx.save();
@@ -6138,7 +6166,9 @@ async function downloadCard(formato, p = profile) {
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 15px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', tx, by + bh + 44);
     ctx.fillStyle = '#fff'; ctx.font = `800 46px ${font}`;
-    ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 22), vitrine ? 380 : W - tx - 40), tx, by + bh + 94);
+    const nomeLand = cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 22), vitrine ? 380 : W - tx - 40);
+    ctx.fillText(nomeLand, tx, by + bh + 94);
+    desenharVerificadoCanvas(ctx, p, tx + ctx.measureText(nomeLand).width, by + bh + 94, 46);
     ctx.fillStyle = lime; ctx.font = `700 18px ${font}`;
     ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 380 : W - tx - 40), tx, by + bh + 126);
     ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 17px ${font}`;
@@ -6333,7 +6363,9 @@ async function baixarCartaoStory(p) {
     ctx.fillText('CENTRAL DEADLOCK', W / 2, 935);
 
     ctx.fillStyle = '#fff'; ctx.font = `800 66px ${font}`;
-    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 1015);
+    const nomeStory = (p.nick || 'Seu apelido').slice(0, 22);
+    ctx.fillText(nomeStory, W / 2, 1015);
+    desenharVerificadoCanvas(ctx, p, W / 2 + ctx.measureText(nomeStory).width / 2, 1015, 66);
 
     const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 1038, W - 160, font, 18, 'center');
     const extraSelosStory = alturaSelos ? alturaSelos + 10 : 0;
@@ -6407,10 +6439,12 @@ async function baixarCartaoQuadrado(p) {
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 18px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', W / 2, 350);
     ctx.fillStyle = '#fff'; ctx.font = `800 56px ${font}`;
-    ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 405);
+    const nomeQuad = (p.nick || 'Seu apelido').slice(0, 22);
+    ctx.fillText(nomeQuad, W / 2, 405);
+    desenharVerificadoCanvas(ctx, p, W / 2 + ctx.measureText(nomeQuad).width / 2, 405, 56);
 
     const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 424, W - 160, font, 20, 'center');
-    const extraSelos = alturaSelos ? alturaSelos + 16 : 0;
+    const extraSelos = alturaSelos ? alturaSelos + 22 : 0;
     let y = 430 + extraSelos;
     if (p.pronouns) {
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 22px ${font}`;
@@ -6490,7 +6524,9 @@ async function baixarCartaoBanner(p) {
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 16px ${font}`;
     ctx.fillText('CENTRAL DEADLOCK', x, 95);
     ctx.fillStyle = '#fff'; ctx.font = `800 54px ${font}`;
-    ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 24), vitrine ? 600 : 1040), x, 165);
+    const nomeBanner = cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 24), vitrine ? 600 : 1040);
+    ctx.fillText(nomeBanner, x, 165);
+    desenharVerificadoCanvas(ctx, p, x + ctx.measureText(nomeBanner).width, 165, 54);
     ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
     ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 600 : 1040), x, 205);
     const alturaSelos = desenharBadgesCanvas(ctx, p, x, 218, vitrine ? 600 : 1040, font, 17);

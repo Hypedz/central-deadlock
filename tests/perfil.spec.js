@@ -69,17 +69,26 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
         await page.locator(`[data-badge="${id}"]`).click();
     }
     await expect(page.locator('.badge-opt.on')).toHaveCount(todos.length);
-    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
-    await expect(page.locator('#pvId .pbadges')).toContainText('Verificado');
+    // "Verificado" vira o check ao lado do nome, não uma pílula na lista
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length - 1);
+    await expect(page.locator('#pvId .pverified')).toHaveCount(1);
+    await expect(page.locator('#pvId .pbadges')).not.toContainText('Verificado');
     await expect(page.locator('#pvId .pbadges')).toContainText('Criador de conteúdo');
-    await expect(page.locator('#pprev .pbadge')).toHaveCount(todos.length);
+    await expect(page.locator('#pprev .pbadge')).toHaveCount(todos.length - 1);
+    await expect(page.locator('#pprev .pverified')).toHaveCount(1);
 
     // clicar de novo remove só aquele selo
     await page.locator('[data-badge="apoiador"]').click();
     await expect(page.locator('.badge-opt.on')).toHaveCount(todos.length - 1);
     await expect(page.locator('#pvId .pbadges')).not.toContainText('Apoiador');
     await page.locator('[data-badge="apoiador"]').click();
-    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length - 1);
+
+    // tirar o "Verificado" remove o check do lado do nome
+    await page.locator('[data-badge="verificado"]').click();
+    await expect(page.locator('#pvId .pverified')).toHaveCount(0);
+    await page.locator('[data-badge="verificado"]').click();
+    await expect(page.locator('#pvId .pverified')).toHaveCount(1);
 
     // o selo também é desenhado no cartão em PNG
     await page.evaluate(() => {
@@ -96,7 +105,8 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
     // o link compartilhado leva todos os selos
     const url = await page.evaluate(() => profileShareURL());
     await page.goto(url);
-    await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(todos.length);
+    await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(todos.length - 1);
+    await expect(page.locator('#shareModalBox .pverified')).toHaveCount(1);
     await expect(page.locator('#shareModalBox .pbadges')).toContainText('Dono');
     await expect(page.locator('#shareModalBox .pbadges')).toContainText('Moderador');
 
@@ -111,7 +121,9 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
         renderProfileUI();
     }, todos);
     await expect(page.locator('#pprev .pbadge')).toHaveCount(0);
-    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
+    await expect(page.locator('#pprev .pverified')).toHaveCount(0);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length - 1);
+    await expect(page.locator('#pvId .pverified')).toHaveCount(1);
 });
 
 test('QR Code do cartão é gerado', async ({ page }) => {
@@ -503,6 +515,7 @@ test.describe('celular', () => {
         expect(excesso).toBeLessThanOrEqual(1);
         await expect(page.locator('#pvPreview')).toBeVisible();
         await expect(page.locator('#pvPreview')).toContainText('Ver como visitante');
-        await expect(page.locator('#pvId .pbadge')).toHaveCount(10);
+        await expect(page.locator('#pvId .pbadge')).toHaveCount(9);
+        await expect(page.locator('#pvId .pverified')).toHaveCount(1);
     });
 });
