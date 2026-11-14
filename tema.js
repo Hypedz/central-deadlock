@@ -254,13 +254,13 @@
     raiz.style.fontSize = tamanhos[perfilInicial.texto] || '16px';
 
     window.aplicarTema = aplicar;
-    window.alternarTema = alternar;
+    window.proximoTema = proximoTema;
 
     function ligarBotoes() {
         Array.prototype.forEach.call(document.querySelectorAll('[data-tema-btn]'), function (botao) {
             if (botao.dataset.temaLigado === '1') return;
             botao.dataset.temaLigado = '1';
-            botao.addEventListener('click', alternar);
+            botao.addEventListener('click', proximoTema);
         });
         /* modo compacto escolhido no perfil */
         document.body.classList.toggle('compact', !!lerPerfil().compact);
