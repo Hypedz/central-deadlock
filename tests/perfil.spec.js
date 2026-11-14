@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
     await page.waitForFunction(() => typeof profile !== 'undefined' && typeof showSection === 'function');
 });
 
-test('perfil, privacidade e prévia pública', async ({ page }) => {
+test('perfil e privacidade', async ({ page }) => {
     await abrirPerfil(page);
     await page.evaluate(() => {
         profile.nick = 'Teste Automático';
@@ -47,11 +47,11 @@ test('perfil, privacidade e prévia pública', async ({ page }) => {
         renderProfileView();
         renderSideCard();
     });
-    await page.locator('#pvPreview').click();
-    await expect(page.locator('#shareModal')).toHaveClass(/show/);
-    await expect(page.locator('#shareModalBox')).toContainText('Prévia pública');
-    await expect(page.locator('#shareModalBox')).toContainText('Teste Automático');
-    await expect(page.locator('#shareModalBox .pcard')).not.toContainText('Nível');
+    // o cartão público também respeita a privacidade e a prévia não existe mais
+    await expect(page.locator('#pprev')).not.toContainText('Nível');
+    await expect(page.locator('#pprev')).not.toContainText('teste#1234');
+    await expect(page.locator('#pvPreview')).toHaveCount(0);
+    await expect(page.locator('#pprevPreview')).toHaveCount(0);
 });
 
 test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', async ({ page }) => {
@@ -504,7 +504,8 @@ test('acessibilidade básica e sem erros de página', async ({ page }) => {
     await expect(page.locator('.skip-link')).toHaveAttribute('href', '#conteudo');
     expect(await page.locator('img:not([alt])').count()).toBe(0);
     await abrirPerfil(page);
-    await expect(page.getByRole('button', { name: /Ver como visitante/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ver como visitante/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Editar perfil/ }).first()).toBeVisible();
     expect(erros).toEqual([]);
 });
 
@@ -520,8 +521,8 @@ test.describe('celular', () => {
         });
         const excesso = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(excesso).toBeLessThanOrEqual(1);
-        await expect(page.locator('#pvPreview')).toBeVisible();
-        await expect(page.locator('#pvPreview')).toContainText('Ver como visitante');
+        await expect(page.locator('#pvPreview')).toHaveCount(0);
+        await expect(page.locator('#pvEdit')).toBeVisible();
         await expect(page.locator('#pvId .pbadge')).toHaveCount(9);
         await expect(page.locator('#pvId .pverified')).toHaveCount(1);
         // no celular o selo fica só com o ícone (sem o nome ocupando espaço)

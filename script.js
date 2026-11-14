@@ -519,24 +519,6 @@ function abrirCartaoComparado(indice = 0) {
         <div class="modal-foot"><button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button></div>`;
     openOverlay($('#shareModal'));
 }
-function abrirPreviaVisitante() {
-    const box = $('#shareModalBox');
-    if (!box) return;
-    const p = normalizarPerfilCompartilhado({
-        ...profile,
-        nivelCompartilhado: privacidade(profile).level ? { n: level().n, xp: level().xp } : null
-    });
-    previaVisitanteAtual = p;
-    box.innerHTML = `<button type="button" class="modal-close" data-close="shareModal" aria-label="Fechar">&times;</button>
-        <div class="modal-head"><h2>Prévia pública</h2><p>É assim que seu cartão aparece quando alguém abre o link compartilhado.</p></div>
-        <div style="max-width:380px;margin:10px auto 0">${profileCardHTML(p)}</div>
-        <div class="modal-foot preview-foot">
-            <button type="button" class="btn btn-dark" data-preview-copy><i class="fa-solid fa-link"></i> Copiar link</button>
-            <button type="button" class="btn btn-dark" data-preview-download><i class="fa-solid fa-download"></i> Baixar cartão</button>
-            <button type="button" class="btn btn-lime" data-close="shareModal">Fechar</button>
-        </div>`;
-    openOverlay($('#shareModal'));
-}
 async function copiarComparacao() {
     if (!perfisComparados.length) return;
     const texto = perfisComparados.map(comparacaoTexto).join('\n\n');
@@ -4574,7 +4556,7 @@ function avatarBox(size, p) {
 }
 
 /* abas do editor de perfil */
-let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null, perfisComparados = [], previaVisitanteAtual = null;
+let pTab = 'id', avAdjustOpen = false, showcasePickType = 'hero', perfilComparado = null, perfisComparados = [];
 const PROFILE_TABS = [
     ['id', 'fa-user', 'Identidade'],
     ['game', 'fa-gamepad', 'Jogo'],
@@ -5459,7 +5441,6 @@ function initProfile() {
     $('#pdl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
     $('#plink').addEventListener('click', copyLink);
     const pshare = $('#pshare'); if (pshare) pshare.addEventListener('click', shareProfile);
-    const pprevPreview = $('#pprevPreview'); if (pprevPreview) pprevPreview.addEventListener('click', abrirPreviaVisitante);
     $('#pcp').addEventListener('click', copyText);
 
     // botões do perfil grande (topo)
@@ -5468,7 +5449,6 @@ function initProfile() {
     });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
-    const pvPreview = $('#pvPreview'); if (pvPreview) pvPreview.addEventListener('click', abrirPreviaVisitante);
     $('#pvDl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
     $('#pvGrid').addEventListener('click', (e) => {
         const g = e.target.closest('[data-goto]'); if (!g) return;
@@ -5478,8 +5458,6 @@ function initProfile() {
 
     // vitrine: abrir o conteúdo e avisar quando o link pessoal leva para fora
     document.addEventListener('click', (e) => {
-        if (e.target.closest('[data-preview-copy]')) { copyLink(); return; }
-        if (e.target.closest('[data-preview-download]')) { baixarCartaoComSeguranca('paisagem', previaVisitanteAtual || profile); return; }
         const b = e.target.closest('[data-showcase-open]');
         if (b) {
             e.preventDefault();
