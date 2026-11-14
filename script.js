@@ -5114,6 +5114,17 @@ function renderForm() {
             <label class="field">Região<select data-f="region">${sel(REGIONS, p.region)}</select></label>
             <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
+            <div class="pform-sec">Preferências</div>
+            <div class="grid2">
+                <label class="field">Tema<select data-f="theme"><option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>Automático (sistema)</option><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
+                <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
+            </div>
+            <p class="field-note" style="margin-top:10px">Tamanho do texto</p>
+            <div class="picker-row">
+                ${[['pequeno', 'Pequeno'], ['padrao', 'Padrão'], ['grande', 'Grande']]
+                    .map(([k, n]) => `<button type="button" class="pill ${(p.texto || 'padrao') === k ? 'on' : ''}" data-texto="${k}">${n}</button>`).join('')}
+            </div>
+            <label class="chk" style="margin-top:10px"><input type="checkbox" data-f="compact" ${p.compact ? 'checked' : ''}> Layout compacto (menos espaço nos cards)</label>
             <div class="pform-sec">Selos do perfil</div>
             <p class="field-note span2">Escolha os selos que quiser mostrar ao lado do seu nome — pode marcar todos. O selo <b>Verificado</b> aparece como um <b>check azul</b> colado ao seu nome. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
             <div class="badge-pick span2">${badgePickerHTML(p)}</div>
@@ -5296,19 +5307,7 @@ function renderForm() {
                 ${[['papel', 'Papel (Tanque, Carry...)'], ['tier', 'Tier'], ['win', 'Win rate'], ['pick', 'Pick rate'],
                     ['partidas', 'Partidas'], ['kda', 'KDA'], ['diff', 'Dificuldade']]
                     .map(([k, n]) => `<label class="chk"><input type="checkbox" data-cardbadge="${k}" ${cards[k] ? 'checked' : ''}> ${n}</label>`).join('')}
-            </div>
-
-            <div class="pform-sec">Preferências</div>
-            <div class="grid2">
-                <label class="field">Tema<select data-f="theme"><option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>Automático (sistema)</option><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
-                <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
-            </div>
-            <p class="field-note" style="margin-top:10px">Tamanho do texto</p>
-            <div class="picker-row">
-                ${[['pequeno', 'Pequeno'], ['padrao', 'Padrão'], ['grande', 'Grande']]
-                    .map(([k, n]) => `<button type="button" class="pill ${(p.texto || 'padrao') === k ? 'on' : ''}" data-texto="${k}">${n}</button>`).join('')}
-            </div>
-            <label class="chk" style="margin-top:10px"><input type="checkbox" data-f="compact" ${p.compact ? 'checked' : ''}> Layout compacto (menos espaço nos cards)</label>`;
+            </div>`;
     } else if (pTab === 'ach') {
         html = `
             <div class="pform-sec">Progresso</div>
