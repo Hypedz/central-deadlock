@@ -28,8 +28,22 @@
         return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
     }
 
+    const TEMA_OPTIONS = ['auto', 'dark', 'light', 'neon', 'muted', 'amber', 'violet', 'blue', 'rose', 'high-contrast'];
+    const TEMA_LABELS = {
+        auto: 'Automático (sistema)',
+        dark: 'Escuro (Deadlock Classic)',
+        light: 'Claro',
+        neon: 'Neon',
+        muted: 'Suave (Muted)',
+        amber: 'Âmbar',
+        violet: 'Violeta',
+        blue: 'Azul',
+        rose: 'Rosa',
+        'high-contrast': 'Alto Contraste'
+    };
+
     function normalizar(tema) {
-        return tema === 'light' ? 'light' : (tema === 'dark' ? 'dark' : temaDoSistema());
+        return TEMA_OPTIONS.includes(tema) ? tema : temaDoSistema();
     }
 
     /* ===== cor de destaque escolhida em "Meu Perfil > Site" =====
@@ -179,6 +193,11 @@
         var texto = escuro ? 'Tema claro' : 'Tema escuro';
         var icone = escuro ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 
+        if (TEMA_LABELS[escolhido]) {
+            texto = TEMA_LABELS[escolhido];
+            rotulo = 'Tema atual: ' + TEMA_LABELS[escolhido];
+        }
+
         Array.prototype.forEach.call(document.querySelectorAll('[data-tema-btn]'), function (botao) {
             botao.setAttribute('aria-label', rotulo);
             botao.setAttribute('title', rotulo);
@@ -189,6 +208,25 @@
         });
 
         return escolhido;
+    }
+
+    function proximoTema() {
+        var atual = raiz.getAttribute('data-theme') || 'auto';
+        var idx = TEMA_OPTIONS.indexOf(atual);
+        if (idx === -1) idx = 0;
+        var novo = TEMA_OPTIONS[(idx + 1) % TEMA_OPTIONS.length];
+
+        var perfil = lerPerfil();
+        perfil.theme = novo;
+        try {
+            localStorage.setItem(CHAVE, JSON.stringify(perfil));
+        } catch (e) { }
+
+        aplicar(novo);
+        try {
+            document.dispatchEvent(new CustomEvent('cdl-tema', { detail: { tema: novo } }));
+        } catch (e) { }
+        return novo;
     }
 
     function alternar() {

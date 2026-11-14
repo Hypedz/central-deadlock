@@ -76,6 +76,205 @@
     --shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
+/* ===== VARIANTES DE TEMA ESCURO ===== */
+/* Deadlock Classic (verde original) - já é o :root padrão */
+
+/* Deadlock Neon - mais vibrante, saturado */
+[data-theme="neon"] {
+    --bg: #08080a;
+    --bg-rgb: 8, 8, 10;
+    --bg-2: #0f0f13;
+    --sidebar: #0a0a0d;
+    --card: #121216;
+    --card-2: #18181e;
+    --card-hover: #1e1e26;
+    --border: #2a2a35;
+    --border-2: #353545;
+    --text: #f5f5fa;
+    --text-soft: #a8a8b8;
+    --text-faint: #8a8a9a;
+    --lime: #ccff33;
+    --lime-rgb: 204, 255, 51;
+    --on-lime: #08080a;
+    --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 18%, transparent);
+    --ok: #00ff88;
+    --danger: #ff3366;
+    --warn: #ffcc00;
+    --info: #00ffff;
+    --cy: #00e5ff;
+    --vio: #cc66ff;
+    --shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 60px rgba(204,255,51,0.08);
+}
+
+/* Deadlock Muted - dessaturado, mais suave pros olhos */
+[data-theme="muted"] {
+    --bg: #0f0f12;
+    --bg-rgb: 15, 15, 18;
+    --bg-2: #151519;
+    --sidebar: #111114;
+    --card: #1a1a1f;
+    --card-2: #202026;
+    --card-hover: #26262d;
+    --border: #2e2e36;
+    --border-2: #383842;
+    --text: #e0e0e5;
+    --text-soft: #8a8a95;
+    --text-faint: #707078;
+    --lime: #8ec73d;
+    --lime-rgb: 142, 199, 61;
+    --on-lime: #0f0f12;
+    --lime-hover: color-mix(in srgb, var(--lime) 85%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 12%, transparent);
+    --ok: #4ac97a;
+    --danger: #d66d6d;
+    --warn: #d4b85c;
+    --info: #5cc8e8;
+    --cy: #5cd8e8;
+    --vio: #b8a0e8;
+    --shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Deadlock Amber - tons quentes âmbar/dourado */
+[data-theme="amber"] {
+    --bg: #14100a;
+    --bg-rgb: 20, 16, 10;
+    --bg-2: #1d160e;
+    --sidebar: #161109;
+    --card: #241c10;
+    --card-2: #2d2415;
+    --card-hover: #362d1a;
+    --border: #3d321f;
+    --border-2: #4a3e27;
+    --text: #faf5eb;
+    --text-soft: #c8b898;
+    --text-faint: #a89878;
+    --lime: #fbbf24;
+    --lime-rgb: 251, 191, 36;
+    --on-lime: #14100a;
+    --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 16%, transparent);
+    --ok: #34d399;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --cy: #22d3ee;
+    --vio: #c084fc;
+    --shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 40px rgba(251,191,36,0.06);
+}
+
+/* Deadlock Violet - tons roxos/magenta */
+[data-theme="violet"] {
+    --bg: #100a14;
+    --bg-rgb: 16, 10, 20;
+    --bg-2: #1a0f24;
+    --sidebar: #140c1c;
+    --card: #1f102a;
+    --card-2: #281538;
+    --card-hover: #321844;
+    --border: #3d2252;
+    --border-2: #4a2a62;
+    --text: #f5ebfa;
+    --text-soft: #d8c0e0;
+    --text-faint: #b898c8;
+    --lime: #c084fc;
+    --lime-rgb: 192, 132, 252;
+    --on-lime: #100a14;
+    --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 16%, transparent);
+    --ok: #34d399;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --cy: #22d3ee;
+    --vio: #a855f7;
+    --shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 40px rgba(192,132,252,0.08);
+}
+
+/* Deadlock Blue - tons azuis frios */
+[data-theme="blue"] {
+    --bg: #080e18;
+    --bg-rgb: 8, 14, 24;
+    --bg-2: #0d1628;
+    --sidebar: #0a101c;
+    --card: #101a2c;
+    --card-2: #15223c;
+    --card-hover: #1a2a48;
+    --border: #1f3550;
+    --border-2: #264060;
+    --text: #ebf3fb;
+    --text-soft: #b8d0e8;
+    --text-faint: #90a8c8;
+    --lime: #38bdf8;
+    --lime-rgb: 56, 189, 248;
+    --on-lime: #080e18;
+    --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 16%, transparent);
+    --ok: #34d399;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --cy: #22d3ee;
+    --vio: #c084fc;
+    --shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 40px rgba(56,189,248,0.08);
+}
+
+/* Deadlock Rose - tons rosas/vermelhos */
+[data-theme="rose"] {
+    --bg: #18080c;
+    --bg-rgb: 24, 8, 12;
+    --bg-2: #240d14;
+    --sidebar: #1c0a0f;
+    --card: #2c1016;
+    --card-2: #3a141c;
+    --card-hover: #481822;
+    --border: #551e28;
+    --border-2: #662430;
+    --text: #faebec;
+    --text-soft: #e8c0c8;
+    --text-faint: #c898a0;
+    --lime: #f472b6;
+    --lime-rgb: 244, 114, 182;
+    --on-lime: #18080c;
+    --lime-hover: color-mix(in srgb, var(--lime) 80%, #ffffff);
+    --lime-dim: color-mix(in srgb, var(--lime) 16%, transparent);
+    --ok: #34d399;
+    --danger: #fb7185;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+    --cy: #22d3ee;
+    --vio: #c084fc;
+    --shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 40px rgba(244,114,182,0.08);
+}
+
+/* High Contrast - acessibilidade máxima */
+[data-theme="high-contrast"] {
+    --bg: #000000;
+    --bg-rgb: 0, 0, 0;
+    --bg-2: #111111;
+    --sidebar: #000000;
+    --card: #1a1a1a;
+    --card-2: #222222;
+    --card-hover: #333333;
+    --border: #ffffff;
+    --border-2: #cccccc;
+    --text: #ffffff;
+    --text-soft: #dddddd;
+    --text-faint: #bbbbbb;
+    --lime: #ffff00;
+    --lime-rgb: 255, 255, 0;
+    --on-lime: #000000;
+    --lime-hover: #ffff66;
+    --lime-dim: color-mix(in srgb, var(--lime) 20%, transparent);
+    --ok: #00ff00;
+    --danger: #ff3333;
+    --warn: #ffff00;
+    --info: #33ccff;
+    --cy: #00ffff;
+    --vio: #cc66ff;
+    --shadow: 0 0 0 2px #ffffff;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }

@@ -5116,7 +5116,7 @@ function renderForm() {
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
             <div class="pform-sec">Preferências</div>
             <div class="grid2">
-                <label class="field">Tema<select data-f="theme"><option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>Automático (sistema)</option><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
+                <label class="field">Tema<select data-f="theme">${['auto','dark','light','neon','muted','amber','violet','blue','rose','high-contrast'].map(v => `<option value="${v}" ${p.theme === v ? 'selected' : ''}>${({auto:'Automático (sistema)',dark:'Escuro (Deadlock Classic)',light:'Claro',neon:'Neon',muted:'Suave (Muted)',amber:'Âmbar',violet:'Violeta',blue:'Azul',rose:'Rosa','high-contrast':'Alto Contraste'})[v]}</option>`).join('')}</select></label>
                 <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
             </div>
             <p class="field-note" style="margin-top:10px">Tamanho do texto</p>
