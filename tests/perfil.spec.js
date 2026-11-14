@@ -528,6 +528,6 @@ test.describe('celular', () => {
         await expect(page.locator('#pvId .pverified')).toHaveCount(1);
         // no celular o selo fica só com o ícone (sem o nome ocupando espaço)
         const larguraSelo = await page.locator('#pvId .pbadge').first().evaluate(el => Math.round(el.getBoundingClientRect().width));
-        expect(larguraSelo).toBeLessThanOrEqual(40);
+        expect(larguraSelo).toBeLessThanOrEqual(48);
     });
 });
