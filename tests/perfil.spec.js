@@ -77,12 +77,13 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
     await expect(page.locator('#pprev .pbadge')).toHaveCount(todos.length - 1);
     await expect(page.locator('#pprev .pverified')).toHaveCount(1);
 
-    // o nome só aparece ao passar o mouse (a pílula abre)
+    // o tooltip rico aparece ao passar o mouse
     const selo = page.locator('#pvId .pbadge[data-nome="Dono"]');
-    expect(await selo.evaluate(el => getComputedStyle(el.querySelector('.pbadge-nome')).opacity)).toBe('0');
+    await expect(page.locator('.badge-tip')).toHaveCount(0);
     await selo.hover();
-    await expect.poll(() => selo.evaluate(el => getComputedStyle(el.querySelector('.pbadge-nome')).opacity)).toBe('1');
-    await expect(selo).toContainText('Dono');
+    await expect.poll(() => page.locator('.badge-tip.show').count()).toBe(1);
+    await expect(page.locator('.badge-tip .bt-nome')).toContainText('Dono');
+    await expect(page.locator('.badge-tip .bt-desc')).toContainText('Criador e responsável');
 
     // clicar de novo remove só aquele selo
     await page.locator('[data-badge="apoiador"]').click();
