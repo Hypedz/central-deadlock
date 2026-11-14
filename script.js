@@ -220,7 +220,6 @@ const BADGES = [
     { id: 'beta', nome: 'Beta tester', icon: 'fa-flask', cor: '#b6f24a', desc: 'Testa novidades antes de todo mundo' },
     { id: 'veterano', nome: 'Veterano', icon: 'fa-medal', cor: '#d4a373', desc: 'Está desde as primeiras versões' }
 ];
-const BADGE_MAX = 3;
 function badgePorId(id) { return BADGES.find(b => b.id === id) || null; }
 function badgesNormalizados(lista) {
     if (!Array.isArray(lista)) return [];
@@ -229,7 +228,7 @@ function badgesNormalizados(lista) {
         if (!id || vistos.has(id) || !badgePorId(id)) return false;
         vistos.add(id);
         return true;
-    }).slice(0, BADGE_MAX);
+    });
 }
 function badgesVisiveis(p, respeitarPrivacidade = true) {
     const ids = badgesNormalizados(p && p.badges);
@@ -4962,8 +4961,8 @@ function renderForm() {
             <label class="field">Região<select data-f="region">${sel(REGIONS, p.region)}</select></label>
             <label class="field">Disponibilidade<input data-f="avail" maxlength="40" value="${esc(p.avail || '')}" placeholder="ex.: depois das 20h"></label>
             <label class="chk span2" style="margin-top:6px"><input type="checkbox" data-f="lfg" ${p.lfg ? 'checked' : ''}> Estou procurando time <span class="tag vio" style="margin-left:4px">LFG</span></label>
-            <div class="pform-sec">Selos do perfil (até ${BADGE_MAX})</div>
-            <p class="field-note span2">Escolha até ${BADGE_MAX} selos para aparecer ao lado do seu nome. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
+            <div class="pform-sec">Selos do perfil</div>
+            <p class="field-note span2">Escolha os selos que quiser mostrar ao lado do seu nome — pode marcar todos. Eles são <b>cosméticos</b> e escolhidos por você — como o site não tem contas nem servidor, não são uma verificação oficial.</p>
             <div class="badge-pick span2">${badgePickerHTML(p)}</div>
             <div class="pform-sec">Redes sociais</div>
             <label class="field">Discord<input data-f="l_discord" maxlength="30" value="${esc(p.links.discord)}" placeholder="usuário"></label>
@@ -5538,7 +5537,7 @@ function badgePickerHTML(p) {
     return BADGES.map(b => {
         const i = atuais.indexOf(b.id);
         return `<button type="button" class="badge-opt ${i >= 0 ? 'on' : ''}" data-badge="${b.id}" style="${badgeStyle(b)}" title="${esc(b.desc)}" aria-pressed="${i >= 0}">
-            <i class="fa-solid ${b.icon}"></i> ${esc(b.nome)}${i >= 0 ? `<em>${i + 1}</em>` : ''}</button>`;
+            <i class="fa-solid ${b.icon}"></i> ${esc(b.nome)}${i >= 0 ? '<em><i class="fa-solid fa-check"></i></em>' : ''}</button>`;
     }).join('');
 }
 function toggleBadge(id) {
@@ -5546,12 +5545,7 @@ function toggleBadge(id) {
     const atuais = badgesNormalizados(profile.badges);
     const i = atuais.indexOf(id);
     if (i >= 0) atuais.splice(i, 1);
-    else if (atuais.length >= BADGE_MAX) {
-        showToast(`Você pode escolher até ${BADGE_MAX} selos.`, 'error');
-        return;
-    } else {
-        atuais.push(id);
-    }
+    else atuais.push(id);
     profile.badges = atuais;
     touch('badges');
     commit();
@@ -6015,42 +6009,70 @@ function corComAlfa(hex, alfa) {
     const [r, g, b] = hexParaRgb(hex);
     return `rgba(${r},${g},${b},${alfa})`;
 }
-function medirBadgesCanvas(ctx, p, font, tam) {
+function desenharBadgesCanvas(ctx, p, x, y, larguraMax, font, tam = 16, alinhar = 'left') {
     const lista = badgesVisiveis(p);
     if (!lista.length) return 0;
+    const gap = 8, altura = Math.round(tam * 2.1), espacoLinha = Math.round(tam * 0.6), raio = tam * 0.4;
     ctx.save();
-    ctx.font = `700 ${tam}px ${font}`;
-    const total = lista.reduce((soma, b) => soma + ctx.measureText(b.nome).width + tam * 2.4, 0)
-        + (lista.length - 1) * 8;
-    ctx.restore();
-    return Math.round(total);
-}
-function desenharBadgesCanvas(ctx, p, x, y, larguraMax, font, tam = 14, centro = false) {
-    const lista = badgesVisiveis(p);
-    if (!lista.length) return 0;
-    const gap = 8, altura = Math.round(tam * 1.9);
-    ctx.save();
-    ctx.font = `700 ${tam}px ${font}`;
+    ctx.font = `800 ${tam}px ${font}`;
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    const larguras = lista.map(b => Math.round(ctx.measureText(b.nome).width + tam * 2.4));
-    const total = larguras.reduce((a, b) => a + b, 0) + gap * (lista.length - 1);
-    let cx = centro ? x - total / 2 : x;
-    const limite = centro ? x + total / 2 : x + larguraMax;
-    lista.forEach((b, i) => {
-        const w = larguras[i];
-        if (cx + w <= limite + 1) {
-            ctx.fillStyle = 'rgba(10,12,15,.68)';
-            roundRectPath(ctx, cx, y, w, altura, altura / 2); ctx.fill();
-            ctx.strokeStyle = corComAlfa(b.cor, .75); ctx.lineWidth = 1; ctx.stroke();
-            ctx.fillStyle = b.cor;
-            ctx.beginPath(); ctx.arc(cx + tam * .95, y + altura / 2, tam * .3, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.fillText(b.nome, cx + tam * 1.55, y + altura / 2 + 1);
+    const larguras = lista.map(b => Math.round(ctx.measureText(b.nome).width + tam * 2.6));
+
+    // separa em linhas que caibam na largura disponível
+    const linhas = [];
+    let atual = [], larguraAtual = 0;
+    larguras.forEach((w, i) => {
+        const extra = atual.length ? gap : 0;
+        if (atual.length && larguraAtual + extra + w > larguraMax) {
+            linhas.push({ itens: atual, largura: larguraAtual });
+            atual = []; larguraAtual = 0;
         }
-        cx += w + gap;
+        larguraAtual += (atual.length ? gap : 0) + w;
+        atual.push(i);
     });
+    if (atual.length) linhas.push({ itens: atual, largura: larguraAtual });
+
+    const desenhar = (b, cx, cy, w) => {
+        // fundo do selo com um leve brilho na cor dele
+        const grad = ctx.createLinearGradient(cx, cy, cx, cy + altura);
+        grad.addColorStop(0, corComAlfa(b.cor, .22));
+        grad.addColorStop(1, 'rgba(10,12,15,.82)');
+        ctx.fillStyle = grad;
+        roundRectPath(ctx, cx, cy, w, altura, altura / 2); ctx.fill();
+        ctx.strokeStyle = corComAlfa(b.cor, .85);
+        ctx.lineWidth = Math.max(1, tam * .09); ctx.stroke();
+
+        // círculo colorido com um "check" escuro dentro
+        const ccx = cx + tam * 1.05, ccy = cy + altura / 2;
+        ctx.fillStyle = b.cor;
+        ctx.beginPath(); ctx.arc(ccx, ccy, raio, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#0c0c0e';
+        ctx.lineWidth = Math.max(1.5, tam * .18);
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ccx - raio * .46, ccy + raio * .02);
+        ctx.lineTo(ccx - raio * .1, ccy + raio * .4);
+        ctx.lineTo(ccx + raio * .5, ccy - raio * .4);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.fillText(b.nome, cx + tam * 1.85, ccy + 1);
+    };
+
+    linhas.forEach((linha, li) => {
+        const cy = y + li * (altura + espacoLinha);
+        let cx = alinhar === 'center' ? x - linha.largura / 2
+            : alinhar === 'right' ? x - linha.largura
+                : x;
+        linha.itens.forEach(i => {
+            desenhar(lista[i], cx, cy, larguras[i]);
+            cx += larguras[i] + gap;
+        });
+    });
+
     ctx.restore();
-    return altura;
+    return linhas.length * altura + (linhas.length - 1) * espacoLinha;
 }
 async function downloadCard(formato, p = profile) {
     if (formato === 'story') return baixarCartaoStory(p);
@@ -6080,9 +6102,8 @@ async function downloadCard(formato, p = profile) {
     }
     ctx.restore();
 
-    // selos no canto do banner
-    const larguraSelos = medirBadgesCanvas(ctx, p, font, 15);
-    if (larguraSelos) desenharBadgesCanvas(ctx, p, W - 40 - larguraSelos, 42, larguraSelos, font, 15);
+    // selos no canto do banner (quebram em linhas se não couberem)
+    desenharBadgesCanvas(ctx, p, W - 40, 40, W - 80, font, 17, 'right');
 
     // avatar
     const as = 132, ax = 66, ay = 150;
@@ -6314,7 +6335,7 @@ async function baixarCartaoStory(p) {
     ctx.fillStyle = '#fff'; ctx.font = `800 66px ${font}`;
     ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 1015);
 
-    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 1038, W - 160, font, 20, true);
+    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 1038, W - 160, font, 18, 'center');
     const extraSelosStory = alturaSelos ? alturaSelos + 10 : 0;
     let y = 1065 + extraSelosStory;
     if (p.pronouns) {
@@ -6388,8 +6409,8 @@ async function baixarCartaoQuadrado(p) {
     ctx.fillStyle = '#fff'; ctx.font = `800 56px ${font}`;
     ctx.fillText((p.nick || 'Seu apelido').slice(0, 22), W / 2, 405);
 
-    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 424, W - 160, font, 18, true);
-    const extraSelos = alturaSelos ? alturaSelos + 8 : 0;
+    const alturaSelos = desenharBadgesCanvas(ctx, p, W / 2, 424, W - 160, font, 20, 'center');
+    const extraSelos = alturaSelos ? alturaSelos + 16 : 0;
     let y = 430 + extraSelos;
     if (p.pronouns) {
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `400 22px ${font}`;
@@ -6472,7 +6493,7 @@ async function baixarCartaoBanner(p) {
     ctx.fillText(cortarTexto(ctx, (p.nick || 'Seu apelido').slice(0, 24), vitrine ? 600 : 1040), x, 165);
     ctx.fillStyle = acento; ctx.font = `700 22px ${font}`;
     ctx.fillText(cortarTexto(ctx, `${p.title || 'Jogador'}${p.region ? ' · ' + p.region : ''}`, vitrine ? 600 : 1040), x, 205);
-    const alturaSelos = desenharBadgesCanvas(ctx, p, x, 218, vitrine ? 600 : 1040, font, 16);
+    const alturaSelos = desenharBadgesCanvas(ctx, p, x, 218, vitrine ? 600 : 1040, font, 17);
     const extraSelos = alturaSelos ? alturaSelos + 8 : 0;
     if (p.status) {
         ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `400 19px ${font}`;

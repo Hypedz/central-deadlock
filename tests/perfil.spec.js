@@ -63,18 +63,23 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
         renderProfileUI();
     });
 
-    for (const id of ['dono', 'verificado', 'moderador']) {
+    // não existe limite: todos os selos podem ser marcados
+    const todos = await page.evaluate(() => BADGES.map(b => b.id));
+    for (const id of todos) {
         await page.locator(`[data-badge="${id}"]`).click();
     }
-    await expect(page.locator('.badge-opt.on')).toHaveCount(3);
-    await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
+    await expect(page.locator('.badge-opt.on')).toHaveCount(todos.length);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
     await expect(page.locator('#pvId .pbadges')).toContainText('Verificado');
-    await expect(page.locator('#pprev .pbadge')).toHaveCount(3);
+    await expect(page.locator('#pvId .pbadges')).toContainText('Criador de conteúdo');
+    await expect(page.locator('#pprev .pbadge')).toHaveCount(todos.length);
 
-    // um quarto selo não entra
+    // clicar de novo remove só aquele selo
     await page.locator('[data-badge="apoiador"]').click();
-    await expect(page.locator('.badge-opt.on')).toHaveCount(3);
+    await expect(page.locator('.badge-opt.on')).toHaveCount(todos.length - 1);
     await expect(page.locator('#pvId .pbadges')).not.toContainText('Apoiador');
+    await page.locator('[data-badge="apoiador"]').click();
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
 
     // o selo também é desenhado no cartão em PNG
     await page.evaluate(() => {
@@ -88,25 +93,25 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
     expect(await page.evaluate(() => window.__selosDesenhados)).toBeGreaterThan(0);
     await page.evaluate(() => { window.baixarPng = window.__baixarPngOriginal; });
 
-    // o link compartilhado leva os selos
+    // o link compartilhado leva todos os selos
     const url = await page.evaluate(() => profileShareURL());
     await page.goto(url);
-    await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(3);
+    await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(todos.length);
     await expect(page.locator('#shareModalBox .pbadges')).toContainText('Dono');
     await expect(page.locator('#shareModalBox .pbadges')).toContainText('Moderador');
 
     // privacidade desliga os selos só no cartão público
     await page.goto('/?teste=' + Date.now());
     await page.waitForFunction(() => typeof profile !== 'undefined');
-    await page.evaluate(() => {
+    await page.evaluate((lista) => {
         profile.nick = 'Perfil com Selos';
-        profile.badges = ['dono', 'verificado', 'moderador'];
+        profile.badges = lista;
         profile.privacy = { ...privacidade(profile), badges: false };
         saveProfile();
         renderProfileUI();
-    });
+    }, todos);
     await expect(page.locator('#pprev .pbadge')).toHaveCount(0);
-    await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
+    await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length);
 });
 
 test('QR Code do cartão é gerado', async ({ page }) => {
@@ -490,7 +495,7 @@ test.describe('celular', () => {
     test('não tem rolagem horizontal e os botões continuam legíveis', async ({ page }) => {
         await abrirPerfil(page);
         await page.evaluate(() => {
-            profile.badges = ['dono', 'admin', 'verificado'];
+            profile.badges = BADGES.map(b => b.id);
             saveProfile();
             renderProfileUI();
         });
@@ -498,6 +503,6 @@ test.describe('celular', () => {
         expect(excesso).toBeLessThanOrEqual(1);
         await expect(page.locator('#pvPreview')).toBeVisible();
         await expect(page.locator('#pvPreview')).toContainText('Ver como visitante');
-        await expect(page.locator('#pvId .pbadge')).toHaveCount(3);
+        await expect(page.locator('#pvId .pbadge')).toHaveCount(10);
     });
 });

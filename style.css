@@ -620,33 +620,46 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 .tag.warn { color: var(--warn); border-color: rgba(251,191,36,.35); }
 
 /* ---- selos do perfil ---- */
-.pbadges { display: inline-flex; flex-wrap: wrap; gap: 6px; vertical-align: middle; }
+.pbadges { display: inline-flex; flex-wrap: wrap; gap: 8px; vertical-align: middle; }
 .pbadge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 2px 9px 2px 7px; border-radius: 999px;
-    font-family: var(--font-ui); font-weight: 700; font-size: .68rem; line-height: 1.7;
-    color: var(--text); background: var(--badge-soft); border: 1px solid var(--badge-line);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 14px 4px 5px; border-radius: 999px;
+    font-family: var(--font-ui); font-weight: 800; font-size: .82rem; letter-spacing: .2px; line-height: 1.55;
+    color: var(--text);
+    background: linear-gradient(160deg, var(--badge-soft), rgba(255,255,255,.02));
+    border: 1px solid var(--badge-line);
+    box-shadow: 0 3px 12px -7px var(--badge), inset 0 1px 0 rgba(255,255,255,.08);
     white-space: nowrap;
 }
-.pbadge i { color: var(--badge); font-size: .8em; }
-.pcard .pbadges { margin: 2px 0 6px; }
-.pv-id .pbadges { margin-top: 9px; }
+.pbadge > i {
+    display: inline-grid; place-items: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--badge); color: #0c0c0e; font-size: .62rem;
+    box-shadow: 0 0 0 3px var(--badge-soft);
+}
+.pcard .pbadges { margin: 4px 0 8px; }
+.pv-id .pbadges { margin-top: 12px; }
 
 .badge-pick { display: flex; flex-wrap: wrap; gap: 8px; }
 .badge-opt {
-    display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; gap: 8px;
     padding: 8px 12px; border-radius: 99px;
     border: 1px solid var(--border); background: var(--card-2);
-    color: var(--text-soft); font-family: var(--font-ui); font-weight: 700; font-size: .78rem;
+    color: var(--text-soft); font-family: var(--font-ui); font-weight: 700; font-size: .8rem;
     transition: var(--trans); cursor: pointer;
 }
-.badge-opt i { color: var(--badge); }
+.badge-opt > i {
+    display: inline-grid; place-items: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--badge-soft); color: var(--badge); font-size: .68rem;
+}
 .badge-opt:hover { border-color: var(--badge-line); color: var(--text); }
 .badge-opt.on { background: var(--badge-soft); border-color: var(--badge-line); color: var(--text); }
+.badge-opt.on > i { background: var(--badge); color: #0c0c0e; }
 .badge-opt em {
     font-style: normal; display: inline-grid; place-items: center;
-    width: 17px; height: 17px; border-radius: 50%;
-    background: var(--badge); color: #0c0c0e; font-size: .64rem; font-weight: 800;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--badge); color: #0c0c0e; font-size: .6rem; font-weight: 800;
 }
 
 .pill { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-soft); font-weight: 700; font-size: 13px; background: var(--card); font-family: var(--font-ui); }
@@ -1879,6 +1892,10 @@ body.compact .cards-grid { gap: 14px; }
     .pv-av { margin-top: -72px; }
     .pv-id h1 { font-size: 1.5rem; }
     .pv-av .pav { transform: scale(.86); transform-origin: bottom left; }
+    /* em tela bem estreita o nome ocupa a linha inteira, para os selos caberem */
+    .pv-head { grid-template-columns: 1fr; }
+    .pv-id { grid-column: 1 / -1; }
+    .pbadge { font-size: .76rem; }
 }
 
 @media (max-width: 560px) {
