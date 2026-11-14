@@ -243,7 +243,7 @@ function badgesHTML(p, respeitarPrivacidade = true) {
     const lista = badgesVisiveis(p, respeitarPrivacidade).filter(b => b.id !== 'verificado');
     if (!lista.length) return '';
     return `<span class="pbadges">${lista.map(b =>
-        `<span class="pbadge" style="${badgeStyle(b)}" data-nome="${esc(b.nome)}" title="${esc(b.nome)} — ${esc(b.desc)}" aria-label="${esc(b.nome)}: ${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i><span class="pbadge-nome">${esc(b.nome)}</span></span>`).join('')}</span>`;
+        `<span class="pbadge" style="${badgeStyle(b)}" data-nome="${esc(b.nome)}" data-desc="${esc(b.desc)}" data-icon="${b.icon}" data-cor="${b.cor}" aria-label="${esc(b.nome)}: ${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i><span class="pbadge-nome">${esc(b.nome)}</span></span>`).join('')}</span>`;
 }
 function badgesTexto(p, respeitarPrivacidade = true) {
     return badgesVisiveis(p, respeitarPrivacidade).map(b => b.nome).join(', ');
@@ -255,6 +255,51 @@ function verificadoHTML(p, respeitarPrivacidade = true) {
     if (!perfilVerificado(p, respeitarPrivacidade)) return '';
     return '<span class="pverified" title="Selo cosmético escolhido pelo usuário — o site não verifica identidade" aria-label="Perfil verificado"><i class="fa-solid fa-circle-check"></i></span>';
 }
+
+/* tooltip rico dos selos (ícone + descrição) */
+let badgeTipEl = null;
+function ensureBadgeTip() {
+    if (badgeTipEl) return badgeTipEl;
+    badgeTipEl = document.createElement('div');
+    badgeTipEl.className = 'badge-tip';
+    badgeTipEl.innerHTML = '<div class="bt-row"><i></i><div><div class="bt-nome"></div><div class="bt-desc"></div></div></div>';
+    document.body.appendChild(badgeTipEl);
+    return badgeTipEl;
+}
+function showBadgeTip(el) {
+    const tip = ensureBadgeTip();
+    const icon = tip.querySelector('i');
+    const nome = tip.querySelector('.bt-nome');
+    const desc = tip.querySelector('.bt-desc');
+    icon.style.background = el.dataset.cor + '22';
+    icon.style.color = el.dataset.cor;
+    icon.className = 'fa-solid ' + el.dataset.icon;
+    nome.textContent = el.dataset.nome;
+    desc.textContent = el.dataset.desc;
+    const r = el.getBoundingClientRect();
+    tip.style.left = Math.round(r.left + r.width / 2) + 'px';
+    tip.style.top = Math.round(r.top - 8) + 'px';
+    tip.classList.add('show');
+}
+function hideBadgeTip() {
+    if (badgeTipEl) badgeTipEl.classList.remove('show');
+}
+document.addEventListener('mouseover', e => {
+    const b = e.target.closest('.pbadge');
+    if (b) showBadgeTip(b);
+});
+document.addEventListener('mouseout', e => {
+    const b = e.target.closest('.pbadge');
+    if (b && !b.contains(e.relatedTarget)) hideBadgeTip();
+});
+document.addEventListener('focusin', e => {
+    const b = e.target.closest('.pbadge');
+    if (b) showBadgeTip(b);
+});
+document.addEventListener('focusout', e => {
+    const b = e.target.closest('.pbadge');
+    if (b && !b.contains(e.relatedTarget)) hideBadgeTip();
+});
 
 const PROFILE_DEF = {
     id: 'CDL-' + Math.floor(1000 + Math.random() * 9000),
@@ -317,6 +362,115 @@ function savedBuildOptionsHTML(heroi = '') {
 }
 function buildShareURL(id) {
     return location.href.split('#')[0] + '#build=' + encodeURIComponent(id);
+}
+async function copiarBuildPNG(id) {
+    const build = BUILDS.find(a => a.id === id);
+    if (!build) { showToast('Build não encontrada.', 'error'); return; }
+    try {
+        const canvas = await desenharBuildPNG(build);
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            showToast('Build copiada como imagem!');
+        } catch (clipErr) {
+            // fallback: download do arquivo (funciona em HTTP)
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `build-${build.id}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Build salva como imagem (download)!');
+        }
+    } catch (e) {
+        console.error('Falha ao copiar build como PNG:', e);
+        showToast('Não foi possível gerar a imagem. Tente baixar o cartão.', 'error');
+    }
+}
+function ajustarFundoCanvas(hex, tema) {
+    const rgb = hexParaRgb(hex);
+    const escuro = tema !== 'light';
+    const alvo = escuro ? [0, 0, 0] : [255, 255, 255];
+    for (let i = 0; i < 24; i++) {
+        const l = luminanciaRgb(rgb);
+        if (escuro ? l <= 0.045 : l >= 0.86) break;
+        rgb[0] += (alvo[0] - rgb[0]) * 0.1;
+        rgb[1] += (alvo[1] - rgb[1]) * 0.1;
+        rgb[2] += (alvo[2] - rgb[2]) * 0.1;
+    }
+    return `rgb(${Math.round(rgb[0])},${Math.round(rgb[1])},${Math.round(rgb[2])})`;
+}
+async function desenharBuildPNG(build) {
+    const W = 1080, H = 1080;
+    const font = 'Inter, "Segoe UI", system-ui, sans-serif';
+    const acento = (profile.accent && profile.accent !== 'auto') ? profile.accent : '#b6f24a';
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0e1013'; ctx.fillRect(0, 0, W, H);
+    // fundo com gradiente da cor de destaque
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, ajustarFundoCanvas(acento, false));
+    g.addColorStop(1, '#0e1013');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // pattern
+    drawPattern(ctx, profile.pattern || 'none', 0, 0, W, H);
+    // título do site
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = `600 28px ${font}`;
+    ctx.fillText('CENTRAL DEADLOCK', W / 2, 80);
+    // herói
+    ctx.fillStyle = '#fff'; ctx.font = `800 52px ${font}`;
+    ctx.fillText(build.title, W / 2, 150);
+    // role/tier
+    ctx.fillStyle = acento; ctx.font = `600 22px ${font}`;
+    ctx.fillText(`${build.role || 'Build'} · ${build.tier || 'S'}`, W / 2, 200);
+    // imagem do herói
+    const img = await loadImg(`assets/heroes/${build.img}`);
+    if (img) {
+        const size = 420;
+        const x = (W - size) / 2, y = 230;
+        ctx.save();
+        roundRectPath(ctx, x, y, size, size, 24);
+        ctx.clip();
+        ctx.drawImage(img, x, y, size, size);
+        ctx.restore();
+        // overlay sutil
+        ctx.fillStyle = 'rgba(14,16,19,.15)';
+        roundRectPath(ctx, x, y, size, size, 24);
+        ctx.fill();
+    }
+    // itens da build
+    const items = (build.items || []).slice(0, 12);
+    if (items.length && window.GAME_DATA?.itens) {
+        const slot = 100, gap = 20;
+        const totalW = items.length * slot + (items.length - 1) * gap;
+        let startX = (W - totalW) / 2;
+        const startY = 700;
+        ctx.font = `700 16px ${font}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (const itemId of items) {
+            const itemData = window.GAME_DATA.itens[String(itemId)];
+            if (!itemData) continue;
+            const x = startX + items.indexOf(itemId) * (slot + gap);
+            // slot
+            ctx.fillStyle = 'rgba(14,16,19,.7)';
+            roundRectPath(ctx, x, startY, slot, slot, 14); ctx.fill();
+            ctx.strokeStyle = acento; ctx.lineWidth = 2; ctx.stroke();
+            // ícone do item
+            const icon = await loadImg(itemData.i);
+            if (icon) ctx.drawImage(icon, x + 12, startY + 12, slot - 24, slot - 24);
+            // nome do item
+            ctx.fillStyle = '#fff';
+            ctx.fillText(cortarTexto(ctx, itemData.n, slot - 10), x + slot / 2, startY + slot + 6);
+        }
+    }
+    // rodapé
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = `500 16px ${font}`;
+    ctx.fillText('central-deadlock', W / 2, H - 40);
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.font = `600 14px ${font}`;
+    ctx.fillText(siteLabel(), W / 2, H - 20);
+    return c;
 }
 function presetsNormalizados(lista) {
     if (!Array.isArray(lista)) return [];
@@ -2492,7 +2646,7 @@ function initContents() {
     // os cartões de build agora são montados pelo initBuilds() (dados reais)
     initEsports();                     // esports: torneios reais (data/esports.js)
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         const copiarBuild = e.target.closest('[data-copy-build]');
         if (copiarBuild) {
             e.preventDefault();
@@ -2510,6 +2664,13 @@ function initContents() {
             e.preventDefault();
             e.stopPropagation();
             saveBuildToProfile(saveBuild.dataset.saveBuild);
+            return;
+        }
+        const pngBtn = e.target.closest('.psavedbuild-png');
+        if (pngBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            await copiarBuildPNG(pngBtn.dataset.id);
             return;
         }
         const art = e.target.closest('[data-article]');
@@ -4656,10 +4817,11 @@ function savedBuildsGridHTML(p) {
     const lista = savedBuildsList(p);
     if (!lista.length) return '';
     return `<div class="psavedbuilds-list">${lista.map((a, i) =>
-        `<button type="button" class="psavedbuild${i === 0 ? ' principal' : ''}" data-article="${esc(a.id)}" title="Abrir ${esc(a.title)}">
+        `<div class="psavedbuild${i === 0 ? ' principal' : ''}" data-article="${esc(a.id)}">
             <img src="assets/heroes/${esc(a.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
             <span><b>${esc(a.title)}</b><small>${i === 0 ? '<i class="fa-solid fa-star"></i> Principal · ' : ''}${esc(a.role || 'Build')}</small></span>
-        </button>`).join('')}</div>`;
+            <button type="button" class="psavedbuild-png" data-id="${esc(a.id)}" aria-label="Copiar ${esc(a.title)} como imagem" title="Copiar como PNG"><i class="fa-solid fa-image"></i></button>
+        </div>`).join('')}</div>`;
 }
 function savedBuildsCardHTML(p) {
     const grade = savedBuildsGridHTML(p);
@@ -4676,6 +4838,7 @@ function savedBuildsEditorHTML(p) {
                 <button type="button" data-act="savedbuild-down" data-id="${esc(a.id)}" aria-label="Mover build para baixo" title="Mover para baixo" ${i === lista.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-down"></i></button>
                 <button type="button" data-act="savedbuild-main" data-id="${esc(a.id)}" aria-label="Tornar build principal" title="Tornar principal" ${i === 0 ? 'disabled' : ''}><i class="fa-solid fa-star"></i></button>
                 <button type="button" data-act="savedbuild-copy" data-id="${esc(a.id)}" aria-label="Copiar link da build" title="Copiar link"><i class="fa-solid fa-link"></i></button>
+                <button type="button" data-act="savedbuild-png" data-id="${esc(a.id)}" aria-label="Copiar build como imagem" title="Copiar como PNG"><i class="fa-solid fa-image"></i></button>
                 <button type="button" data-act="savedbuild-remove" data-id="${esc(a.id)}" aria-label="Remover build" title="Remover"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>`).join('')
@@ -5137,7 +5300,7 @@ function renderForm() {
 
             <div class="pform-sec">Preferências</div>
             <div class="grid2">
-                <label class="field">Tema<select data-f="theme"><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
+                <label class="field">Tema<select data-f="theme"><option value="auto" ${p.theme === 'auto' ? 'selected' : ''}>Automático (sistema)</option><option value="dark" ${p.theme === 'dark' ? 'selected' : ''}>Escuro (Deadlock)</option><option value="light" ${p.theme === 'light' ? 'selected' : ''}>Claro</option></select></label>
                 <label class="field">Idioma<select data-f="lang"><option value="pt-BR" ${p.lang === 'pt-BR' ? 'selected' : ''}>Português (Brasil)</option><option value="en-US" ${p.lang === 'en-US' ? 'selected' : ''}>English (US)</option><option value="es-ES" ${p.lang === 'es-ES' ? 'selected' : ''}>Español</option></select></label>
             </div>
             <p class="field-note" style="margin-top:10px">Tamanho do texto</p>
@@ -5320,6 +5483,9 @@ function initProfile() {
                 } catch (e) {
                     window.prompt('Copie o link da build:', url);
                 }
+            }
+            else if (a === 'savedbuild-png') {
+                await copiarBuildPNG(act.dataset.id);
             }
             else if (a === 'preset-save') {
                 const lista = presetsNormalizados(profile.presets);
