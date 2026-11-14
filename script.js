@@ -276,6 +276,7 @@ function showBadgeTip(el) {
     icon.className = 'fa-solid ' + el.dataset.icon;
     nome.textContent = el.dataset.nome;
     desc.textContent = el.dataset.desc;
+    tip.style.borderColor = el.dataset.cor;
     const r = el.getBoundingClientRect();
     tip.style.left = Math.round(r.left + r.width / 2) + 'px';
     tip.style.top = Math.round(r.top - 8) + 'px';
