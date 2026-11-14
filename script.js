@@ -5012,7 +5012,6 @@ function renderProfileView() {
                     ? `<div class="pv-mains">${mains.map((h, i) => `<div class="pm">${pennant(h, 132)}<small>${i === 0 ? '★ Principal' : (i + 1) + 'º herói'}</small></div>`).join('')}</div>`
                     : `<p class="muted-txt">Nenhum herói escolhido. <button type="button" class="linkbtn" data-goto="game">Escolher agora</button></p>`}
             </section>
-            ${showGrid ? `<section class="card pv-sec"><h2>Destaques</h2>${showGrid}</section>` : ''}
             ${buildsGrid ? `<section class="card pv-sec"><h2>Minhas builds</h2>${buildsGrid}</section>` : ''}
         </div>
         <div class="pv-col">
