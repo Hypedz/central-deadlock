@@ -838,7 +838,12 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
     color: var(--text); white-space: nowrap;
     transition: max-width .22s ease, opacity .16s ease, margin-left .22s ease;
 }
-.pbadge:hover, .pbadge:focus-visible { border-color: var(--badge); box-shadow: 0 4px 16px -6px var(--badge); }
+.pbadge:hover, .pbadge:focus-visible {
+    border-color: var(--badge);
+    border-width: 2px;
+    box-shadow: 0 0 0 3px var(--badge-soft), 0 6px 20px -8px var(--badge);
+    transform: scale(1.05);
+}
 .pbadge:hover .pbadge-nome, .pbadge:focus-visible .pbadge-nome { max-width: 200px; opacity: 1; margin-left: 6px; }
 .pcard .pbadges { margin: 4px 0 8px; }
 .pv-id .pbadges { margin-top: 12px; }
