@@ -650,7 +650,7 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
     margin-left: 6px; color: #1d9bf0; font-size: .68em; vertical-align: .07em;
     filter: drop-shadow(0 0 7px rgba(29,155,240,.5));
 }
-.pv-id h1 .pverified { font-size: .74em; }
+.pv-id h1 .pverified { font-size: 28px; }
 .pcard h2 .pverified { font-size: .78em; margin-left: 5px; }
 .compare-title .pverified { font-size: .82em; }
 
@@ -1910,6 +1910,8 @@ body.compact .cards-grid { gap: 14px; }
     .pv-head { grid-template-columns: 1fr; }
     .pv-id { grid-column: 1 / -1; }
     .pbadge { font-size: .76rem; }
+    /* no celular o check acompanha o nome menor */
+    .pv-id h1 .pverified { font-size: 22px; }
 }
 
 @media (max-width: 560px) {
