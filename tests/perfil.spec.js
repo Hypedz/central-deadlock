@@ -72,10 +72,17 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
     // "Verificado" vira o check ao lado do nome, não uma pílula na lista
     await expect(page.locator('#pvId .pbadge')).toHaveCount(todos.length - 1);
     await expect(page.locator('#pvId .pverified')).toHaveCount(1);
-    await expect(page.locator('#pvId .pbadges')).not.toContainText('Verificado');
-    await expect(page.locator('#pvId .pbadges')).toContainText('Criador de conteúdo');
+    await expect(page.locator('#pvId .pbadge[data-nome="Verificado"]')).toHaveCount(0);
+    await expect(page.locator('#pvId .pbadge[data-nome="Criador de conteúdo"]')).toHaveCount(1);
     await expect(page.locator('#pprev .pbadge')).toHaveCount(todos.length - 1);
     await expect(page.locator('#pprev .pverified')).toHaveCount(1);
+
+    // o nome só aparece ao passar o mouse (a pílula abre)
+    const selo = page.locator('#pvId .pbadge[data-nome="Dono"]');
+    expect(await selo.evaluate(el => getComputedStyle(el.querySelector('.pbadge-nome')).opacity)).toBe('0');
+    await selo.hover();
+    await expect.poll(() => selo.evaluate(el => getComputedStyle(el.querySelector('.pbadge-nome')).opacity)).toBe('1');
+    await expect(selo).toContainText('Dono');
 
     // clicar de novo remove só aquele selo
     await page.locator('[data-badge="apoiador"]').click();
@@ -107,8 +114,8 @@ test('selos do perfil aparecem no cartão, no link e respeitam a privacidade', a
     await page.goto(url);
     await expect(page.locator('#shareModalBox .pbadge')).toHaveCount(todos.length - 1);
     await expect(page.locator('#shareModalBox .pverified')).toHaveCount(1);
-    await expect(page.locator('#shareModalBox .pbadges')).toContainText('Dono');
-    await expect(page.locator('#shareModalBox .pbadges')).toContainText('Moderador');
+    await expect(page.locator('#shareModalBox .pbadge[data-nome="Dono"]')).toHaveCount(1);
+    await expect(page.locator('#shareModalBox .pbadge[data-nome="Moderador"]')).toHaveCount(1);
 
     // privacidade desliga os selos só no cartão público
     await page.goto('/?teste=' + Date.now());
@@ -517,5 +524,8 @@ test.describe('celular', () => {
         await expect(page.locator('#pvPreview')).toContainText('Ver como visitante');
         await expect(page.locator('#pvId .pbadge')).toHaveCount(9);
         await expect(page.locator('#pvId .pverified')).toHaveCount(1);
+        // no celular o selo fica só com o ícone (sem o nome ocupando espaço)
+        const larguraSelo = await page.locator('#pvId .pbadge').first().evaluate(el => Math.round(el.getBoundingClientRect().width));
+        expect(larguraSelo).toBeLessThanOrEqual(40);
     });
 });

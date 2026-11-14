@@ -621,22 +621,26 @@ button { font: inherit; cursor: pointer; color: inherit; background: none; borde
 
 /* ---- selos do perfil ---- */
 .pbadges { display: inline-flex; flex-wrap: wrap; gap: 8px; vertical-align: middle; }
+/* o selo é só o ícone; ao passar o mouse a pílula abre e mostra o nome */
 .pbadge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 4px 14px 4px 5px; border-radius: 999px;
-    font-family: var(--font-ui); font-weight: 800; font-size: .82rem; letter-spacing: .2px; line-height: 1.55;
-    color: var(--text);
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; min-width: 34px; padding: 0 9px; border-radius: 999px;
+    color: var(--badge);
     background: linear-gradient(160deg, var(--badge-soft), rgba(255,255,255,.02));
     border: 1px solid var(--badge-line);
     box-shadow: 0 3px 12px -7px var(--badge), inset 0 1px 0 rgba(255,255,255,.08);
-    white-space: nowrap;
+    cursor: help; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
 }
-.pbadge > i {
-    display: inline-grid; place-items: center;
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--badge); color: #0c0c0e; font-size: .62rem;
-    box-shadow: 0 0 0 3px var(--badge-soft);
+.pbadge > i { font-size: 15px; flex: none; }
+.pbadge-nome {
+    max-width: 0; opacity: 0; margin-left: 0; overflow: hidden;
+    font-family: var(--font-ui); font-weight: 800; font-size: .74rem; letter-spacing: .2px;
+    color: var(--text); white-space: nowrap;
+    transition: max-width .22s ease, opacity .16s ease, margin-left .22s ease;
 }
+.pbadge:hover, .pbadge:focus-visible { border-color: var(--badge); box-shadow: 0 4px 16px -6px var(--badge); }
+.pbadge:hover .pbadge-nome, .pbadge:focus-visible .pbadge-nome { max-width: 200px; opacity: 1; margin-left: 6px; }
 .pcard .pbadges { margin: 4px 0 8px; }
 .pv-id .pbadges { margin-top: 12px; }
 

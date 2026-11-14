@@ -243,7 +243,7 @@ function badgesHTML(p, respeitarPrivacidade = true) {
     const lista = badgesVisiveis(p, respeitarPrivacidade).filter(b => b.id !== 'verificado');
     if (!lista.length) return '';
     return `<span class="pbadges">${lista.map(b =>
-        `<span class="pbadge" style="${badgeStyle(b)}" title="${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i>${esc(b.nome)}</span>`).join('')}</span>`;
+        `<span class="pbadge" style="${badgeStyle(b)}" data-nome="${esc(b.nome)}" title="${esc(b.nome)} — ${esc(b.desc)}" aria-label="${esc(b.nome)}: ${esc(b.desc)}"><i class="fa-solid ${b.icon}"></i><span class="pbadge-nome">${esc(b.nome)}</span></span>`).join('')}</span>`;
 }
 function badgesTexto(p, respeitarPrivacidade = true) {
     return badgesVisiveis(p, respeitarPrivacidade).map(b => b.nome).join(', ');
