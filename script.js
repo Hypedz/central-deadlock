@@ -5636,8 +5636,10 @@ function initProfile() {
             wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
-    $('#pvEdit').addEventListener('click', toggleEditor);
-    $('#closeEditor').addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
+    const pvEdit = $('#pvEdit');
+    const closeEditor = $('#closeEditor');
+    if (pvEdit) pvEdit.addEventListener('click', toggleEditor);
+    if (closeEditor) closeEditor.addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
     $('#pvDl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
