@@ -3540,7 +3540,11 @@ function initHome() {
         if (wrapper && wrapper.classList.contains('hidden')) {
             wrapper.classList.remove('hidden');
             const title = $('#editorPerfil');
+            const btn = $('#pvEdit');
             if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            const closeBtn = $('#closeEditor');
+            if (closeBtn) closeBtn.hidden = false;
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -5614,18 +5618,26 @@ function initProfile() {
     $('#pcp').addEventListener('click', copyText);
 
     // botões do perfil grande (topo)
-    $('#pvEdit').addEventListener('click', () => {
+    function toggleEditor() {
         const wrapper = $('#profileEditor');
         const title = $('#editorPerfil');
-        if (!wrapper || !title) return;
+        const btn = $('#pvEdit');
+        if (!wrapper || !title || !btn) return;
         const isHidden = wrapper.classList.toggle('hidden');
         title.innerHTML = isHidden
             ? '<i class="fa-solid fa-sliders"></i> Editar perfil'
             : '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        btn.innerHTML = isHidden
+            ? '<i class="fa-solid fa-pen"></i> Editar perfil'
+            : '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        const closeBtn = $('#closeEditor');
+        if (closeBtn) closeBtn.hidden = isHidden;
         if (!isHidden) {
             wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    });
+    }
+    $('#pvEdit').addEventListener('click', toggleEditor);
+    $('#closeEditor').addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
     $('#pvDl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
@@ -5634,9 +5646,13 @@ function initProfile() {
         pTab = g.dataset.goto; renderPTabs(); renderForm();
         const wrapper = $('#profileEditor');
         if (wrapper && wrapper.classList.contains('hidden')) {
-            wrapper.classList.remove('hidden');
             const title = $('#editorPerfil');
+            const btn = $('#pvEdit');
+            wrapper.classList.remove('hidden');
             if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            const closeBtn = $('#closeEditor');
+            if (closeBtn) closeBtn.hidden = false;
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
