@@ -6021,13 +6021,13 @@ function corComAlfa(hex, alfa) {
    xFim é onde o nome termina; y é a linha de base do nome. */
 function desenharVerificadoCanvas(ctx, p, xFim, y, tam) {
     if (!perfilVerificado(p)) return;
-    const raio = tam * 0.34, espaco = tam * 0.2;
-    const cx = xFim + espaco + raio, cy = y - tam * 0.34;
+    const raio = tam * 0.4, espaco = tam * 0.2;
+    const cx = xFim + espaco + raio, cy = y - tam * 0.4;
     ctx.save();
     ctx.fillStyle = '#1d9bf0';
     ctx.beginPath(); ctx.arc(cx, cy, raio, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = Math.max(1.5, tam * 0.1);
+    ctx.lineWidth = Math.max(1.5, tam * 0.11);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(cx - raio * .46, cy + raio * .02);
