@@ -4919,12 +4919,26 @@ function profileCardHTML(p) {
     const mains = p.mains.map(heroByName).filter(Boolean);
     const lv = nivelCompartilhadoDe(p) || (p === profile ? level() : null);
     const priv = privacidade(p);
+    const done = ACH.filter(x => x.p() >= x.max).length;
     return `<div class="pcard">
         <div class="pban" style="${bannerStyle(p)}"></div>
         <div class="pbody">
             <div class="pav-holder">${avatarBox(96, p)}</div>
             <h2>${esc(p.nick || 'Seu apelido')}${verificadoHTML(p)}</h2>
             ${badgesHTML(p)}
+            ${priv.achievements && done > 0 ? `
+                <div class="pv-ach" style="margin:8px 0">${ACH.map((x, i) => {
+                    const v = Math.min(x.p(), x.max), ok = v >= x.max;
+                    const pct = Math.round(v / x.max * 100);
+                    return `<div class="ach-b ${ok ? 'on' : ''}" title="${esc(x.n)}: ${esc(x.d)}">
+                        <span class="ach-badge"><i class="fa-solid ${ok ? 'fa-check' : 'fa-lock'}"></i></span>
+                        <span class="ach-medal"><i class="fa-solid ${ACH_ICON[i]}"></i></span>
+                        <span class="ach-name">${esc(x.n)}</span>
+                        ${ok
+                            ? '<span class="ach-prog">Concluída</span>'
+                            : `<span class="ach-prog">${v}/${x.max}</span><span class="ach-track"><i style="width:${pct}%"></i></span>`}
+                    </div>`;
+                }).join('')}</div>` : ''}
             ${p.pronouns ? `<div style="color:var(--text-faint);font-size:12.5px;margin-bottom:4px">${esc(p.pronouns)}</div>` : ''}
             ${p.status ? `<div class="pstatus-txt">“${esc(p.status)}”</div>` : ''}
             <div class="prow">
