@@ -3543,8 +3543,6 @@ function initHome() {
             const btn = $('#pvEdit');
             if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
             if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
-            const closeBtn = $('#closeEditor');
-            if (closeBtn) closeBtn.hidden = false;
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -5644,16 +5642,12 @@ function initProfile() {
         btn.innerHTML = isHidden
             ? '<i class="fa-solid fa-pen"></i> Editar perfil'
             : '<i class="fa-solid fa-xmark"></i> Fechar editor';
-        const closeBtn = $('#closeEditor');
-        if (closeBtn) closeBtn.hidden = isHidden;
         if (!isHidden) {
             wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
     const pvEdit = $('#pvEdit');
-    const closeEditor = $('#closeEditor');
     if (pvEdit) pvEdit.addEventListener('click', toggleEditor);
-    if (closeEditor) closeEditor.addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
     $('#pvLink').addEventListener('click', copyLink);
     const pvShare = $('#pvShare'); if (pvShare) pvShare.addEventListener('click', shareProfile);
     $('#pvDl').addEventListener('click', () => baixarCartaoComSeguranca('paisagem'));
@@ -5667,8 +5661,6 @@ function initProfile() {
             wrapper.classList.remove('hidden');
             if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
             if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
-            const closeBtn = $('#closeEditor');
-            if (closeBtn) closeBtn.hidden = false;
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
