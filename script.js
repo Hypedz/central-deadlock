@@ -3541,8 +3541,11 @@ function initHome() {
             wrapper.classList.remove('hidden');
             const title = $('#editorPerfil');
             const btn = $('#pvEdit');
-            if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            if (title) title.innerHTML = '<i class="fa-solid fa-sliders"></i> Editar perfil<button type="button" class="btn btn-dark btn-sm" id="closeEditor" aria-label="Fechar editor" style="margin-left:auto"><i class="fa-solid fa-xmark"></i></button>';
             if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            // re-attach close button listener
+            const closeEditor = $('#closeEditor');
+            if (closeEditor) closeEditor.addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -5636,12 +5639,16 @@ function initProfile() {
         const btn = $('#pvEdit');
         if (!wrapper || !title || !btn) return;
         const isHidden = wrapper.classList.toggle('hidden');
-        title.innerHTML = isHidden
-            ? '<i class="fa-solid fa-sliders"></i> Editar perfil'
-            : '<i class="fa-solid fa-xmark"></i> Fechar editor';
-        btn.innerHTML = isHidden
-            ? '<i class="fa-solid fa-pen"></i> Editar perfil'
-            : '<i class="fa-solid fa-xmark"></i> Fechar editor';
+        if (isHidden) {
+            title.innerHTML = '<i class="fa-solid fa-sliders"></i> Editar perfil';
+            btn.innerHTML = '<i class="fa-solid fa-pen"></i> Editar perfil';
+        } else {
+            title.innerHTML = '<i class="fa-solid fa-sliders"></i> Editar perfil<button type="button" class="btn btn-dark btn-sm" id="closeEditor" aria-label="Fechar editor" style="margin-left:auto"><i class="fa-solid fa-xmark"></i></button>';
+            btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            // re-attach close button listener
+            const closeEditor = $('#closeEditor');
+            if (closeEditor) closeEditor.addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
+        }
         if (!isHidden) {
             wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -5659,8 +5666,11 @@ function initProfile() {
             const title = $('#editorPerfil');
             const btn = $('#pvEdit');
             wrapper.classList.remove('hidden');
-            if (title) title.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            if (title) title.innerHTML = '<i class="fa-solid fa-sliders"></i> Editar perfil<button type="button" class="btn btn-dark btn-sm" id="closeEditor" aria-label="Fechar editor" style="margin-left:auto"><i class="fa-solid fa-xmark"></i></button>';
             if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar editor';
+            // re-attach close button listener
+            const closeEditor = $('#closeEditor');
+            if (closeEditor) closeEditor.addEventListener('click', (e) => { e.stopPropagation(); toggleEditor(); });
         }
         const el = $('#profileEditor'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
