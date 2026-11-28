@@ -1,10 +1,29 @@
 /* ATENCAO: arquivo gerado automaticamente pelo script tools/update-news.py
    Nao edite na mao: as mudancas sao perdidas na proxima atualizacao.
-   Ultima atualizacao: 28/11/2026 as 02:20 */
+   Ultima atualizacao: 28/11/2026 as 11:03 */
 window.STEAM_NEWS = {
- "updated": "28/11/2026 as 02:20",
- "count": 12,
+ "updated": "28/11/2026 as 11:03",
+ "count": 13,
  "items": [
+  {
+   "id": "s1850460852992007",
+   "title": "Minor Update - 11-27-2026",
+   "title_pt": "Atualização secundária - 27/11/2026",
+   "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1850460852992007",
+   "ts": 1795833226,
+   "date": "28 nov 2026",
+   "cat": "Patch Notes",
+   "patch": true,
+   "image": "",
+   "desc": "Apollo: Riposte - Now procs on melee hits - Apollo: Riposte - Cooldown reduced from 22s to 20s - Apollo: Riposte - T2 debuff duration increased from +1s to +1.25s - Baba: Base bullet resista...",
+   "desc_pt": "Apollo: Riposte - Agora aciona ataques corpo a corpo - Apollo: Riposte - Cooldown reduzido de 22s para 20s - Apollo: Riposte - Duração do debuff T2 aumentada de +1s para +1,25s - Baba: Resis...",
+   "lines": [
+    "Apollo: Riposte - Now procs on melee hits - Apollo: Riposte - Cooldown reduced from 22s to 20s - Apollo: Riposte - T2 debuff duration increased from +1s to +1.25s - Baba: Base bullet resistance increased from -7% to -4% - Baba: Threadsap - Cooldown reduced from 28s to 26s - Baba: Threadsap - Spirit Damage Per Bullet increased from 12 + 0.26 to 18 + 0.3 - Baba: Granny Long Legs - Cooldown reduced from 32s to 30s - Baba: Granny Long Legs - Heavy Melee now takes 0.1s less time to play out - Baba: Granny Long Legs - Heavy Melee spirit damage scaling increased from 0.6 to 0.9 - Baba: Feed The Birds - T1 increased from +4m Cast Range to +5m"
+   ],
+   "lines_pt": [
+    "Apollo: Riposte - Agora ativa ataques corpo a corpo - Apollo: Riposte - Cooldown reduzido de 22s para 20s - Apollo: Riposte - Duração do debuff T2 aumentada de +1s para +1,25s - Baba: Resistência base à bala aumentada de -7% para -4% - Baba: Threadsap - Cooldown reduzido de 28s para 26s - Baba: Threadsap - Dano espiritual por bala aumentado de 12 + 0,26 a 18 + 0,3 - Baba: Granny Long Legs - Cooldown reduzido de 32s para 30s - Baba: Granny Long Legs - Heavy Melee agora leva 0,1s a menos para ser executado - Baba: Granny Long Legs - Escala de dano de espírito de Heavy Melee aumentado de 0,6 para 0,9 - Baba: Feed The Birds - T1 aumentado de +4m Alcance de lançamento para +5m"
+   ]
+  },
   {
    "id": "s1850460852986472",
    "title": "Minor Update - 11-26-2026",
